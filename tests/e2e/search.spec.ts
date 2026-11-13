@@ -72,6 +72,6 @@ test('Peneliti: navigasi tersaring izin dan tanpa grup User', async ({ page }) =
     await expect(palette(page).getByRole('option', { name: 'Kelola Pengumuman' })).toHaveCount(0)
     // Respons server (grup kosong) sudah datang: pesan memuat hilang dari live region.
     await expect(palette(page).getByRole('status')).not.toHaveText('Mencari…')
-    await expect(palette(page).getByText('User', { exact: true })).toHaveCount(0)
+    await expect(palette(page).getByText('Pengguna & Verifikasi', { exact: true })).toHaveCount(0)
     expect(errors).toEqual([])
 })

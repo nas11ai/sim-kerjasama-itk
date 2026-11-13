@@ -29,7 +29,7 @@ it('persists form_phase_detail_id and submission_period_id when saving a draft',
         'permission' => 'submissions.create',
         'organization_id' => $organization->id,
     ]);
-    $formPhase = FormPhase::create(['title' => 'Fase Uji', 'is_active' => true]);
+    $formPhase = FormPhase::create(['title' => 'Tahap Uji', 'is_active' => true]);
 
     $built = buildAccessibleFormPhaseDetail($user, $organization, $accessControl, $formPhase);
 
@@ -60,8 +60,8 @@ it('resolves the correct form_phase_detail when the form is shared by two phase 
         'organization_id' => $organization->id,
     ]);
 
-    $formPhaseA = FormPhase::create(['title' => 'Fase A', 'is_active' => true]);
-    $formPhaseB = FormPhase::create(['title' => 'Fase B', 'is_active' => true]);
+    $formPhaseA = FormPhase::create(['title' => 'Tahap A', 'is_active' => true]);
+    $formPhaseB = FormPhase::create(['title' => 'Tahap B', 'is_active' => true]);
 
     // Kandidat yang salah — kalau resolusi jatuh balik ke ->first() lewat
     // form_id saja, ini yang akan (keliru) terpilih.
@@ -96,7 +96,7 @@ it('resolves the form_phase_detail of the user\'s own organization when the same
     $otherOrganization = Organization::create(['name' => 'Organisasi Lain '.fake()->unique()->numerify('####-####'), 'type' => 'study_program']);
 
     $form = Form::factory()->create();
-    $formPhase = FormPhase::create(['title' => 'Fase Bersama Lintas Organisasi', 'is_active' => true]);
+    $formPhase = FormPhase::create(['title' => 'Tahap Bersama Lintas Organisasi', 'is_active' => true]);
 
     // FormAccessControl milik organisasi LAIN, dibuat lebih dulu — kandidat
     // yang salah. Kalau resolusi jatuh balik ke ->first() tanpa scope

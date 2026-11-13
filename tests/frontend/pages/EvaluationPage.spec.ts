@@ -50,7 +50,7 @@ const baseProps: EvaluationPageProps = {
         period: 'Periode 2026',
         leadName: 'Dr. Budi Santoso',
         memberCount: 3,
-        status: { key: 'under_review', label: 'Direview', variant: 'secondary' },
+        status: { key: 'under_review', label: 'Dinilai', variant: 'secondary' },
     },
     answers: [
         {
@@ -60,7 +60,7 @@ const baseProps: EvaluationPageProps = {
             downloadUrl: null,
         },
     ],
-    forms: [form(1, 'Form Substansi'), form(2, 'Form Administrasi')],
+    forms: [form(1, 'Formulir Substansi'), form(2, 'Formulir Administrasi')],
     activeFormId: 2,
     evaluationSettled: false,
 }
@@ -82,14 +82,14 @@ describe('EvaluationPage', () => {
 
         const visible = wrapper.findAllComponents(EvaluationFormPanel)
         expect(visible).toHaveLength(1)
-        expect(visible[0].props('form').title).toBe('Form Administrasi')
+        expect(visible[0].props('form').title).toBe('Formulir Administrasi')
         expect(wrapper.text()).toContain('Biochar dari limbah biomassa')
     })
 
     it('tanpa form evaluasi menampilkan keadaan kosong', () => {
         const wrapper = mountPage({ forms: [], activeFormId: null })
 
-        expect(wrapper.text()).toContain('Tahap ini tidak memiliki form evaluasi aktif')
+        expect(wrapper.text()).toContain('Tahap ini tidak memiliki formulir evaluasi aktif')
     })
 
     it('evaluasi selesai menawarkan lanjut ke ringkasan', () => {

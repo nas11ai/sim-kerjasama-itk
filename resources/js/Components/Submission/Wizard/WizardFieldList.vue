@@ -13,7 +13,7 @@ const emit = defineEmits<{ update: [fieldId: number, value: WizardFieldValue] }>
 </script>
 
 <template>
-    <EmptyState v-if="fields.length === 0" title="Form ini tidak punya isian di langkah ini." />
+    <EmptyState v-if="fields.length === 0" title="Formulir ini tidak punya isian di langkah ini." />
     <WizardFieldInput
         v-for="field in fields"
         v-else

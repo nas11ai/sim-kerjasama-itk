@@ -17,16 +17,16 @@ import AuthLayout from '@/Layouts/AuthLayout.vue'
         <Empty class="p-0 md:p-0">
             <EmptyHeader>
                 <EmptyMedia variant="icon"><CircleAlert /></EmptyMedia>
-                <EmptyTitle>Link undangan tidak valid</EmptyTitle>
+                <EmptyTitle>Tautan undangan tidak valid</EmptyTitle>
                 <EmptyDescription>
-                    Link undangan sudah kedaluwarsa atau kuota penggunaannya habis. Hubungi Operator
-                    LPPM untuk meminta undangan baru.
+                    Tautan undangan sudah kedaluwarsa atau kuota penggunaannya habis. Hubungi
+                    Operator LPPM untuk meminta undangan baru.
                 </EmptyDescription>
             </EmptyHeader>
         </Empty>
 
         <Button as-child variant="outline" class="mt-6 w-full">
-            <Link :href="route('login')">Kembali ke Halaman Login</Link>
+            <Link :href="route('login')">Kembali ke Halaman Masuk</Link>
         </Button>
         <p class="mt-4 text-center text-sm text-muted-foreground">Kontak: lppm@itk.ac.id</p>
     </AuthLayout>

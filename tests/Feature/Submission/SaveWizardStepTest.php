@@ -154,9 +154,9 @@ it('[IAM-VERIFY-11] akun pending tetap boleh menyimpan', function () {
     ['owner' => $owner, 'submission' => $submission, 'fields' => $fields] = wizardSaveFixture();
     $owner->userProfile->update(['verification_status' => VerificationStatus::Pending->value]);
 
-    wizardSave($owner, $submission, 2, 3, [['form_field_id' => $fields['Judul']->id, 'value' => 'Draft pending']])
+    wizardSave($owner, $submission, 2, 3, [['form_field_id' => $fields['Judul']->id, 'value' => 'Draf pending']])
         ->assertSessionHasNoErrors()
         ->assertRedirect(route('user.submissions.wizard', [$submission, 3]));
 
-    expect($submission->formFieldResponses()->where('value', 'Draft pending')->exists())->toBeTrue();
+    expect($submission->formFieldResponses()->where('value', 'Draf pending')->exists())->toBeTrue();
 });

@@ -74,19 +74,19 @@ describe('Dashboard/IndexPage', () => {
 
     it('merender section sesuai sections, tanpa memeriksa peran', () => {
         const text = mountPage({
-            sections: [section('researcher', 'Pengajuan Saya'), section('reviewer', 'Review')],
+            sections: [section('researcher', 'Pengajuan Saya'), section('reviewer', 'Penilaian')],
         }).text()
 
         expect(text).toContain('Pengajuan Saya')
-        expect(text).toContain('Kartu Review')
+        expect(text).toContain('Kartu Penilaian')
         expect(text).not.toContain('Manajemen')
     })
 
     it('banner antrian hanya bila pending ada', () => {
-        expect(mountPage().text()).not.toContain('butuh reviewer')
+        expect(mountPage().text()).not.toContain('butuh penilai')
 
         const text = mountPage({ pending: { awaitingReviewer: 3, awaitingVerification: 2 } }).text()
-        expect(text).toContain('3 pengajuan butuh reviewer · 2 user menunggu verifikasi NIDN')
+        expect(text).toContain('3 pengajuan butuh penilai · 2 pengguna menunggu verifikasi NIDN')
     })
 
     it('[IAM-VERIFY-04] profil belum lengkap: banner dan Buat Pengajuan Baru nonaktif', () => {
@@ -118,7 +118,7 @@ describe('Dashboard/IndexPage', () => {
         const text = mountPage().text()
 
         expect(text).toContain('Belum ada aktivitas')
-        expect(text).toContain('Tidak ada deadline mendekat')
+        expect(text).toContain('Tidak ada tenggat mendekat')
         expect(text).toContain('Belum ada pengumuman untuk Anda.')
     })
 

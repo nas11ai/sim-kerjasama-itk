@@ -15,7 +15,7 @@ defineProps<{ steps: PreviewStep[] }>()
                 <p class="text-sm font-medium">{{ step.title }}</p>
                 <Badge variant="outline">{{ step.deadlineLabel }}</Badge>
                 <Badge :variant="step.needsReview ? 'default' : 'outline'">{{
-                    step.needsReview ? 'Perlu Review' : 'Tanpa Review'
+                    step.needsReview ? 'Perlu Penilaian' : 'Tanpa Penilaian'
                 }}</Badge>
             </div>
             <p class="text-xs text-muted-foreground">Akses: {{ step.access }}</p>
@@ -27,7 +27,7 @@ defineProps<{ steps: PreviewStep[] }>()
                     v-for="form in step.evaluationForms.filter((f) => f.isActive)"
                     :key="form.formId"
                 >
-                    {{ form.title || 'Form evaluasi sudah dihapus dari pustaka' }}
+                    {{ form.title || 'Formulir evaluasi sudah dihapus dari pustaka' }}
                     <span class="text-muted-foreground"
                         >· {{ form.versionLabel }} ·
                         {{ form.isRequired ? 'wajib' : 'tidak wajib' }}</span

@@ -75,7 +75,7 @@ it('kontrak layar periode', function () {
                 ->has('dates.0', fn (AssertableInertia $date) => $date
                     ->where('type', 'submit')
                     ->where('cycle', null)
-                    ->where('label', 'Batas Submit')
+                    ->where('label', 'Batas Pengiriman')
                     ->where('passed', false)
                     ->where('phaseDetailCount', 0)
                     ->has('id')->has('at')->has('inputValue'))
@@ -168,7 +168,7 @@ it('pengajuan masuk hanya menghitung induk yang terkirim', function () {
 it('baris membawa penghalang hapus dan kunci tanggal', function () {
     // BR-FE-26 (ADR 0019) — tanggal terkunci bila langkah fase tertaut membacanya; penghalang
     // hapus hanya pengajuan.
-    $phase = publishedPhase(['title' => 'Fase Kunci', 'is_active' => true]);
+    $phase = publishedPhase(['title' => 'Tahap Kunci', 'is_active' => true]);
     scheduleStep($phase, needsReview: false);
     $terpakai = periodWithDates(['+1 month']);
     SubmissionPeriodPhase::create(['submission_period_id' => $terpakai->id, 'form_phase_id' => $phase->id]);

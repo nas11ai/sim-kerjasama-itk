@@ -25,7 +25,7 @@ it('menyimpan payload NotificationPayload tanpa action_url (W39)', function () {
 
     expect($row)->not->toBeNull()
         ->and($row->data['title'])->toBe('Pengajuan Baru Masuk')
-        ->and($row->data['message'])->toBe("Pengajuan #{$submission->id} telah disubmit dan menunggu penugasan reviewer.")
+        ->and($row->data['message'])->toBe("Pengajuan #{$submission->id} telah dikirim dan menunggu penugasan penilai.")
         ->and($row->data['type'])->toBe('proposal_submitted')
         ->and($row->data['form_submission_id'])->toBe($submission->id)
         ->and($row->data)->not->toHaveKey('action_url');

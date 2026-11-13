@@ -11,8 +11,8 @@ final class AnnouncementAudience
     /** @var array<string, string> */
     public const ROLE_LABELS = [
         'researcher' => 'Dosen',
-        'reviewer_internal' => 'Reviewer Internal',
-        'reviewer_external' => 'Reviewer Eksternal',
+        'reviewer_internal' => 'Penilai Internal',
+        'reviewer_external' => 'Penilai Eksternal',
         'operator' => 'Operator LPPM',
         'admin' => 'Admin',
     ];
@@ -37,7 +37,7 @@ final class AnnouncementAudience
         }
 
         if ($roleNames === []) {
-            return 'Semua pengguna login';
+            return 'Semua pengguna yang sudah masuk';
         }
 
         $labels = array_map(static fn (string $name): string => self::ROLE_LABELS[$name] ?? $name, $roleNames);

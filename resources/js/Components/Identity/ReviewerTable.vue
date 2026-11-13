@@ -60,7 +60,7 @@ const variants: Record<ReviewerStanding, 'success' | 'secondary' | 'outline' | '
                     size="sm"
                     variant="outline"
                     @click="emit('revise', row)"
-                    ><Pencil class="size-4" />Edit Periode</Button
+                    ><Pencil class="size-4" />Ubah Periode</Button
                 >
                 <Button v-if="row.historyUrl" as-child size="sm" variant="ghost">
                     <Link :href="row.historyUrl"><BookOpen class="size-4" />Riwayat</Link>
@@ -70,7 +70,7 @@ const variants: Record<ReviewerStanding, 'success' | 'secondary' | 'outline' | '
         <template #empty>
             <EmptyState
                 :icon="UserSearch"
-                :title="filtered ? 'Tidak ada reviewer yang cocok' : 'Belum ada reviewer'"
+                :title="filtered ? 'Tidak ada penilai yang cocok' : 'Belum ada penilai'"
             />
         </template>
     </DataTable>

@@ -38,7 +38,7 @@ final class SubmissionTitleField
         }
 
         throw ValidationException::withMessages([
-            'fields' => 'Form hanya boleh punya satu field bertipe Judul pengajuan.',
+            'fields' => 'Formulir hanya boleh punya satu isian bertipe Judul pengajuan.',
         ]);
     }
 }

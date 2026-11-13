@@ -121,7 +121,7 @@ it('label subjek dan pelaku', function () {
 
     $rows = auditListProps($agus)['entries']['data'];
 
-    expect($rows[1]['subject'])->toBe('Submission · Biochar Kaltim')
+    expect($rows[1]['subject'])->toBe('Pengajuan · Biochar Kaltim')
         ->and($rows[1]['actor'])->toBe('Dr. Budi Santoso (Peneliti)')
         ->and($rows[0]['subject'])->toBe('Skema · DIPA')
         // Urutan RoleCatalog, bukan urutan penetapan peran.
@@ -192,7 +192,7 @@ it('[E2E-06] subjek laporan monev memakai nama siklus dan judul induk', function
         'form_phase_detail_id' => $fx['monev1']->id,
         'submitted_by' => $fx['owner']->id,
     ]);
-    AuditTrail::record('Laporan monev disubmit', $laporan, $fx['owner']);
+    AuditTrail::record('Laporan monev dikirim', $laporan, $fx['owner']);
 
     $rows = auditListProps(auditListOperator())['entries']['data'];
 
@@ -209,8 +209,8 @@ it('[E2E-07] pencarian mencocokkan nama subjek non-pengajuan', function (Closure
         ->toBe(['Subjek dicari']);
 })->with([
     'Skema' => [fn () => Scheme::factory()->create(['name' => 'DIPA Internal']), 'dipa'],
-    'Form' => [fn () => Form::factory()->create(['title' => 'Formulir Hibah Kompetitif']), 'kompetitif'],
-    'User' => [fn () => User::factory()->create(['name' => 'Rina Wulandari']), 'wulandari'],
+    'Formulir' => [fn () => Form::factory()->create(['title' => 'Formulir Hibah Kompetitif']), 'kompetitif'],
+    'Pengguna' => [fn () => User::factory()->create(['name' => 'Rina Wulandari']), 'wulandari'],
     'Pengumuman' => [fn () => Announcement::create([
         'title' => 'Pendaftaran Hibah Dibuka',
         'content' => 'Isi.',
@@ -228,11 +228,11 @@ it('[E2E-07] laporan monev bisa dicari lewat judul induknya', function () {
         'submitted_by' => $fx['owner']->id,
     ]);
     $operator = auditListOperator();
-    AuditTrail::record('Laporan monev disubmit', $laporan, $fx['owner']);
+    AuditTrail::record('Laporan monev dikirim', $laporan, $fx['owner']);
     AuditTrail::record('Pengajuan disubmit', auditListSubmission(verifiedResearcher(), 'Biochar Kaltim'), $operator);
 
     expect(array_column(auditListProps($operator, ['search' => 'smart farming'])['entries']['data'], 'action'))
-        ->toBe(['Laporan monev disubmit']);
+        ->toBe(['Laporan monev dikirim']);
 });
 
 it('[E2E-08] pelaku yang sudah soft-delete tetap bernama', function () {

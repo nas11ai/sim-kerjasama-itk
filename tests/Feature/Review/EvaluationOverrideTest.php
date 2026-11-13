@@ -40,7 +40,7 @@ beforeEach(function () {
         'evaluation_status' => 'pending',
         'status' => 'active',
     ]);
-    $form = evaluationFormOn($this->detail, [], title: 'Form Substansi');
+    $form = evaluationFormOn($this->detail, [], title: 'Formulir Substansi');
     $this->field = ReviewFormField::create([
         'review_evaluation_form_version_id' => $form->latestVersion->id,
         'field_type_id' => FieldType::firstOrCreate(['name' => 'text'])->id,
@@ -66,7 +66,7 @@ function evaluationOverride(FormSubmission $submission, FormPhaseDetail $detail,
         'form_submission_id' => $submission->id,
         'form_phase_detail_id' => $detail->id,
         'granted_by' => User::factory()->create()->id,
-        'reason' => 'Reviewer sakit.',
+        'reason' => 'Penilai sakit.',
         'expires_at' => Carbon::parse('2026-03-31 23:59:59'),
         'is_active' => true,
         ...$attributes,

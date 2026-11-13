@@ -30,7 +30,7 @@ const form = useForm<{ name: string; type: string | null; parent_id: string | nu
 const editing = computed(() => (props.mode === 'edit' ? props.unit : null))
 const title = computed(() => {
     if (props.mode === 'root') return 'Tambah Unit Induk'
-    return props.mode === 'child' ? `Tambah Sub-unit di ${props.unit?.name ?? ''}` : 'Edit Unit'
+    return props.mode === 'child' ? `Tambah Sub-unit di ${props.unit?.name ?? ''}` : 'Ubah Unit'
 })
 // Tipe lama di luar katalog tetap terpilih saat menyunting (W117).
 const types = computed(() => {

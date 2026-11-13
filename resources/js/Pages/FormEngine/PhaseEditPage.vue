@@ -23,7 +23,7 @@ const libraryHref = computed(() =>
 
 const creating = computed(() => props.phase.id === null)
 const title = computed(() =>
-    creating.value ? 'Buat Tahap Baru' : `Edit Phase: ${props.phase.title}`
+    creating.value ? 'Buat Tahap Baru' : `Ubah Tahap: ${props.phase.title}`
 )
 
 // Trap S2b — editor lahir ulang saat draf dibuang/dibuat atau versi baru terbit.
@@ -41,7 +41,7 @@ const editorKey = computed(() =>
             :title="title"
             subtitle="Susun langkah sebagai draf, pratinjau, lalu terbitkan sebagai versi baru."
             :back-href="libraryHref"
-            back-label="Fase"
+            back-label="Tahap"
         >
             <template v-if="!creating" #badge>
                 <Badge variant="outline">{{ phase.versionLabel ?? 'Belum terbit' }}</Badge>

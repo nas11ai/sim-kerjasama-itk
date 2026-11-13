@@ -29,9 +29,9 @@ class FinishReviewRound
     {
         $this->guardOwnActiveSeat($seat, $actor);
 
-        $round = $seat->formSubmission->runningReviewRound() ?? $this->reject('Tidak ada putaran review yang sedang berjalan.');
+        $round = $seat->formSubmission->runningReviewRound() ?? $this->reject('Tidak ada putaran penilaian yang sedang berjalan.');
         $participant = $round->participants()->where('submission_reviewer_id', $seat->id)->first()
-            ?? $this->reject('Anda bukan peserta putaran review ini.');
+            ?? $this->reject('Anda bukan peserta putaran penilaian ini.');
 
         $this->guardEvaluationSent($participant, $seat);
         $this->markFinished($participant);
@@ -51,7 +51,7 @@ class FinishReviewRound
             return;
         }
 
-        throw new AuthorizationException('Hanya reviewer yang bertugas yang dapat menyelesaikan putarannya.');
+        throw new AuthorizationException('Hanya penilai yang bertugas yang dapat menyelesaikan putarannya.');
     }
 
     /**

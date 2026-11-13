@@ -4,7 +4,7 @@ import type { ExportJobRow } from '@/types/reporting'
 export const exportJob = (overrides: Partial<ExportJobRow> = {}): ExportJobRow => ({
     id: 1,
     kind: 'export',
-    type: 'Rekap Submission',
+    type: 'Rekap Pengajuan',
     type_value: 'submissions',
     format: 'xlsx',
     filters: { year_from: 2026 },

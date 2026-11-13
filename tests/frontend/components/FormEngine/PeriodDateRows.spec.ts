@@ -5,7 +5,7 @@ import OptionSelect from '@/Components/app/OptionSelect.vue'
 import PeriodDateRows, { type PeriodDateRow } from '@/Components/FormEngine/PeriodDateRows.vue'
 
 const typeOptions = [
-    { value: 'submit', label: 'Batas Submit' },
+    { value: 'submit', label: 'Batas Pengiriman' },
     { value: 'output', label: 'Batas Akhir' },
 ]
 

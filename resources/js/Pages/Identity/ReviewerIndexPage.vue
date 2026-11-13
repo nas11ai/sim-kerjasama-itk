@@ -42,22 +42,22 @@ const revise = (row: ReviewerRowData) => {
 </script>
 
 <template>
-    <Head title="Manajemen Reviewer" />
+    <Head title="Manajemen Penilai" />
     <AppLayout>
         <PageHeader
-            title="Manajemen Reviewer"
-            subtitle="Semua reviewer beserta periode aktif dan beban tugasnya."
+            title="Manajemen Penilai"
+            subtitle="Semua penilai beserta periode aktif dan beban tugasnya."
         >
             <template #actions>
-                <Button @click="appointing = true"><Plus class="size-4" />Tambah Reviewer</Button>
+                <Button @click="appointing = true"><Plus class="size-4" />Tambah Penilai</Button>
             </template>
         </PageHeader>
         <FilterToolbar
             v-model:search="filters.search"
             :selects="selects"
             :values="filters"
-            search-placeholder="Cari nama reviewer..."
-            search-label="Cari nama reviewer"
+            search-placeholder="Cari nama penilai..."
+            search-label="Cari nama penilai"
             @select="(key, value) => (filters[key] = value)"
         />
         <ReviewerTable :rows="reviewers.data" :filtered="filtered" @revise="revise" />
@@ -65,8 +65,8 @@ const revise = (row: ReviewerRowData) => {
         <div class="mt-4">
             <!-- BR-IAM-11 — tidak ada registrasi mandiri reviewer -->
             <AppBanner tone="warning">
-                Menambah reviewer memilih user yang sudah terdaftar, tidak ada jalur registrasi
-                mandiri untuk reviewer. Reviewer eksternal harus diundang lebih dulu lewat Undangan
+                Menambah penilai memilih pengguna yang sudah terdaftar, tidak ada jalur registrasi
+                mandiri untuk penilai. Penilai eksternal harus diundang lebih dulu lewat Undangan
                 Registrasi.
             </AppBanner>
         </div>

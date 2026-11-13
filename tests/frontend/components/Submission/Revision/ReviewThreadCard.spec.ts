@@ -86,7 +86,7 @@ describe('ReviewThreadCard', () => {
 
         expect(wrapper.text()).not.toContain('Tandai Selesai')
         expect(wrapper.text()).toContain(
-            'Hanya reviewer yang membuka catatan ini yang dapat menandainya selesai.'
+            'Hanya penilai yang membuka catatan ini yang dapat menandainya selesai.'
         )
     })
 
@@ -108,7 +108,7 @@ describe('ReviewThreadCard', () => {
     it('[REV-DISCUSS-03] reviewer menandai ulir selesai', async () => {
         const wrapper = mountCard(true, true)
 
-        expect(wrapper.text()).not.toContain('Hanya reviewer yang membuka catatan ini')
+        expect(wrapper.text()).not.toContain('Hanya penilai yang membuka catatan ini')
         await wrapper.find('[data-test="resolve-thread"]').trigger('click')
         wrapper.findComponent(ConfirmDialog).vm.$emit('confirm')
 

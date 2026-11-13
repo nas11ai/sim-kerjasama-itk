@@ -109,7 +109,7 @@ it('mengubah peran lewat route', function () {
 
     $this->actingAs(accessAdmin())->put(route('admin.users.roles.update', $user), ['roles' => ['operator', 'researcher']])
         ->assertRedirect()
-        ->assertSessionHas('success', 'Peran user diperbarui.');
+        ->assertSessionHas('success', 'Peran pengguna diperbarui.');
 
     expect($user->fresh()->getRoleNames()->sort()->values()->all())->toBe(['operator', 'researcher']);
 });

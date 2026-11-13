@@ -190,18 +190,18 @@ const remove = () => {
             </template>
         </DataTable>
         <p class="text-xs text-muted-foreground">
-            Form ini hanya dapat dipakai oleh peneliti dari organisasi yang terdaftar di sini.
+            Formulir ini hanya dapat dipakai oleh peneliti dari organisasi yang terdaftar di sini.
             Menghapus aturan memerlukan konfirmasi.
         </p>
         <Button as-child variant="outline">
             <Link :href="route('admin.phases.index', { form: form.id })"
-                >Lanjut: Phases<ArrowRight class="size-4"
+                >Lanjut: Tahap<ArrowRight class="size-4"
             /></Link>
         </Button>
         <ConfirmDialog
             v-model:open="confirming"
             title="Hapus aturan akses?"
-            description="Peneliti yang hanya terjangkau lewat aturan ini tidak lagi melihat form ini."
+            description="Peneliti yang hanya terjangkau lewat aturan ini tidak lagi melihat formulir ini."
             confirm-label="Hapus Aturan"
             destructive
             :processing="removing"

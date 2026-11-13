@@ -68,7 +68,7 @@ it('tidak mengambil opsi milik field lain', function () {
     $lain = ReviewFormField::create([
         'review_evaluation_form_version_id' => $field->review_evaluation_form_version_id,
         'field_type_id' => $field->field_type_id,
-        'label' => 'Field lain',
+        'label' => 'Isian lain',
         'is_required' => false,
         'order' => 2,
     ]);

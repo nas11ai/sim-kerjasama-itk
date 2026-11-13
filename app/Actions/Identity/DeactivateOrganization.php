@@ -37,7 +37,7 @@ class DeactivateOrganization
 
         if ($census->blocksDeactivation()) {
             throw ValidationException::withMessages([
-                'organization_id' => "Masih ada {$census->subtreeActiveUsers} user aktif di unit ini atau turunannya. "
+                'organization_id' => "Masih ada {$census->subtreeActiveUsers} pengguna aktif di unit ini atau turunannya. "
                     .'Pindahkan atau nonaktifkan orangnya lebih dulu.',
             ]);
         }

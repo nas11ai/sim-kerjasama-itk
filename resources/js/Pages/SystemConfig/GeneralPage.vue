@@ -23,7 +23,7 @@ const tabs: { value: ReferenceGroup | 'all'; label: string }[] = [
 ]
 const cards: { group: ReferenceGroup; title: string }[] = [
     { group: 'output', title: 'Referensi Luaran' },
-    { group: 'scheme', title: 'Referensi Skema & Submission' },
+    { group: 'scheme', title: 'Referensi Skema & Pengajuan' },
     { group: 'other', title: 'Anggaran' },
 ]
 

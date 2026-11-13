@@ -69,7 +69,7 @@ it('siklus induk: detail sesudah detail induk, urut, bernama Monev I/II', functi
 it('detail pengajuan Form lain di tahap yang sama tidak menghalangi', function () {
     $fx = monevFixture();
     // Detail pengajuan Form lain berbagi tahap (W92) dan berurutan lebih dulu.
-    $lain = monevDetail($fx['monev1']->formPhase, 0, 'Batas Submit');
+    $lain = monevDetail($fx['monev1']->formPhase, 0, 'Batas Pengiriman');
 
     expect(MonevCycles::details($fx['parent'])->pluck('id')->all())->not->toContain($lain->id)
         ->and(MonevAccessGate::isCycleOpen($fx['parent'], $fx['monev1']))->toBeTrue();

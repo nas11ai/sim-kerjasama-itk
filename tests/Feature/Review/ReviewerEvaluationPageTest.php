@@ -37,8 +37,8 @@ beforeEach(function () {
         'evaluation_status' => 'pending',
         'status' => 'active',
     ]);
-    $this->substance = evaluationPageForm($detail, 'Form Substansi', 1);
-    $this->administration = evaluationPageForm($detail, 'Form Administrasi', 2);
+    $this->substance = evaluationPageForm($detail, 'Formulir Substansi', 1);
+    $this->administration = evaluationPageForm($detail, 'Formulir Administrasi', 2);
     $this->field = ReviewFormField::create([
         'review_evaluation_form_version_id' => $this->administration->latestVersion->id,
         'field_type_id' => FieldType::firstOrCreate(['name' => 'select'])->id,
@@ -87,7 +87,7 @@ it('[SM-ACCESS-05] reviewer yang ditugaskan membuka Review/EvaluationPage', func
             ->where('submission.leadName', 'Dr. Budi Santoso')
             ->has('answers')
             ->has('forms', 2)
-            ->where('forms.0.title', 'Form Substansi')
+            ->where('forms.0.title', 'Formulir Substansi')
             ->where('forms.0.state', 'not_started')
             ->where('forms.0.assignmentId', null)
             ->where('forms.0.canEdit', true)

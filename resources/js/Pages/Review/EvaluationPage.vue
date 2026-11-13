@@ -47,7 +47,7 @@ const initialTab = props.activeFormId === null ? undefined : String(props.active
                 <h2 class="text-lg font-semibold">Evaluasi</h2>
                 <EmptyState
                     v-if="forms.length === 0"
-                    title="Tahap ini tidak memiliki form evaluasi aktif"
+                    title="Tahap ini tidak memiliki formulir evaluasi aktif"
                 />
                 <Tabs v-else :default-value="initialTab">
                     <TabsList class="flex-wrap">

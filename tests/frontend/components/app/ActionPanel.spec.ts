@@ -17,10 +17,10 @@ import type { ActionItem } from '@/types/action'
 
 const edit: ActionItem = {
     key: 'edit',
-    label: 'Edit Pengajuan',
+    label: 'Ubah Pengajuan',
     href: '/edit',
     available: true,
-    hint: 'Tersedia saat pengajuan masih berstatus Draft.',
+    hint: 'Tersedia saat pengajuan masih berstatus Draf.',
 }
 
 const mountPanel = (actions: ActionItem[]) => mount(ActionPanel, { props: { actions } })
@@ -30,7 +30,7 @@ describe('ActionPanel', () => {
         const link = mountPanel([edit]).find('a')
 
         expect(link.attributes('href')).toBe('/edit')
-        expect(link.text()).toContain('Edit Pengajuan')
+        expect(link.text()).toContain('Ubah Pengajuan')
     })
 
     it('memanggil onSelect', async () => {
@@ -53,7 +53,7 @@ describe('ActionPanel', () => {
         const wrapper = mountPanel([edit, { ...edit, key: 'other', available: false }])
 
         expect(
-            wrapper.text().match(/Tersedia saat pengajuan masih berstatus Draft\./g)
+            wrapper.text().match(/Tersedia saat pengajuan masih berstatus Draf\./g)
         ).toHaveLength(2)
     })
 })

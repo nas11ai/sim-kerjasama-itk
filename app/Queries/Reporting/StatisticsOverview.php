@@ -53,7 +53,7 @@ class StatisticsOverview implements ChangesNoState
     {
         return new KpiCardData(
             key: 'submissions',
-            label: 'Total Submission',
+            label: 'Total Pengajuan',
             value: (string) array_sum(array_map(fn (StatusShareData $s): int => $s->count, $byStatus)),
             meta: $filters->year === null ? 'Semua tahun' : "Tahun {$filters->year}",
             href: $withLinks ? route('admin.submissions.index', $filters->query()) : null,
@@ -79,7 +79,7 @@ class StatisticsOverview implements ChangesNoState
         $internal = is_numeric($rows->get('internal')) ? (int) $rows->get('internal') : 0;
         $external = is_numeric($rows->get('external')) ? (int) $rows->get('external') : 0;
 
-        return new KpiCardData('activeReviewers', 'Reviewer Aktif', (string) ($internal + $external), "Internal {$internal} · Eksternal {$external}", null);
+        return new KpiCardData('activeReviewers', 'Penilai Aktif', (string) ($internal + $external), "Internal {$internal} · Eksternal {$external}", null);
     }
 
     /**

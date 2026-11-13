@@ -44,7 +44,7 @@ function onePhaseFor(string $title, Form $form, array $attributes = []): FormPha
 
 function onePhaseMessage(): string
 {
-    return 'Tahap Penelitian DIPA dan Penelitian DIPA Salinan sama-sama memakai Form pengajuan Proposal Penelitian. Satu periode hanya boleh punya satu tahap per Form pengajuan.';
+    return 'Tahap Penelitian DIPA dan Penelitian DIPA Salinan sama-sama memakai Formulir pengajuan Proposal Penelitian. Satu periode hanya boleh punya satu tahap per Formulir pengajuan.';
 }
 
 function onePhaseLinks(SubmissionPeriod $period): array
@@ -124,7 +124,7 @@ it('[FE-PHASE-10] refuses to publish a version that gives a linked phase the sub
 
     expect(fn () => PublishPhaseVersion::run($pengmas, $structure, $this->admin))->toThrow(
         ValidationException::class,
-        'Tahap Penelitian DIPA dan Pengabdian DIPA sama-sama memakai Form pengajuan Proposal Penelitian. Satu periode hanya boleh punya satu tahap per Form pengajuan.',
+        'Tahap Penelitian DIPA dan Pengabdian DIPA sama-sama memakai Formulir pengajuan Proposal Penelitian. Satu periode hanya boleh punya satu tahap per Formulir pengajuan.',
     );
     expect($pengmas->versions()->count())->toBe(1);
 });

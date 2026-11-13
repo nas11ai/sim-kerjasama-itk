@@ -27,14 +27,14 @@ class MoveUserToOrganization
     public function handle(User $actor, User $user, Organization $tujuan): void
     {
         if (!$actor->can('organizations.manage')) {
-            throw new AuthorizationException('Hanya Operator yang dapat memindahkan user antar unit.');
+            throw new AuthorizationException('Hanya Operator yang dapat memindahkan pengguna antar unit.');
         }
 
         $profile = $user->userProfile;
 
         if ($profile === null) {
             throw ValidationException::withMessages([
-                'user_id' => 'User ini belum melengkapi profil, jadi belum punya unit untuk dipindah.',
+                'user_id' => 'Pengguna ini belum melengkapi profil, jadi belum punya unit untuk dipindah.',
             ]);
         }
 

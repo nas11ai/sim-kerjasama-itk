@@ -19,11 +19,11 @@ const submit = () => form.post(route('password.email'))
 </script>
 
 <template>
-    <Head title="Lupa Password" />
+    <Head title="Lupa Kata Sandi" />
     <AuthLayout>
         <AuthHeading
-            title="Lupa Password"
-            subtitle="Masukkan email akun Anda, kami kirimkan link reset password."
+            title="Lupa Kata Sandi"
+            subtitle="Masukkan email akun Anda, kami kirimkan tautan untuk mengatur ulang kata sandi."
         />
 
         <form class="space-y-4" @submit.prevent="submit">
@@ -43,12 +43,12 @@ const submit = () => form.post(route('password.email'))
 
             <Button type="submit" class="w-full" :disabled="form.processing">
                 <Mail />
-                Kirim Link Reset
+                Kirim Tautan Atur Ulang
             </Button>
         </form>
 
         <p class="mt-6 text-center text-sm">
-            <Link :href="route('login')" class="underline">Kembali ke Login</Link>
+            <Link :href="route('login')" class="underline">Kembali ke halaman Masuk</Link>
         </p>
     </AuthLayout>
 </template>

@@ -67,7 +67,7 @@ export const stepKindOptions: StepKindOption[] = [
         type: 'submit' as const,
         cycle: i + 1,
     })),
-    { value: kindValue('output', null), label: 'Upload Luaran', type: 'output', cycle: null },
+    { value: kindValue('output', null), label: 'Unggah Luaran', type: 'output', cycle: null },
 ]
 
 export const stepKindKey = (detail: EditableDetail) =>

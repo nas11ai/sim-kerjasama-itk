@@ -42,7 +42,7 @@ describe('ExportHistoryTable', () => {
             'Waktu',
             'Aksi',
         ])
-        expect(wrapper.text()).toContain('Rekap Submission')
+        expect(wrapper.text()).toContain('Rekap Pengajuan')
         expect(wrapper.text()).toContain('Sejak 2026 · Semua skema')
         expect(wrapper.text()).toContain('Selesai')
     })
@@ -96,7 +96,7 @@ describe('ExportHistoryTable', () => {
         expect(wrapper.text()).toContain('Gagal')
         expect(wrapper.text()).toContain('3 dari 3')
         expect(wrapper.text()).toContain(
-            'Export gagal, coba lagi. Sistem tidak akan mengulang sendiri; jalankan ulang secara manual.'
+            'Ekspor gagal, coba lagi. Sistem tidak akan mengulang sendiri; jalankan ulang secara manual.'
         )
         await button(wrapper, 'Coba Lagi')?.trigger('click')
         expect(wrapper.emitted('rerun')?.[0]).toEqual([job])

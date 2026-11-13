@@ -59,7 +59,7 @@ class SubmissionWizard implements ChangesNoState
         $steps = [];
 
         foreach (WizardStepGate::LABELS as $number => $label) {
-            $blocked = $number === WizardStepGate::STEP_FORM_PERIOD ? null : 'Pilih form dan periode lebih dulu.';
+            $blocked = $number === WizardStepGate::STEP_FORM_PERIOD ? null : 'Pilih formulir dan periode lebih dulu.';
             $steps[] = new WizardStepData($number, $label, false, $blocked);
         }
 

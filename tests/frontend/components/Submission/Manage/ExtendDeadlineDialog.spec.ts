@@ -40,7 +40,7 @@ const closedPhase: PhaseAccess = {
 }
 
 const target: OverrideTarget = {
-    phaseLabel: 'Pengajuan: Batas Submit',
+    phaseLabel: 'Pengajuan: Batas Pengiriman',
     affectedReviewers: ['Sari', 'Andi'],
 }
 
@@ -94,17 +94,17 @@ describe('ExtendDeadlineDialog', () => {
     it('[FE-OVERRIDE-03] perpanjangan dikirim berlaku sampai akhir hari', async () => {
         await open()
 
-        expect(text()).toContain('Pengajuan: Batas Submit')
+        expect(text()).toContain('Pengajuan: Batas Pengiriman')
         expect(text()).toContain('terlewat')
         await fill('#extend-date', '2026-12-31')
-        await fill('#extend-reason', 'Reviewer sakit dua minggu.')
+        await fill('#extend-reason', 'Penilai sakit dua minggu.')
         await click('Perpanjang Tenggat')
 
         const [form, url] = post.mock.calls[0]
         expect(url).toBe('/admin.submissions.overrides.store/9')
         expect(form.expires_at).toBe('2026-12-31 23:59:59')
         expect(form.form_phase_detail_id).toBe(3)
-        expect(form.reason).toBe('Reviewer sakit dua minggu.')
+        expect(form.reason).toBe('Penilai sakit dua minggu.')
     })
 
     it('[FE-OVERRIDE-06] alasan kosong tampil sebagai galat field', async () => {
@@ -128,12 +128,12 @@ describe('ExtendDeadlineDialog', () => {
                 id: 4,
                 status: 'active',
                 expires_at: '2026-03-31T23:59:59+08:00',
-                reason: 'Reviewer sakit.',
+                reason: 'Penilai sakit.',
             },
         })
 
         expect(text()).toContain('Aktif sampai')
-        expect(text()).toContain('Reviewer sakit.')
+        expect(text()).toContain('Penilai sakit.')
         await click('Cabut')
         expect(destroy).not.toHaveBeenCalled()
 
@@ -148,7 +148,7 @@ describe('ExtendDeadlineDialog', () => {
     it('[FE-WINDOW-05] reviewer terdampak ditampilkan', async () => {
         await open()
 
-        expect(text()).toContain('Reviewer Terdampak')
+        expect(text()).toContain('Penilai Terdampak')
         expect(text()).toContain('Sari, Andi')
     })
 
@@ -160,6 +160,6 @@ describe('ExtendDeadlineDialog', () => {
 
         expect(text()).toContain('Pengajuan ini tidak tertaut ke tahap mana pun')
         expect(document.querySelector('#extend-date')).toBeNull()
-        expect(text()).not.toContain('Reviewer Terdampak')
+        expect(text()).not.toContain('Penilai Terdampak')
     })
 })

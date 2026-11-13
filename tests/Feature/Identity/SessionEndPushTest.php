@@ -70,7 +70,7 @@ it('halaman login menampilkan alasan sesi berakhir dari query', function (string
         ->assertInertia(fn (Assert $p) => $p->where('notice', $notice));
 })->with([
     ['nonaktif', 'Akun Anda dinonaktifkan. Hubungi LPPM bila ini keliru.'],
-    ['diakhiri', 'Sesi Anda diakhiri oleh admin. Silakan login lagi.'],
+    ['diakhiri', 'Sesi Anda diakhiri oleh admin. Silakan masuk lagi.'],
     ['palsu', null],
 ]);
 

@@ -18,7 +18,7 @@ final class SubmissionRecapExport implements ExportDefinition
 {
     public function label(): string
     {
-        return 'Rekap Submission';
+        return 'Rekap Pengajuan';
     }
 
     public function filterKeys(): array
@@ -28,7 +28,7 @@ final class SubmissionRecapExport implements ExportDefinition
 
     public function headings(): array
     {
-        return ['ID', 'Judul', 'Status', 'Skema', 'Ketua', 'Tanggal Submit', 'Total Anggaran'];
+        return ['ID', 'Judul', 'Status', 'Skema', 'Ketua', 'Tanggal Kirim', 'Total Anggaran'];
     }
 
     public function rowCount(User $user, ExportFilters $filters): int

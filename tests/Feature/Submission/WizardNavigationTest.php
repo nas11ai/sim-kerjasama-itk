@@ -199,7 +199,7 @@ it('[SM-WIZARD-06] validasi penuh baru berjalan di langkah 7', function () {
     // Dan di situlah validasi penuh menolak, menyebut field-nya.
     try {
         RequiredFieldGuard::assertComplete($submission);
-        $this->fail('Submit seharusnya ditolak: field wajib masih kosong.');
+        $this->fail('Kirim seharusnya ditolak: isian wajib masih kosong.');
     } catch (ValidationException $e) {
         expect($e->errors())->toHaveKey("field_{$mitra->id}");
     }

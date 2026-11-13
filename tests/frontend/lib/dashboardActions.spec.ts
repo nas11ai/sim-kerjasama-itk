@@ -35,7 +35,7 @@ describe('quickActions (W45, §4.4)', () => {
     })
 
     it('Tugaskan Reviewer menaut daftar yang difilter status submitted', () => {
-        const assign = quickActions(OPERATOR).find((a) => a.label === 'Tugaskan Reviewer')
+        const assign = quickActions(OPERATOR).find((a) => a.label === 'Tugaskan Penilai')
 
         expect(assign?.routeName).toBe('admin.submissions.index')
         expect(assign?.params).toEqual({ status: 'submitted' })

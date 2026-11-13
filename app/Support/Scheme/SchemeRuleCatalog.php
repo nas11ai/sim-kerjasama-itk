@@ -9,8 +9,8 @@ namespace App\Support\Scheme;
 final class SchemeRuleCatalog
 {
     public const INTEGER_KEYS = [
-        'min_reviewer_count' => 'Minimal Reviewer',
-        'max_reviewer_workload' => 'Beban Maks. Reviewer',
+        'min_reviewer_count' => 'Minimal Penilai',
+        'max_reviewer_workload' => 'Beban Maks. Penilai',
         'max_student_members' => 'Anggota Mahasiswa Maks.',
     ];
 

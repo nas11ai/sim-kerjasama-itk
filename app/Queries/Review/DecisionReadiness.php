@@ -89,17 +89,17 @@ class DecisionReadiness implements ChangesNoState
         $blockers = [];
 
         if ($this->needsReview($submission) && !$submission->activeSubmissionReviewers()->exists()) {
-            $blockers[] = 'Belum ada reviewer.';
+            $blockers[] = 'Belum ada penilai.';
         }
 
         if ($running !== null) {
             $progress = ReviewRoundProgressData::of($running);
             $waiting = $progress->total - $progress->finished;
-            $blockers[] = "{$waiting} dari {$progress->total} reviewer belum menyelesaikan putaran.";
+            $blockers[] = "{$waiting} dari {$progress->total} penilai belum menyelesaikan putaran.";
         }
 
         if ($openThreadCount > 0) {
-            $blockers[] = "{$openThreadCount} catatan reviewer masih terbuka.";
+            $blockers[] = "{$openThreadCount} catatan penilai masih terbuka.";
         }
 
         return $blockers;

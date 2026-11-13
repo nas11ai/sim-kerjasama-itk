@@ -13,7 +13,7 @@ defineProps<{ now: StatisticsNow }>()
         <div class="grid gap-4 lg:grid-cols-2">
             <SectionCard
                 title="Pengajuan Berjalan"
-                description="Umur dihitung sejak submit pertama; tidak mengikuti filter Tahun."
+                description="Umur dihitung sejak pengiriman pertama; tidak mengikuti filter Tahun."
             >
                 <StageBacklogList :rows="now.backlog" />
             </SectionCard>
@@ -26,18 +26,18 @@ defineProps<{ now: StatisticsNow }>()
         </div>
         <div class="grid gap-4 lg:grid-cols-2">
             <SectionCard
-                title="Cakupan Reviewer"
-                description="Pengajuan berjalan menurut jumlah reviewer aktif."
+                title="Cakupan Penilai"
+                description="Pengajuan berjalan menurut jumlah penilai aktif."
             >
                 <RankedBarList :rows="now.coverage" />
             </SectionCard>
             <SectionCard
-                title="Beban Reviewer"
-                description="Evaluasi yang belum selesai per reviewer aktif."
+                title="Beban Penilai"
+                description="Evaluasi yang belum selesai per penilai aktif."
             >
                 <RankedBarList :rows="now.workload.rows" />
                 <p v-if="now.workload.idleCount > 0" class="text-sm text-muted-foreground">
-                    {{ now.workload.idleCount }} reviewer aktif belum punya tugas evaluasi.
+                    {{ now.workload.idleCount }} penilai aktif belum punya tugas evaluasi.
                 </p>
             </SectionCard>
         </div>

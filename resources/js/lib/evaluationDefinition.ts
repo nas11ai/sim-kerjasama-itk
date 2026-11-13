@@ -83,8 +83,8 @@ export function toEditableEvaluationFields(
 // BR-FE-31 / §4.5 — draf yang belum terbit terlihat di daftar dan di editor, sama bunyinya.
 export const draftBannerText = (latestVersionLabel: string | null) =>
     latestVersionLabel === null
-        ? 'Draf belum diterbitkan. Belum ada versi yang dipakai reviewer.'
-        : `Draf belum diterbitkan. Reviewer masih memakai ${latestVersionLabel}.`
+        ? 'Draf belum diterbitkan. Belum ada versi yang dipakai penilai.'
+        : `Draf belum diterbitkan. Penilai masih memakai ${latestVersionLabel}.`
 
 // §4.5 — konfirmasi Terbitkan; kalimat kedua hanya bila ada angkatan yang tetap di versi lama.
 export const publishImpactText = (impact: { nextLabel: string; pinnedCohorts: number }) =>

@@ -26,7 +26,7 @@ class ReviewRoundController extends Controller
         $seat = $reviewer === null ? null : ActiveReviewerAssignment::run($submission, $reviewer->id);
 
         // BR-SM-07, BR-REV-10 — hanya penugasan yang masih berlaku.
-        abort_if($seat === null, 403, 'Anda tidak ditugaskan sebagai reviewer pengajuan ini.');
+        abort_if($seat === null, 403, 'Anda tidak ditugaskan sebagai penilai pengajuan ini.');
 
         FinishReviewRound::run($seat, $actor);
 

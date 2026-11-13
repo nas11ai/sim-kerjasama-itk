@@ -46,9 +46,9 @@ describe('WizardFieldInput', () => {
     )
 
     it('menampilkan error field_{id}', () => {
-        const wrapper = mountInput(field('text'), "Field 'Isian' wajib diisi sebelum submit.")
+        const wrapper = mountInput(field('text'), "Isian 'Isian' wajib diisi sebelum dikirim.")
 
-        expect(wrapper.text()).toContain("Field 'Isian' wajib diisi sebelum submit.")
+        expect(wrapper.text()).toContain("Isian 'Isian' wajib diisi sebelum dikirim.")
     })
 
     it('trl tanpa opsi nonaktif', () => {

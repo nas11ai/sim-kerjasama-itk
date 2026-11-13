@@ -76,7 +76,7 @@ describe('OrganizationUnitPanel', () => {
 
         expect(bodyButton('Nonaktifkan')?.disabled).toBe(true)
         expect(bodyText()).toContain(
-            'Terhalang 14 user aktif, pindahkan atau nonaktifkan orangnya lebih dulu.'
+            'Terhalang 14 pengguna aktif, pindahkan atau nonaktifkan orangnya lebih dulu.'
         )
     })
 
@@ -88,7 +88,7 @@ describe('OrganizationUnitPanel', () => {
             )
         )
 
-        expect(bodyText()).toContain('Terhalang 38 user aktif, tersebar di 4 unit turunan')
+        expect(bodyText()).toContain('Terhalang 38 pengguna aktif, tersebar di 4 unit turunan')
     })
 
     it('[IAM-ORG-01] hapus terhalang menyebut jumlah profil', async () => {
@@ -101,7 +101,7 @@ describe('OrganizationUnitPanel', () => {
 
         expect(bodyButton('Hapus Unit')?.disabled).toBe(true)
         expect(bodyText()).toContain(
-            'Terhalang 14 profil user. Penghapusan menuntut subtree benar-benar kosong, termasuk profil yang user-nya sudah nonaktif.'
+            'Terhalang 14 profil pengguna. Penghapusan menuntut seluruh subunit benar-benar kosong, termasuk profil yang penggunanya sudah nonaktif.'
         )
     })
 
@@ -127,7 +127,7 @@ describe('OrganizationUnitPanel', () => {
 
         expect(bodyText()).toContain('Nonaktifkan unit?')
         expect(bodyText()).toContain(
-            'Unit beserta turunannya berhenti ditawarkan dan memutus rantai akses Form bagi unit di bawahnya.'
+            'Unit beserta turunannya berhenti ditawarkan dan memutus rantai akses Formulir bagi unit di bawahnya.'
         )
         expect(bodyText()).toContain('2 undangan registrasi ikut tidak berlaku.')
 
@@ -194,7 +194,7 @@ describe('OrganizationUnitPanel', () => {
 
         expect(bodyText()).toContain('Aktifkan kembali unit?')
         expect(bodyText()).toContain(
-            'Unit ini kembali ditawarkan dan rantai akses Form-nya tersambung lagi. Unit turunannya tetap nonaktif; aktifkan satu per satu bila perlu.'
+            'Unit ini kembali ditawarkan dan rantai akses Formulirnya tersambung lagi. Unit turunannya tetap nonaktif; aktifkan satu per satu bila perlu.'
         )
         expect(bodyText()).toContain('2 undangan registrasi yang belum kedaluwarsa berlaku lagi.')
 
@@ -218,10 +218,10 @@ describe('OrganizationUnitPanel', () => {
 
     it('Pindahkan User hanya ditawarkan bila subtree berisi profil', async () => {
         await mountPanel(unit())
-        expect(bodyButton('Pindahkan User')).toBeUndefined()
+        expect(bodyButton('Pindahkan Pengguna')).toBeUndefined()
 
         document.body.innerHTML = ''
         await mountPanel(unit({}, { subtreeProfiles: 3 }))
-        expect(bodyButton('Pindahkan User')).toBeDefined()
+        expect(bodyButton('Pindahkan Pengguna')).toBeDefined()
     })
 })

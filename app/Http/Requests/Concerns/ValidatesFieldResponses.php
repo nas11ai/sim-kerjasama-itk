@@ -41,7 +41,7 @@ trait ValidatesFieldResponses
         return [function (Validator $validator): void {
             foreach ($this->uploadedFiles() as $index => $file) {
                 if ($file->getSize() > $this->maxUploadBytes) {
-                    $validator->errors()->add("responses.{$index}.value", 'Ukuran file terlalu besar. Maksimal 10MB.');
+                    $validator->errors()->add("responses.{$index}.value", 'Ukuran berkas terlalu besar. Maksimal 10MB.');
                 }
             }
         }];

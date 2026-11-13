@@ -69,7 +69,7 @@ it('filter review hanya kategori Review', function () {
 
     expect($rows)->toHaveCount(1)
         ->and($rows[0]->category)->toBe('review')
-        ->and($rows[0]->categoryLabel)->toBe('Review');
+        ->and($rows[0]->categoryLabel)->toBe('Penilaian');
 });
 
 it('filter unread hanya yang belum dibaca', function () {

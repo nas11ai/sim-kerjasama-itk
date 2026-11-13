@@ -97,7 +97,7 @@ class ApplyLatestEvaluationVersion
             ->exists();
 
         if (!$shown) {
-            $this->reject('Form evaluasi ini tidak aktif di langkah ini, jadi versinya tidak diterapkan.');
+            $this->reject('Formulir evaluasi ini tidak aktif di langkah ini, jadi versinya tidak diterapkan.');
         }
 
         $this->assertUndecided($pin);

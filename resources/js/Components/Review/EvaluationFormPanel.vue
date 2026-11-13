@@ -36,7 +36,7 @@ const shown = (field: WizardField) =>
 const sheet = computed(() => [
     ...props.form.fields.map((field) => ({ label: field.label, value: shown(field) })),
     { label: 'Catatan Kualitatif', value: props.form.finalNotes ?? '-' },
-    { label: 'Disubmit', value: formatDate(props.form.submittedAt) },
+    { label: 'Dikirim', value: formatDate(props.form.submittedAt) },
 ])
 
 // Evaluasi tidak punya field berkas; nilai selain teks dianggap kosong.
@@ -86,7 +86,7 @@ const submit = () =>
         </template>
 
         <div v-else-if="form.state === 'not_started'" class="flex flex-col items-start gap-2">
-            <p class="text-sm text-muted-foreground">Form ini belum Anda mulai.</p>
+            <p class="text-sm text-muted-foreground">Formulir ini belum Anda mulai.</p>
             <Button v-if="form.canEdit" data-action="start" @click="start">
                 <ClipboardList class="size-4" /> Mulai Evaluasi
             </Button>
@@ -131,14 +131,14 @@ const submit = () =>
                     :disabled="answers.processing"
                     @click="save"
                 >
-                    Simpan Draft
+                    Simpan Draf
                 </Button>
                 <Button type="submit" data-action="submit" :disabled="answers.processing">
-                    <Check class="size-4" /> Submit Evaluasi
+                    <Check class="size-4" /> Kirim Evaluasi
                 </Button>
             </div>
             <p v-if="!preview" class="text-xs text-muted-foreground">
-                Setelah evaluasi disubmit, isian tidak dapat diubah lagi, pastikan skor dan catatan
+                Setelah evaluasi dikirim, isian tidak dapat diubah lagi, pastikan skor dan catatan
                 sudah final.
             </p>
         </form>
@@ -147,7 +147,7 @@ const submit = () =>
             v-model:open="confirming"
             title="Kirim evaluasi?"
             description="Setelah dikirim, penilaian tidak dapat diubah lagi."
-            confirm-label="Submit Evaluasi"
+            confirm-label="Kirim Evaluasi"
             :processing="answers.processing"
             @confirm="submit"
         />

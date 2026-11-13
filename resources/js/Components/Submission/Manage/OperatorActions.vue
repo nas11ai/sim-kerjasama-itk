@@ -33,9 +33,9 @@ const item = (
 
 const actions = computed<ActionItem[]>(() => [
     item('assign', props.can.assignReviewers, {
-        label: 'Tugaskan Reviewer',
+        label: 'Tugaskan Penilai',
         icon: Users,
-        hint: 'Tersedia saat status Disubmit.',
+        hint: 'Tersedia saat status Menunggu Penilaian.',
     }),
     item('extend', props.can.grantOverride, {
         label: 'Perpanjang Tenggat',
@@ -55,8 +55,7 @@ const actions = computed<ActionItem[]>(() => [
                   label: 'Setujui',
                   icon: CheckCircle,
                   hint:
-                      props.readiness.blockers[0] ??
-                      'Semua reviewer selesai tanpa catatan terbuka.',
+                      props.readiness.blockers[0] ?? 'Semua penilai selesai tanpa catatan terbuka.',
               }),
           ]
         : []),

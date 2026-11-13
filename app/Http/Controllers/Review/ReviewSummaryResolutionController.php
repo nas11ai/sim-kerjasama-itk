@@ -23,6 +23,6 @@ class ReviewSummaryResolutionController extends Controller
 
         ResolveReviewSummary::run($reviewSummary, $user);
 
-        return back()->with('success', 'Catatan review ditandai selesai.');
+        return back()->with('success', 'Catatan penilaian ditandai selesai.');
     }
 }

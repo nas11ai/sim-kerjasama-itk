@@ -19,7 +19,7 @@ enum MonevCycleState: string
     {
         return match ($this) {
             self::Done => 'Selesai',
-            self::Submitted => 'Disubmit',
+            self::Submitted => 'Dikirim',
             self::Open => 'Terbuka',
             self::Closed => 'Ditutup',
             self::Locked => 'Terkunci',

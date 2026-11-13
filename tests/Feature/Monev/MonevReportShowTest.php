@@ -118,7 +118,7 @@ it('[MON-REVIEW-08] skor tertutup sebelum reviewer submit', function () {
     $this->actingAs($fx['owner'])->get(route('monev.reports.show', $laporan))
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->where('scores.visible', false)
-            ->where('scores.reason', 'Hasil evaluasi akan tampil begitu reviewer menyelesaikan penilaiannya.'));
+            ->where('scores.reason', 'Hasil evaluasi akan tampil begitu penilai menyelesaikan penilaiannya.'));
 });
 
 it('draft milik ketua menawarkan isi lanjutan', function () {
@@ -138,7 +138,7 @@ it('submit mengarah ke detail laporan', function () {
             'responses' => [['form_field_id' => $this->fx['summary']->id, 'value' => 'Capaian 45%']],
         ])
         ->assertRedirect(route('monev.reports.show', $this->report))
-        ->assertSessionHas('success', 'Laporan Monev I disubmit.');
+        ->assertSessionHas('success', 'Laporan Monev I dikirim.');
 
     $this->get(route('monev.reports.edit', $this->report))
         ->assertRedirect(route('monev.reports.show', $this->report));

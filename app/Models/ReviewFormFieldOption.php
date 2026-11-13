@@ -21,7 +21,7 @@ class ReviewFormFieldOption extends Model
     protected static function booted(): void
     {
         static::updating(function (): void {
-            throw new LogicException('Opsi versi form evaluasi yang terbit tidak dapat diubah.');
+            throw new LogicException('Opsi versi formulir evaluasi yang terbit tidak dapat diubah.');
         });
     }
 

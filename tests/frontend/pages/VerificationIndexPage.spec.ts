@@ -112,7 +112,7 @@ describe('VerificationIndexPage', () => {
         expect(wrapper.find('h1').text()).toBe('Antrian Verifikasi NIDN')
         expect(wrapper.text()).toContain('2 menunggu')
         const back = wrapper.find('a[href="/admin.users.index"]')
-        expect(back.text()).toContain('Daftar User')
+        expect(back.text()).toContain('Daftar Pengguna')
     })
 
     it('kartu pending: nama, email, "NIDN: … · organisasi · daftar tanggal", tombol Verifikasi dan Tolak', async () => {

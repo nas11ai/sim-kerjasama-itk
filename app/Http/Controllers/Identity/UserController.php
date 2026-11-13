@@ -65,7 +65,7 @@ class UserController extends Controller
 
         ChangeUserRoles::run($actor, $user, $request->roleNames());
 
-        return back()->with('success', 'Peran user diperbarui.');
+        return back()->with('success', 'Peran pengguna diperbarui.');
     }
 
     // BR-IAM-21 — wewenang dijaga route (UserPolicy::endSessions).
@@ -76,7 +76,7 @@ class UserController extends Controller
 
         EndUserSessions::run($actor, $user);
 
-        return back()->with('success', 'Seluruh sesi user diakhiri.');
+        return back()->with('success', 'Seluruh sesi pengguna diakhiri.');
     }
 
     // BR-IAM-20 — wewenang dijaga route (UserPolicy::reactivate).

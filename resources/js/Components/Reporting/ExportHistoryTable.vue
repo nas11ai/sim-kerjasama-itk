@@ -53,7 +53,7 @@ const has = (...states: string[]) =>
             kembali.
         </AppBanner>
         <AppBanner v-if="has('failed')" tone="denial">
-            Export gagal, coba lagi. Sistem tidak akan mengulang sendiri; jalankan ulang secara
+            Ekspor gagal, coba lagi. Sistem tidak akan mengulang sendiri; jalankan ulang secara
             manual.
         </AppBanner>
         <DataTable :rows="rows" :columns="columns">

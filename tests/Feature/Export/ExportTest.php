@@ -301,7 +301,7 @@ it('format csv menghasilkan berkas .csv', function () {
     expect($job->file_path)->toEndWith('.csv')
         ->and($job->format)->toBe('csv')
         ->and(strtok((string) Storage::disk(ExportWriter::DISK)->get((string) $job->file_path), "\n"))
-        ->toBe('"ID","Judul","Status","Skema","Ketua","Tanggal Submit","Total Anggaran"');
+        ->toBe('"ID","Judul","Status","Skema","Ketua","Tanggal Kirim","Total Anggaran"');
 });
 
 it('[RPT-EXPORT-12] filter ekspor tidak melebarkan scope peneliti', function () {
@@ -368,8 +368,8 @@ it('ekspor audit peneliti ter-scope AuditScope', function () {
     $job = RequestExport::run($budi, exportOf(ExportType::AUDIT_LOG));
     $subjects = array_column(array_slice(exportedSheet($job), 1), 1);
 
-    expect($subjects)->toContain('Submission · Biochar Kaltim')
-        ->not->toContain('Submission · Smart Farming')
+    expect($subjects)->toContain('Pengajuan · Biochar Kaltim')
+        ->not->toContain('Pengajuan · Smart Farming')
         ->and(AuditEntry::query()->where('description', 'Ekspor diminta')->count())->toBe(1);
 });
 
@@ -382,7 +382,7 @@ it('permintaan ekspor divalidasi', function (array $payload, string $field) {
     'jenis cetak' => [['type' => 'lembar-penilaian'], 'type'],
     'format tak dikenal' => [['format' => 'pdf'], 'format'],
     'tahun terbalik' => [['year_from' => 2026, 'year_to' => 2025], 'year_to'],
-    'status draft' => [['status' => 'draft'], 'status'],
+    'status draf' => [['status' => 'draft'], 'status'],
     'skema tak ada' => [['scheme' => 999999], 'scheme'],
 ]);
 
@@ -412,7 +412,7 @@ it('riwayat ekspor membawa format, filter, parameter, dan batas tautan', functio
     expect($row['kind'])->toBe('export')
         ->and($row['format'])->toBe('csv')
         ->and($row['filters'])->toEqual(['year_from' => 2025, 'year_to' => 2026, 'scheme' => $dipa->id, 'status' => 'approved'])
-        ->and($row['parameters'])->toBe('2025 – 2026 · DIPA · Approved')
+        ->and($row['parameters'])->toBe('2025 – 2026 · DIPA · Disetujui')
         ->and($row['requested_at'])->toBe($job->created_at?->toIso8601String())
         ->and($row['link_expires_at'])->toBe(now()->addHours(ExportRetention::SIGNED_URL_HOURS)->toIso8601String())
         ->and($row['submission_href'])->toBeNull();

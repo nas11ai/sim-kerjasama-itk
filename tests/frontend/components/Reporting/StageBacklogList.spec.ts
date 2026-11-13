@@ -21,7 +21,7 @@ describe('StageBacklogList', () => {
                 rows: [
                     {
                         key: 'under_review',
-                        label: 'Direview',
+                        label: 'Dinilai',
                         count: 4,
                         oldestAgeDays: 12,
                         href: '/admin/submissions?status=under_review',
@@ -32,7 +32,7 @@ describe('StageBacklogList', () => {
         const link = wrapper.find('a')
 
         expect(link.attributes('href')).toBe('/admin/submissions?status=under_review')
-        expect(link.text()).toContain('Direview')
+        expect(link.text()).toContain('Dinilai')
         expect(link.text()).toContain('4')
         expect(link.text()).toContain('terlama 12 hari')
     })

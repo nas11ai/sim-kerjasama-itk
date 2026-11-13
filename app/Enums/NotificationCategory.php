@@ -46,7 +46,7 @@ enum NotificationCategory: string
     public function label(): string
     {
         return match ($this) {
-            self::Review => 'Review',
+            self::Review => 'Penilaian',
             self::Monev => 'Monev',
             self::Submission => 'Pengajuan',
             self::Period => 'Periode',

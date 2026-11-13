@@ -81,8 +81,8 @@ const options = computed({
 <template>
     <ActionDialog
         v-model:open="open"
-        :title="field ? 'Edit Field Evaluasi' : 'Tambah Field Evaluasi'"
-        submit-label="Simpan Field"
+        :title="field ? 'Ubah Isian Evaluasi' : 'Tambah Isian Evaluasi'"
+        submit-label="Simpan Isian"
         @submit="save"
     >
         <FormField id="evaluation-field-label" label="Label" required :error="errors.label">

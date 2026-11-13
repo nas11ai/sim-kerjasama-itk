@@ -43,7 +43,7 @@ const confirmDelete = () => {
 const usage = (form: EvaluationFormCardData) =>
     form.stepCount === 0
         ? 'Belum dipasang di tahap mana pun'
-        : `Dipasang di ${form.stepCount} langkah · ${form.assignmentCount} penugasan reviewer`
+        : `Dipasang di ${form.stepCount} langkah · ${form.assignmentCount} penugasan penilai`
 </script>
 
 <template>
@@ -51,7 +51,7 @@ const usage = (form: EvaluationFormCardData) =>
     <AppLayout>
         <PageHeader
             title="Formulir Evaluasi"
-            subtitle="Lembar penilaian reviewer yang bisa dipasang di banyak tahap."
+            subtitle="Lembar penilaian dari penilai yang bisa dipasang di banyak tahap."
         >
             <template #actions>
                 <Button as-child>
@@ -66,7 +66,7 @@ const usage = (form: EvaluationFormCardData) =>
                 v-if="forms.length === 0"
                 :icon="ClipboardCheck"
                 title="Belum ada Formulir Evaluasi."
-                description="Buat lembar penilaian, terbitkan, lalu pasang di langkah tahap yang direview."
+                description="Buat lembar penilaian, terbitkan, lalu pasang di langkah tahap yang dinilai."
             />
             <div v-else class="space-y-3">
                 <article
@@ -90,7 +90,7 @@ const usage = (form: EvaluationFormCardData) =>
                     <div class="flex flex-wrap justify-end gap-2">
                         <Button as-child size="sm" variant="outline">
                             <Link :href="route('admin.evaluation-forms.edit', form.id)"
-                                ><Pencil class="size-4" />Edit</Link
+                                ><Pencil class="size-4" />Ubah</Link
                             >
                         </Button>
                         <Button size="sm" variant="ghost" @click="requestDelete(form)"
@@ -102,7 +102,7 @@ const usage = (form: EvaluationFormCardData) =>
         </div>
         <ConfirmDialog
             v-model:open="deleting"
-            title="Hapus form evaluasi?"
+            title="Hapus formulir evaluasi?"
             :description="`${target?.title ?? ''} beserta semua versinya dihapus permanen.`"
             confirm-label="Hapus"
             destructive
@@ -111,14 +111,14 @@ const usage = (form: EvaluationFormCardData) =>
         />
         <DeleteBlockedDialog
             v-model:open="blocked"
-            title="Form evaluasi tidak bisa dihapus"
+            title="Formulir evaluasi tidak bisa dihapus"
             deactivate-label="Nonaktifkan"
             :can-deactivate="false"
         >
             <!-- BR-FE-22 -->
             {{ target?.title }} masih dipasang di {{ target?.stepCount }} langkah dan pernah
-            ditugaskan {{ target?.assignmentCount }} kali. Form evaluasi adalah dasar keputusan
-            review; lepas atau nonaktifkan pemasangannya dari editor tahap.
+            ditugaskan {{ target?.assignmentCount }} kali. Formulir evaluasi adalah dasar keputusan
+            penilaian; lepas atau nonaktifkan pemasangannya dari editor tahap.
         </DeleteBlockedDialog>
     </AppLayout>
 </template>

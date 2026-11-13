@@ -52,9 +52,9 @@ const revoke = () => {
     <AppLayout>
         <PageHeader
             title="Undangan Registrasi"
-            subtitle="Undang peneliti eksternal lewat link registrasi, akun langsung aktif tanpa verifikasi NIDN."
+            subtitle="Undang peneliti eksternal lewat tautan registrasi, akun langsung aktif tanpa verifikasi NIDN."
             :back-href="route('admin.users.index')"
-            back-label="Daftar User"
+            back-label="Daftar Pengguna"
         />
         <div class="flex flex-col gap-4">
             <IssuedInvitationLink v-if="issuedUrl" :url="issuedUrl" />

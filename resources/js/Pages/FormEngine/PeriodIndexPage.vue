@@ -58,7 +58,7 @@ const openForm = (row: PeriodRowData | null) => {
         </PageHeader>
         <AppBanner v-if="extended !== undefined" tone="success" class="mb-4">
             <template v-if="extended > 0">
-                Tenggat diperbarui. {{ extended }} peneliti yang masih punya draft diberi tahu.
+                Tenggat diperbarui. {{ extended }} peneliti yang masih punya draf diberi tahu.
             </template>
             <template v-else
                 >Tenggat diperbarui. Tidak ada peneliti yang perlu diberi tahu.</template
@@ -84,15 +84,15 @@ const openForm = (row: PeriodRowData | null) => {
         <div class="mt-4 flex flex-col gap-3">
             <!-- K8d + BR-SM-10/13 — "Dibuka" berakhir di Batas Submit; arsip menunggu seluruh tenggat -->
             <AppBanner tone="info">
-                Periode berhenti menerima pengajuan baru saat Batas Submit terlewat. Draft yang
-                belum disubmit diarsipkan setelah seluruh tenggat periode terlewat atau periode
-                ditutup, dan tidak dapat diedit lagi. Menutup periode secara manual memerlukan
+                Periode berhenti menerima pengajuan baru saat Batas Pengiriman terlewat. Draf yang
+                belum dikirim diarsipkan setelah seluruh tenggat periode terlewat atau periode
+                ditutup, dan tidak dapat diubah lagi. Menutup periode secara manual memerlukan
                 konfirmasi.
             </AppBanner>
             <!-- BR-SCH-08 — hanya perpanjangan tenggat peneliti yang memberi tahu pemilik draft -->
             <AppBanner tone="info">
-                Memundurkan Batas Submit atau Batas Revisi akan otomatis memberi tahu peneliti yang
-                masih punya draft di sana. Memajukannya, atau menggeser Batas Evaluasi, tidak.
+                Memundurkan Batas Pengiriman atau Batas Revisi akan otomatis memberi tahu peneliti
+                yang masih punya draf di sana. Memajukannya, atau menggeser Batas Evaluasi, tidak.
             </AppBanner>
         </div>
         <PeriodDeleteBlockedDialog

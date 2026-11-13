@@ -16,7 +16,7 @@ import type { EvaluationFormEditPageProps } from '@/types/form-engine'
 const props = defineProps<EvaluationFormEditPageProps>()
 
 const title = computed(() =>
-    props.form === null ? 'Buat Formulir Evaluasi' : `Edit Formulir Evaluasi: ${props.form.title}`
+    props.form === null ? 'Buat Formulir Evaluasi' : `Ubah Formulir Evaluasi: ${props.form.title}`
 )
 
 // Trap S2b — editor lahir ulang saat draf dibuang/dibuat atau versi baru terbit.
@@ -32,7 +32,7 @@ const editorKey = computed(() =>
     <AppLayout>
         <PageHeader
             :title="title"
-            subtitle="Susun field sebagai draf, pratinjau, lalu terbitkan sebagai versi baru."
+            subtitle="Susun isian sebagai draf, pratinjau, lalu terbitkan sebagai versi baru."
             :back-href="route('admin.evaluation-forms.index')"
             back-label="Formulir Evaluasi"
         >

@@ -35,7 +35,7 @@ const remove = (index: number) => (files.value = files.value.filter((_, i) => i 
 
 <template>
     <div class="flex flex-col gap-2">
-        <Label for="output-files">File Bukti</Label>
+        <Label for="output-files">Berkas Bukti</Label>
         <ul v-if="existing.length" class="flex flex-col gap-1 text-sm">
             <li v-for="file in existing" :key="file.id">
                 <a :href="file.url" class="text-primary underline-offset-4 hover:underline">

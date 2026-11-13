@@ -29,7 +29,7 @@ const details = computed(() => [
     <div v-if="approved" class="flex flex-col gap-4">
         <AppBanner tone="success">
             {{ opening }} Persetujuan selalu merupakan keputusan manual, tidak pernah terjadi
-            otomatis dari hasil penilaian reviewer.
+            otomatis dari hasil penilaian dari penilai.
         </AppBanner>
         <SectionCard title="Keputusan">
             <InfoGrid :items="details" />
@@ -39,7 +39,7 @@ const details = computed(() => [
         <!-- BR-REV-07 — penolakan selalu keputusan manual, tidak pernah otomatis dari skor -->
         <AppBanner tone="denial">
             {{ opening }} Penolakan selalu merupakan keputusan manual, tidak pernah terjadi otomatis
-            dari hasil penilaian reviewer.
+            dari hasil penilaian dari penilai.
         </AppBanner>
         <SectionCard title="Alasan Penolakan">
             <InfoGrid :items="details" />

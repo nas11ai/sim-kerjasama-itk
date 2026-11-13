@@ -38,7 +38,7 @@ beforeEach(() => {
 
 describe('ReviewRoundCard', () => {
     it('menampilkan kemajuan putaran', () => {
-        expect(mountCard(running()).text()).toContain('Putaran 1: 1 dari 3 reviewer selesai')
+        expect(mountCard(running()).text()).toContain('Putaran 1: 1 dari 3 penilai selesai')
     })
 
     it('Selesai menilai dikirim setelah konfirmasi', async () => {
@@ -92,7 +92,7 @@ describe('ReviewRoundCard', () => {
         const wrapper = mountCard(null)
 
         expect(wrapper.text()).toContain(
-            'Penolakan tidak tersedia di layar reviewer. Hanya Operator yang dapat menolak, lewat aksi tertulis.'
+            'Penolakan tidak tersedia di layar penilai. Hanya Operator yang dapat menolak, lewat aksi tertulis.'
         )
         expect(wrapper.find('button').exists()).toBe(false)
     })

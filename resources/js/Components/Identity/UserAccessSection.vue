@@ -40,14 +40,14 @@ const revoke = (permission: string) => {
 </script>
 
 <template>
-    <SectionCard title="Role & Hak Akses">
+    <SectionCard title="Peran & Hak Akses">
         <template #actions><slot name="actions" /></template>
         <div class="flex flex-wrap gap-2">
             <Badge v-for="role in access.roles" :key="role.value" variant="outline">{{
                 role.label
             }}</Badge>
             <span v-if="access.roles.length === 0" class="text-sm text-muted-foreground"
-                >Tanpa role.</span
+                >Tanpa peran.</span
             >
         </div>
         <div>
@@ -101,8 +101,9 @@ const revoke = (permission: string) => {
             </ul>
         </div>
         <p class="text-xs text-muted-foreground">
-            Hak akses dari role dan hak akses langsung berdiri sendiri, mencabut salah satunya tidak
-            mencabut yang lain. Perubahan role dan hak akses hanya dapat dilakukan oleh Admin.
+            Hak akses dari peran dan hak akses langsung berdiri sendiri, mencabut salah satunya
+            tidak mencabut yang lain. Perubahan peran dan hak akses hanya dapat dilakukan oleh
+            Admin.
         </p>
     </SectionCard>
 </template>

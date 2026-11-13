@@ -30,7 +30,7 @@ trait ReadsFormFields
     protected function fieldMessages(): array
     {
         return [
-            'fields.*.id.exists' => 'Field ini sudah dihapus oleh penerbitan lain. Muat ulang halaman lalu coba lagi.',
+            'fields.*.id.exists' => 'Isian ini sudah dihapus oleh penerbitan lain. Muat ulang halaman lalu coba lagi.',
             'fields.*.options.*.id.exists' => 'Opsi ini sudah dihapus oleh penerbitan lain. Muat ulang halaman lalu coba lagi.',
         ];
     }

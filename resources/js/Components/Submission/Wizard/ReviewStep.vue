@@ -63,7 +63,7 @@ const send = () => {
 </script>
 
 <template>
-    <SectionCard title="Step 7: Periksa Sebelum Mengirim">
+    <SectionCard title="Langkah 7: Periksa Sebelum Mengirim">
         <InfoGrid :items="summary" />
     </SectionCard>
     <SectionCard title="Pemeriksaan Kelengkapan" class="mt-6">
@@ -71,7 +71,7 @@ const send = () => {
         <AppBanner v-if="review.accountBlock" tone="denial">{{ review.accountBlock }}</AppBanner>
         <template v-if="review.missingFields.length > 0">
             <AppBanner tone="warning">
-                {{ review.missingFields.length }} field wajib belum terisi. Perbaiki sebelum
+                {{ review.missingFields.length }} isian wajib belum terisi. Perbaiki sebelum
                 mengirim.
             </AppBanner>
             <ul class="flex flex-col divide-y rounded-md border text-sm">
@@ -94,7 +94,7 @@ const send = () => {
         </template>
         <!-- BR-FE-11 -->
         <AppBanner v-else tone="success">
-            Semua field wajib sudah terisi. Field yang baru diwajibkan setelah pengajuan ini dibuat
+            Semua isian wajib sudah terisi. Isian yang baru diwajibkan setelah pengajuan ini dibuat
             tidak ikut diperiksa.
         </AppBanner>
         <AppBanner v-for="message in rejections" :key="message" tone="denial">{{
@@ -102,8 +102,8 @@ const send = () => {
         }}</AppBanner>
         <!-- BR-SM-04 -->
         <p class="text-xs text-muted-foreground">
-            Setelah disubmit, pengajuan tidak dapat diubah kecuali Operator meminta revisi. Hanya
-            ketua pengaju yang dapat menekan tombol Submit.
+            Setelah dikirim, pengajuan tidak dapat diubah kecuali Operator meminta revisi. Hanya
+            ketua pengaju yang dapat menekan tombol Kirim.
         </p>
         <div v-if="mode" class="flex justify-end">
             <Button
@@ -112,7 +112,7 @@ const send = () => {
                 @click="confirming = true"
             >
                 <Send class="size-4" />
-                {{ mode === 'resubmit' ? 'Kirim Ulang Revisi' : 'Submit Pengajuan' }}
+                {{ mode === 'resubmit' ? 'Kirim Ulang Revisi' : 'Kirim Pengajuan' }}
             </Button>
         </div>
         <!-- [SM-SUBMIT-13], ADR 0015 — Submit tindakan ketua, tak dilimpahkan ke peran lain -->
@@ -124,7 +124,7 @@ const send = () => {
         v-model:open="confirming"
         :title="mode === 'resubmit' ? 'Kirim ulang revisi?' : 'Kirim pengajuan?'"
         description="Setelah dikirim, pengajuan tidak dapat diubah kecuali Operator meminta revisi."
-        :confirm-label="mode === 'resubmit' ? 'Kirim Ulang' : 'Submit'"
+        :confirm-label="mode === 'resubmit' ? 'Kirim Ulang' : 'Kirim'"
         :processing="processing"
         @confirm="send"
     />

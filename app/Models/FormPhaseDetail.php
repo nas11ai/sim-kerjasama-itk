@@ -51,7 +51,7 @@ class FormPhaseDetail extends Model
                 'pengajuan' => FormSubmission::query()
                     ->where('form_phase_detail_id', $detail->id)
                     ->count(),
-                'penugasan form evaluasi' => ReviewerFormAssignment::query()
+                'penugasan formulir evaluasi' => ReviewerFormAssignment::query()
                     ->whereHas('submissionReviewer.formSubmission', fn (Builder $q) => $q->where('form_phase_detail_id', $detail->id))
                     ->count(),
             ]);

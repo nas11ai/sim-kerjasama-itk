@@ -47,7 +47,7 @@ final class PrintableDocument
         return match ($document) {
             self::SCORE_SHEET => 'Lembar Penilaian',
             self::ACCEPTANCE_LETTER => 'Surat Keterangan Diterima',
-            self::RESEARCHER_RECAP => 'Rekap Submission per Peneliti',
+            self::RESEARCHER_RECAP => 'Rekap Pengajuan per Peneliti',
             self::MONEV_REPORT => 'Laporan Monev',
             default => $document,
         };

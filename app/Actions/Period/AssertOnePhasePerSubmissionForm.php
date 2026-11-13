@@ -33,7 +33,7 @@ class AssertOnePhasePerSubmissionForm implements ChangesNoState
             }
 
             throw ValidationException::withMessages([$errorKey => sprintf(
-                'Tahap %s sama-sama memakai Form pengajuan %s. Satu periode hanya boleh punya satu tahap per Form pengajuan.',
+                'Tahap %s sama-sama memakai Formulir pengajuan %s. Satu periode hanya boleh punya satu tahap per Formulir pengajuan.',
                 implode(' dan ', array_column($entries, 'phaseTitle')),
                 $entries[0]['formTitle'],
             )]);

@@ -70,7 +70,7 @@ class ReplaceReviewer
 
         if ($current === null) {
             throw ValidationException::withMessages([
-                'reviewer_id' => 'Reviewer yang hendak diganti tidak sedang bertugas pada pengajuan ini.',
+                'reviewer_id' => 'Penilai yang hendak diganti tidak sedang bertugas pada pengajuan ini.',
             ]);
         }
 

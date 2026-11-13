@@ -46,7 +46,7 @@ const overview: StatisticsOverview = {
     kpis: [
         {
             key: 'submissions',
-            label: 'Total Submission',
+            label: 'Total Pengajuan',
             value: '86',
             meta: 'Tahun 2026',
             href: '/admin/submissions?year=2026',
@@ -61,7 +61,7 @@ const overview: StatisticsOverview = {
         { key: 'outputs', label: 'Luaran Terkumpul', value: '38', meta: 'Semua tipe', href: null },
         {
             key: 'activeReviewers',
-            label: 'Reviewer Aktif',
+            label: 'Penilai Aktif',
             value: '24',
             meta: 'Internal 20 · Eksternal 4',
             href: null,
@@ -82,10 +82,10 @@ const overview: StatisticsOverview = {
 
 const now: StatisticsNow = {
     backlog: [
-        { key: 'submitted', label: 'Menunggu Review', count: 3, oldestAgeDays: 12, href: '/s' },
+        { key: 'submitted', label: 'Menunggu Penilaian', count: 3, oldestAgeDays: 12, href: '/s' },
     ],
     monev: [{ label: 'Belum Aktif', count: 2, href: '/monev' }],
-    coverage: [{ label: 'Tanpa reviewer', count: 1, href: null }],
+    coverage: [{ label: 'Tanpa penilai', count: 1, href: null }],
     workload: { rows: [{ label: 'Dr. Sari (Internal)', count: 3, href: null }], idleCount: 2 },
 }
 
@@ -110,7 +110,7 @@ const followUp: FollowUpList[] = [
     {
         key: 'awaitingReviewer',
         title: 'Menunggu Penugasan Penilai',
-        hint: 'Tugaskan reviewer dari detail pengajuan.',
+        hint: 'Tugaskan penilai dari detail pengajuan.',
         count: 1,
         items: [{ id: 4, title: 'Sensor', leader: 'Budi', scheme: null, ageDays: 3, href: '/a/4' }],
         href: null,
@@ -163,7 +163,7 @@ describe('StatsPage', () => {
     it('judul, subjudul, dan keempat tab dari frame', () => {
         const wrapper = mountPage()
 
-        expect(wrapper.text()).toContain('Dashboard Statistik')
+        expect(wrapper.text()).toContain('Beranda Statistik')
         expect(wrapper.text()).toContain(
             'Statistik ditampilkan langsung dari data terkini dan bersifat hanya-baca.'
         )
@@ -177,18 +177,18 @@ describe('StatsPage', () => {
         const wrapper = mountPage()
 
         for (const label of [
-            'Total Submission',
+            'Total Pengajuan',
             'Total Anggaran Disetujui',
             'Luaran Terkumpul',
-            'Reviewer Aktif',
+            'Penilai Aktif',
             'Tingkat Persetujuan',
         ]) {
             expect(wrapper.text()).toContain(label)
         }
         for (const title of [
-            'Submission per Status',
-            'Submission per Skema per Tahun',
-            'Submission per Fakultas / Prodi',
+            'Pengajuan per Status',
+            'Pengajuan per Skema per Tahun',
+            'Pengajuan per Fakultas / Prodi',
             'Luaran per Tipe',
         ]) {
             expect(wrapper.text()).toContain(title)
@@ -202,19 +202,19 @@ describe('StatsPage', () => {
         for (const title of [
             'Pengajuan Berjalan',
             'Siklus Monev',
-            'Cakupan Reviewer',
-            'Beban Reviewer',
+            'Cakupan Penilai',
+            'Beban Penilai',
         ]) {
             expect(wrapper.text()).toContain(title)
         }
         expect(wrapper.find('a[href="/s"]').text()).toContain('terlama 12 hari')
-        expect(wrapper.text()).toContain('2 reviewer aktif belum punya tugas evaluasi.')
+        expect(wrapper.text()).toContain('2 penilai aktif belum punya tugas evaluasi.')
     })
 
     it('tab Riwayat menampilkan dua tren dan kinerja skema', () => {
         const wrapper = mountPage('history')
 
-        expect(wrapper.text()).toContain('Pengajuan Disubmit per Bulan')
+        expect(wrapper.text()).toContain('Pengajuan Dikirim per Bulan')
         expect(wrapper.text()).toContain('Luaran Terdaftar per Bulan')
         expect(wrapper.findAll('[data-testid="bar-chart"]')).toHaveLength(1)
         expect(wrapper.find('a[href="/scheme"]').text()).toBe('DIPA')
@@ -224,7 +224,7 @@ describe('StatsPage', () => {
         const wrapper = mountPage('follow-up')
 
         expect(wrapper.text()).toContain('Menunggu Penugasan Penilai')
-        expect(wrapper.find('a[href="/a/4"]').text()).toContain('3 hari sejak submit')
+        expect(wrapper.find('a[href="/a/4"]').text()).toContain('3 hari sejak dikirim')
         expect(wrapper.text()).toContain('Tidak ada yang menunggu.')
     })
 

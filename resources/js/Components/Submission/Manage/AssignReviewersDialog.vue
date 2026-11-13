@@ -49,7 +49,7 @@ const send = () =>
 <template>
     <ActionDialog
         v-model:open="open"
-        title="Tugaskan Reviewer"
+        title="Tugaskan Penilai"
         submit-label="Tugaskan"
         :processing="form.processing"
         :submit-disabled="form.reviewer_ids.length === 0"
@@ -65,10 +65,10 @@ const send = () =>
         <!-- BR-REV-01 — status pindah ke UNDER_REVIEW saat minimum tercapai -->
         <div class="rounded-md border p-3 text-sm">
             <p class="font-medium">
-                {{ activeCount + form.reviewer_ids.length }} dari minimal {{ minimum }} reviewer
+                {{ activeCount + form.reviewer_ids.length }} dari minimal {{ minimum }} penilai
             </p>
             <p class="text-muted-foreground">
-                Status pengajuan menjadi Direview setelah jumlah minimum terpenuhi.
+                Status pengajuan menjadi Sedang Dinilai setelah jumlah minimum terpenuhi.
             </p>
         </div>
         <AppBanner v-for="message in errors" :key="message" tone="denial">{{ message }}</AppBanner>

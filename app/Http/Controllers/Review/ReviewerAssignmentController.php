@@ -68,7 +68,7 @@ class ReviewerAssignmentController extends Controller
 
         // BR-SM-07, BR-REV-10 — hanya penugasan yang masih berlaku membuka layar ini.
         if ($assignment === null) {
-            abort(403, 'Anda tidak ditugaskan sebagai reviewer pengajuan ini.');
+            abort(403, 'Anda tidak ditugaskan sebagai penilai pengajuan ini.');
         }
 
         return $assignment;

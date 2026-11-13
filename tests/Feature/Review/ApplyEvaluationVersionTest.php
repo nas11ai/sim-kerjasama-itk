@@ -401,7 +401,7 @@ it('tells a reviewer saving from a page loaded before the apply to reload', func
     ApplyLatestEvaluationVersion::run(cohortPin($this->p2025, $this->step, $this->form), $this->operator);
 
     expect(fn () => SaveEvaluationDraft::run($sari->refresh(), $stalePage, $sari->submissionReviewer->reviewer->user))
-        ->toThrow(ValidationException::class, 'Form evaluasi ini sudah diganti ke versi baru. Muat ulang halaman lalu isi ulang penilaian Anda.');
+        ->toThrow(ValidationException::class, 'Formulir evaluasi ini sudah diganti ke versi baru. Muat ulang halaman lalu isi ulang penilaian Anda.');
 });
 
 it('refuses to apply a pin whose evaluation form is not active at the step, as the page hides it', function () {
@@ -412,7 +412,7 @@ it('refuses to apply a pin whose evaluation form is not active at the step, as t
 
     expect(collect(CohortEvaluationVersions::run($this->p2025))->pluck('pinId'))->not->toContain($pin->id)
         ->and(fn () => ApplyLatestEvaluationVersion::run($pin, $this->operator))
-        ->toThrow(ValidationException::class, 'Form evaluasi ini tidak aktif di langkah ini, jadi versinya tidak diterapkan.');
+        ->toThrow(ValidationException::class, 'Formulir evaluasi ini tidak aktif di langkah ini, jadi versinya tidak diterapkan.');
 });
 
 it('counts the current answers of every pinned row in one query', function () {

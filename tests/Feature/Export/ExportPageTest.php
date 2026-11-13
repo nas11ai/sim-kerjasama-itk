@@ -37,7 +37,7 @@ it('Operator membuka layar Ekspor Data dengan kelima jenis', function () {
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->component('Reporting/ExportPage')
             ->has('options.types', 5)
-            ->where('options.types.0', ['value' => ExportType::SUBMISSIONS, 'label' => 'Rekap Submission', 'filterKeys' => ['year', 'scheme', 'status']])
+            ->where('options.types.0', ['value' => ExportType::SUBMISSIONS, 'label' => 'Rekap Pengajuan', 'filterKeys' => ['year', 'scheme', 'status']])
             ->where('options.types.4', ['value' => ExportType::AUDIT_LOG, 'label' => 'Log Audit', 'filterKeys' => ['year']])
             ->where('options.formats', [['value' => 'xlsx', 'label' => 'Excel'], ['value' => 'csv', 'label' => 'CSV']])
             ->where('threshold', ExportThreshold::SYNCHRONOUS_ROWS)

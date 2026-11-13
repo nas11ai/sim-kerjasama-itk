@@ -75,7 +75,7 @@ const previewForm = computed(() =>
 <template>
     <Tabs default-value="fields" class="space-y-4">
         <TabsList>
-            <TabsTrigger value="fields">Field</TabsTrigger>
+            <TabsTrigger value="fields">Isian</TabsTrigger>
             <TabsTrigger value="preview">Pratinjau</TabsTrigger>
             <TabsTrigger value="versions">Versi &amp; pemakaian</TabsTrigger>
         </TabsList>
@@ -83,7 +83,7 @@ const previewForm = computed(() =>
         <TabsContent value="fields" class="space-y-4">
             <div class="flex justify-end">
                 <Button type="button" size="sm" variant="outline" @click="edit(null)"
-                    ><Plus class="size-4" />Tambah Field</Button
+                    ><Plus class="size-4" />Tambah Isian</Button
                 >
             </div>
             <SortableRows v-model="editor.fields" :label-of="(field) => field.label">
@@ -103,7 +103,7 @@ const previewForm = computed(() =>
                 </template>
             </SortableRows>
             <p v-if="editor.fields.length === 0" class="text-sm text-muted-foreground">
-                Belum ada field. Tambahkan minimal satu field sebelum menerbitkan.
+                Belum ada isian. Tambahkan minimal satu isian sebelum menerbitkan.
             </p>
             <DraftPublishBar
                 :has-draft="form.hasDraft"

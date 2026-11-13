@@ -32,7 +32,7 @@ class ChangeUserRoles
 
         if (array_diff($requested, RoleCatalog::ASSIGNABLE) !== []) {
             throw ValidationException::withMessages([
-                'roles' => 'Peran reviewer diberikan lewat penunjukan reviewer, bukan di sini.',
+                'roles' => 'Peran penilai diberikan lewat penunjukan penilai, bukan di sini.',
             ]);
         }
 

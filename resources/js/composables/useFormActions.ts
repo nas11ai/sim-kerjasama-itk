@@ -30,16 +30,16 @@ export function useFormActions() {
         if (!row) return { title: '', description: '', confirmLabel: '' }
         if (row.isActive) {
             return {
-                title: 'Nonaktifkan form?',
+                title: 'Nonaktifkan formulir?',
                 description: `${row.title} berhenti menerima pengajuan baru. ${row.activeSubmissionCount} pengajuan aktif tetap berjalan dan terbaca. Laporan monev dari pengajuan yang sudah disetujui tetap bisa dikirim.`,
-                confirmLabel: 'Nonaktifkan Form',
+                confirmLabel: 'Nonaktifkan Formulir',
             }
         }
 
         return {
-            title: 'Aktifkan form?',
+            title: 'Aktifkan formulir?',
             description: `${row.title} kembali menerima pengajuan baru selama kontrol akses dan periodenya terbuka.`,
-            confirmLabel: 'Aktifkan Form',
+            confirmLabel: 'Aktifkan Formulir',
         }
     })
 

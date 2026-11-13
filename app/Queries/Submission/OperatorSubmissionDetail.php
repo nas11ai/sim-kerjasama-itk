@@ -146,7 +146,7 @@ class OperatorSubmissionDetail implements ChangesNoState
 
         foreach ($seats as $seat) {
             if ($seat->reviewerFormAssignments->contains(fn (ReviewerFormAssignment $form): bool => $form->isOverdue())) {
-                $names[] = $seat->reviewer->user->name ?? 'Reviewer';
+                $names[] = $seat->reviewer->user->name ?? 'Penilai';
             }
         }
 

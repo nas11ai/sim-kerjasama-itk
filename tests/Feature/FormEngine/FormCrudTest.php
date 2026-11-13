@@ -58,12 +58,12 @@ function publishFormFields(User $admin, Form $form, array $fields): TestResponse
 
 it('creates a form with its fields and options, audited', function () {
     $response = $this->actingAs($this->admin)->post(route('admin.forms.store'), [
-        'title' => 'Form Baru',
+        'title' => 'Formulir Baru',
         'form_type_id' => regularFormType()->id,
         'fields' => [['field_type_id' => $this->fieldType->id, 'label' => 'Skema', 'options' => [['label' => 'A']]]],
     ]);
 
-    $form = Form::query()->where('title', 'Form Baru')->firstOrFail();
+    $form = Form::query()->where('title', 'Formulir Baru')->firstOrFail();
     $response->assertRedirect(route('admin.forms.edit', $form));
 
     // BR-FE-34 — field Form baru lahir sebagai draf; Terbitkan yang menulisnya.
@@ -80,25 +80,25 @@ it('rejects a trl_selector without a scheme_selector on the Form screen and save
     $trl = FieldType::firstOrCreate(['name' => 'trl_selector']);
 
     $this->actingAs($this->admin)->post(route('admin.forms.store'), [
-        'title' => 'Form TRL',
+        'title' => 'Formulir TRL',
         'form_type_id' => regularFormType()->id,
         'fields' => [['field_type_id' => $trl->id, 'label' => 'TRL', 'is_required' => true]],
     ])->assertSessionHasErrors('fields');
 
-    expect(Form::query()->where('title', 'Form TRL')->exists())->toBeFalse();
+    expect(Form::query()->where('title', 'Formulir TRL')->exists())->toBeFalse();
 });
 
 it('rejects a field id that belongs to another form and leaves that form intact', function () {
     $form = Form::factory()->create();
     $other = Form::factory()->create();
-    $foreign = ($this->field)($other, 'Milik Form Lain');
+    $foreign = ($this->field)($other, 'Milik Formulir Lain');
 
     publishFormFields($this->admin, $form, [
         ['id' => $foreign->id, 'field_type_id' => $this->fieldType->id, 'label' => 'Dibajak'],
     ])->assertSessionHasErrors('fields.0.id');
 
     expect($foreign->fresh()?->form_id)->toBe($other->id)
-        ->and($foreign->fresh()?->label)->toBe('Milik Form Lain')
+        ->and($foreign->fresh()?->label)->toBe('Milik Formulir Lain')
         ->and($form->draft()->exists())->toBeTrue();
 });
 
@@ -147,7 +147,7 @@ it('refuses to delete a form with submissions and leaves no audit trace (BR-FE-1
 
 it('refuses to delete a form whose access rule a published phase step uses, keeping the frozen step (BR-FE-32)', function () {
     $step = FormPhaseDetail::factory()->create();
-    $form = $step->formAccessControl?->form ?? throw new LogicException('Langkah tanpa Form.');
+    $form = $step->formAccessControl?->form ?? throw new LogicException('Langkah tanpa Formulir.');
 
     $this->actingAs($this->admin)->delete(route('admin.forms.destroy', $form))->assertSessionHasErrors('id');
 

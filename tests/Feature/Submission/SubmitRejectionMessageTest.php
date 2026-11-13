@@ -47,7 +47,7 @@ it('[SM-SUBMIT-15] penolakan menyebut pengajuan aktif yang sudah ada', function 
 
     try {
         SubmitFormSubmission::run($draft, $owner);
-        $this->fail('Submit seharusnya ditolak karena sudah ada pengajuan aktif.');
+        $this->fail('Kirim seharusnya ditolak karena sudah ada pengajuan aktif.');
     } catch (ValidationException $e) {
         $pesan = implode(' ', $e->errors()['scheme_id']);
 

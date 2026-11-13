@@ -110,7 +110,7 @@ final class FieldAnswerWriter
         }
 
         throw ValidationException::withMessages([
-            'responses' => 'Jawaban memuat field yang bukan milik formulir ini.',
+            'responses' => 'Jawaban memuat isian yang bukan milik formulir ini.',
         ]);
     }
 }

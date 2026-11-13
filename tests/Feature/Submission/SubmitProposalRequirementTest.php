@@ -46,7 +46,7 @@ it('[SM-SUBMIT-07] submit tanpa proposal PDF ditolak', function () {
 
     try {
         SubmitFormSubmission::run($submission, $owner);
-        $this->fail('Submit seharusnya ditolak karena proposal PDF belum diunggah.');
+        $this->fail('Kirim seharusnya ditolak karena proposal PDF belum diunggah.');
     } catch (ValidationException $e) {
         // Error harus per field, dan menyebut label yang dilihat peneliti.
         expect($e->errors())->toHaveKey('field_'.$field->id)
@@ -81,7 +81,7 @@ it('[SM-SUBMIT-07] error per field pada Proposal PDF muncul di jalur submit wiza
         'permission' => 'submissions.create',
         'organization_id' => $organization->id,
     ]);
-    $formPhase = FormPhase::create(['title' => 'Fase Pengajuan', 'is_active' => true]);
+    $formPhase = FormPhase::create(['title' => 'Tahap Pengajuan', 'is_active' => true]);
     $dibangun = buildAccessibleFormPhaseDetail($budi, $organization, $accessControl, $formPhase);
 
     // field_types.name unik — firstOrCreate supaya aman dipakai bersama fixture

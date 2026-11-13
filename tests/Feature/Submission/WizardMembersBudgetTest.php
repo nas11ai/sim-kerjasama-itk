@@ -194,7 +194,7 @@ it('mencari NIDN', function () {
 
 it('[SM-MEMBER-01] reviewer pengajuan ini ditandai tidak bisa ditambahkan', function () {
     $submission = membersDraft();
-    $person = lecturer('Reviewer Rahmat');
+    $person = lecturer('Penilai Rahmat');
     SubmissionReviewer::create([
         'form_submission_id' => $submission->id,
         'reviewer_id' => Reviewer::factory()->create(['user_id' => $person->id])->id,
@@ -205,7 +205,7 @@ it('[SM-MEMBER-01] reviewer pengajuan ini ditandai tidak bisa ditambahkan', func
     $candidates = ResearchMemberCandidates::run($submission, 'Rahmat');
 
     expect($candidates[0]->blockedReason)
-        ->toBe('Reviewer Rahmat sedang ditugaskan sebagai reviewer pengajuan ini, jadi ia tidak dapat ditambahkan sebagai anggota.');
+        ->toBe('Penilai Rahmat sedang ditugaskan sebagai penilai pengajuan ini, jadi ia tidak dapat ditambahkan sebagai anggota.');
 });
 
 it('anggota yang sudah ada tidak ditawarkan', function () {

@@ -29,8 +29,8 @@ export function usePeriodActions() {
         const owners = target.value?.draftOwnerCount ?? 0
         const drafts =
             owners > 0
-                ? `${owners} peneliti dengan draft berjalan akan diberi tahu dan draftnya diarsipkan.`
-                : 'Tidak ada draft berjalan.'
+                ? `${owners} peneliti dengan draf berjalan akan diberi tahu dan drafnya diarsipkan.`
+                : 'Tidak ada draf berjalan.'
 
         return `Pengajuan baru tidak bisa dibuat dan semua tahap pengajuan periode ini terkunci, termasuk yang tenggatnya belum lewat. Siklus monev tetap mengikuti tenggatnya sendiri. ${drafts} Penutupan tidak bisa dibatalkan dari layar ini.`
     })

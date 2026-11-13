@@ -42,7 +42,9 @@ function toggleRole(role: string, checked: boolean | 'indeterminate') {
         </RadioGroup>
         <p v-if="errors.type" class="text-xs text-destructive">{{ errors.type }}</p>
         <div v-if="type === 'private'" class="space-y-2 rounded-md border p-3">
-            <p class="text-xs text-muted-foreground">Kosongkan untuk semua pengguna login.</p>
+            <p class="text-xs text-muted-foreground">
+                Kosongkan untuk semua pengguna yang sudah masuk.
+            </p>
             <div class="flex flex-wrap gap-x-6 gap-y-2">
                 <div
                     v-for="option in roleOptions"

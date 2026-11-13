@@ -19,7 +19,7 @@ describe('DecisionSection', () => {
         const text = render().text()
 
         expect(text).toContain('Pengajuan ini ditolak Operator LPPM pada 12 Mar 2026.')
-        expect(text).toContain('tidak pernah terjadi otomatis dari hasil penilaian reviewer')
+        expect(text).toContain('tidak pernah terjadi otomatis dari hasil penilaian dari penilai')
         expect(text).toContain('Siti Aminah')
         expect(text).toContain(decision.reason)
     })

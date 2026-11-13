@@ -27,12 +27,12 @@ final class AuditSubjectLabel
 {
     /** @var array<class-string<Model>, string> */
     private const CONTEXTS = [
-        FormSubmission::class => 'Submission',
-        User::class => 'User',
+        FormSubmission::class => 'Pengajuan',
+        User::class => 'Pengguna',
         UserProfile::class => 'Profil',
         SubmissionPeriod::class => 'Periode',
         Scheme::class => 'Skema',
-        Form::class => 'Form',
+        Form::class => 'Formulir',
         SubmissionReviewer::class => 'Penugasan Penilai',
         ResearchOutput::class => 'Luaran',
         ExportJob::class => 'Ekspor',

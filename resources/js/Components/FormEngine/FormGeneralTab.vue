@@ -72,8 +72,8 @@ function save(next: boolean) {
 <template>
     <div class="space-y-6">
         <form class="max-w-3xl space-y-6" @submit.prevent="save(false)">
-            <SectionCard title="General">
-                <FormField id="form-title" label="Judul Form" required :error="errors.title">
+            <SectionCard title="Umum">
+                <FormField id="form-title" label="Judul Formulir" required :error="errors.title">
                     <Input id="form-title" v-model="definition.title" maxlength="255" />
                 </FormField>
                 <FormField id="form-description" label="Deskripsi" :error="errors.description">
@@ -82,7 +82,7 @@ function save(next: boolean) {
                 <div class="grid gap-4 sm:grid-cols-2">
                     <FormField
                         id="form-type"
-                        label="Tipe Form"
+                        label="Tipe Formulir"
                         required
                         :error="errors.form_type_id"
                     >
@@ -114,10 +114,10 @@ function save(next: boolean) {
                     variant="outline"
                     :disabled="definition.processing"
                     @click="save(true)"
-                    >Lanjut: Access Control</Button
+                    >Lanjut: Kontrol Akses</Button
                 >
                 <Button type="submit" :disabled="definition.processing">{{
-                    form === null ? 'Buat Form' : 'Simpan'
+                    form === null ? 'Buat Formulir' : 'Simpan'
                 }}</Button>
             </div>
         </form>

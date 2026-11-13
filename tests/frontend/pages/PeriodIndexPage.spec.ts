@@ -54,7 +54,7 @@ const periodRow = (overrides: Partial<PeriodRowData> = {}): PeriodRowData => ({
             id: 11,
             type: 'submit',
             cycle: null,
-            label: 'Batas Submit',
+            label: 'Batas Pengiriman',
             at: '2026-02-15T23:59:00+08:00',
             inputValue: '2026-02-15T23:59',
             passed: false,
@@ -88,7 +88,7 @@ const props = (
     filters: { search: '', status: '', year: '' },
     statusOptions: [{ value: 'active', label: 'Dibuka' }],
     yearOptions: [{ value: '2026', label: '2026' }],
-    typeOptions: [{ value: 'submit', label: 'Batas Submit' }],
+    typeOptions: [{ value: 'submit', label: 'Batas Pengiriman' }],
     phaseOptions: [{ value: '2', label: 'Proposal' }],
     can: { viewSubmissions: true },
     ...overrides,
@@ -136,16 +136,16 @@ describe('FormEngine/PeriodIndexPage', () => {
         }
         // K8d — "Dibuka" berakhir di Batas Submit; arsip draft menunggu seluruh tenggat (BR-SM-13).
         expect(text).toContain(
-            'Periode berhenti menerima pengajuan baru saat Batas Submit terlewat.'
+            'Periode berhenti menerima pengajuan baru saat Batas Pengiriman terlewat.'
         )
         expect(text).toContain(
-            'Draft yang belum disubmit diarsipkan setelah seluruh tenggat periode terlewat'
+            'Draf yang belum dikirim diarsipkan setelah seluruh tenggat periode terlewat'
         )
         // BR-SCH-08 — hanya Batas Submit dan Batas Revisi yang dikerjakan peneliti.
         expect(text).toContain(
-            'Memundurkan Batas Submit atau Batas Revisi akan otomatis memberi tahu'
+            'Memundurkan Batas Pengiriman atau Batas Revisi akan otomatis memberi tahu'
         )
-        expect(text).toContain('Batas Submit: 15 Feb 2026')
+        expect(text).toContain('Batas Pengiriman: 15 Feb 2026')
     })
 
     it('baris yang tidak bisa ditutup tidak menawarkan "Tutup"', () => {
@@ -203,7 +203,7 @@ describe('FormEngine/PeriodIndexPage', () => {
     it('[SCH-RULE-11] banner menyebut jumlah yang diberi tahu', () => {
         page.flash = { deadlineExtended: 7 }
         const text = mountPage([periodRow()]).text()
-        expect(text).toContain('Tenggat diperbarui. 7 peneliti yang masih punya draft diberi tahu.')
+        expect(text).toContain('Tenggat diperbarui. 7 peneliti yang masih punya draf diberi tahu.')
     })
 
     it('tanpa flash perpanjangan tidak ada banner tenggat', () => {
@@ -227,7 +227,7 @@ describe('FormEngine/PeriodIndexPage', () => {
         const second = mountPage([periodRow()])
         await second
             .findAll('button')
-            .find((b) => b.text().trim() === 'Edit')
+            .find((b) => b.text().trim() === 'Ubah')
             ?.trigger('click')
         expect(document.body.textContent).toContain('Sunting Periode')
     })
@@ -274,7 +274,7 @@ describe('FormEngine/PeriodIndexPage', () => {
         await clickIn(wrapper, 'Tutup')
 
         expect(document.body.textContent).toContain(
-            '3 peneliti dengan draft berjalan akan diberi tahu dan draftnya diarsipkan.'
+            '3 peneliti dengan draf berjalan akan diberi tahu dan drafnya diarsipkan.'
         )
         bodyButton('Tutup Periode')?.click()
         await flushPromises()
@@ -289,7 +289,7 @@ describe('FormEngine/PeriodIndexPage', () => {
         const wrapper = mountPage([periodRow({ draftOwnerCount: 0 })])
         await clickIn(wrapper, 'Tutup')
 
-        expect(document.body.textContent).toContain('Tidak ada draft berjalan.')
+        expect(document.body.textContent).toContain('Tidak ada draf berjalan.')
     })
 
     it('daftar kosong menampilkan state kosong', () => {

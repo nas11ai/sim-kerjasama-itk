@@ -16,7 +16,7 @@ const filled = computed(() => props.rows.filter((row) => row.count > 0))
 </script>
 
 <template>
-    <SectionCard title="Submission per Status">
+    <SectionCard title="Pengajuan per Status">
         <p v-if="filled.length === 0" class="text-sm text-muted-foreground">Tidak ada data</p>
         <template v-else>
             <div

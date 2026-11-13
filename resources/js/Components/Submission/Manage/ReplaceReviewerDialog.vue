@@ -31,7 +31,7 @@ const selected = computed(() =>
     form.incoming_reviewer_id === null ? [] : [form.incoming_reviewer_id]
 )
 const outgoingInfo = computed(() => [
-    { label: 'Reviewer Lama', value: props.outgoing.name },
+    { label: 'Penilai Lama', value: props.outgoing.name },
     { label: 'NIDN', value: props.outgoing.nidn ?? '-' },
     { label: 'Evaluasi', value: props.outgoing.evaluationLabel },
 ])
@@ -63,15 +63,15 @@ const send = () =>
     <!-- BR-REV-10, BR-REV-15 — yang lama ditandai replaced, ulir terbukanya diwarisi pengganti -->
     <ActionDialog
         v-model:open="open"
-        title="Ganti Reviewer"
-        submit-label="Ganti Reviewer"
+        title="Ganti Penilai"
+        submit-label="Ganti Penilai"
         :processing="form.processing"
         :submit-disabled="form.incoming_reviewer_id === null"
         @submit="send"
     >
         <InfoGrid :items="outgoingInfo" />
         <p class="text-sm text-muted-foreground">
-            Riwayat reviewer lama tetap tersimpan dan akan ditampilkan dengan label "Digantikan".
+            Riwayat penilai lama tetap tersimpan dan akan ditampilkan dengan label "Digantikan".
         </p>
         <ReviewerPicker
             v-model:search="search"

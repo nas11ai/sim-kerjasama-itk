@@ -22,7 +22,7 @@ class ReviewerAssignmentCards implements ChangesNoState
     use AsAction;
 
     private const LABELS = [
-        'evaluation_pending' => 'Evaluasi Pending',
+        'evaluation_pending' => 'Evaluasi Belum Selesai',
         'discussion_open' => 'Butuh Respon Diskusi',
         'done' => 'Selesai',
     ];

@@ -40,7 +40,7 @@ it('peneliti membuka Submission/WizardPage untuk membuat', function () {
             ->has('startOptions')
             ->has('steps', 7)
             ->where('steps.0.blockedReason', null)
-            ->where('steps.1.blockedReason', 'Pilih form dan periode lebih dulu.'));
+            ->where('steps.1.blockedReason', 'Pilih formulir dan periode lebih dulu.'));
 });
 
 it('tanpa submissions.create ditolak', function () {

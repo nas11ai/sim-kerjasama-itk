@@ -42,7 +42,7 @@ const summary = computed(() => {
             </div>
             <!-- BR-FE-28 — satu Form pengajuan per tahap -->
             <p v-if="phase.submissionFormTitle" class="text-sm">
-                Form pengajuan: {{ phase.submissionFormTitle }}
+                Formulir pengajuan: {{ phase.submissionFormTitle }}
             </p>
             <p v-if="phase.description" class="text-sm text-muted-foreground">
                 {{ phase.description }}
@@ -72,7 +72,7 @@ const summary = computed(() => {
                             ? route('admin.phases.edit', { formPhase: phase.id, form: returnForm })
                             : route('admin.phases.edit', phase.id)
                     "
-                    ><Pencil class="size-4" />Edit</Link
+                    ><Pencil class="size-4" />Ubah</Link
                 >
             </Button>
             <Button size="sm" variant="outline" @click="emit('toggle-active', phase)"

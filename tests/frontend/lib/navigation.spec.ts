@@ -103,7 +103,7 @@ describe('visibleNavGroups', () => {
         const items = visibleNavGroups(navGroups, ['schemes.manage'], NO_FLAGS).flatMap(
             (g) => g.items
         )
-        const index = items.findIndex((i) => i.label === 'Fase')
+        const index = items.findIndex((i) => i.label === 'Tahap')
         // Padanan route().current(pattern) Ziggy saat berada di editor tahap.
         const onEditor = (pattern: string) =>
             pattern === 'admin.phases.edit' ||
@@ -114,7 +114,7 @@ describe('visibleNavGroups', () => {
         expect(isNavItemActive(items[index], onEditor)).toBe(true)
         expect(isNavItemActive(items[index - 1], onEditor)).toBe(false)
         expect(labels(visibleNavGroups(navGroups, ['periods.manage'], NO_FLAGS))).not.toContain(
-            'Fase'
+            'Tahap'
         )
     })
 
@@ -129,7 +129,7 @@ describe('visibleNavGroups', () => {
                 'admin.evaluation-forms.edit'.startsWith(pattern.slice(0, -1)))
 
         expect(items[index - 1]?.label).toBe('Pembuat Formulir')
-        expect(items[index + 1]?.label).toBe('Fase')
+        expect(items[index + 1]?.label).toBe('Tahap')
         expect(items[index]?.routeName).toBe('admin.evaluation-forms.index')
         expect(isNavItemActive(items[index], onEditor)).toBe(true)
         expect(labels(visibleNavGroups(navGroups, ['periods.manage'], NO_FLAGS))).not.toContain(

@@ -50,7 +50,7 @@ class SubmitMonevReport
         $status = $report->status;
 
         if (!$status instanceof SubmissionStatus) {
-            throw new RuntimeException("Laporan {$report->id} tidak punya status, tidak bisa disubmit.");
+            throw new RuntimeException("Laporan {$report->id} tidak punya status, tidak bisa dikirim.");
         }
 
         // BR-FE-35 — teks yang dilihat pengisi saat submit.

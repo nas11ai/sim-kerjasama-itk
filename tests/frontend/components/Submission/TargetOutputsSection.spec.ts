@@ -15,7 +15,7 @@ const submission: SubmissionDetail = {
     period: 'DIPA 2026',
     trl: null,
     leadName: 'Dr. Rina',
-    status: { key: 'under_review', label: 'Direview', variant: 'secondary' },
+    status: { key: 'under_review', label: 'Dinilai', variant: 'secondary' },
     submittedAt: null,
     isArchived: false,
     viewerRole: 'lead_researcher',

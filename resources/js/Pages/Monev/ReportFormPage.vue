@@ -45,13 +45,13 @@ const confirmSubmit = () => submit(() => (confirmOpen.value = false))
             back-label="Daftar Monev"
         >
             <template #badge>
-                <Badge variant="outline">Deadline {{ formatDate(report.deadline) }}</Badge>
+                <Badge variant="outline">Tenggat {{ formatDate(report.deadline) }}</Badge>
             </template>
         </PageHeader>
         <div class="mx-auto flex max-w-3xl flex-col gap-4">
             <AppBanner tone="info">
-                Setiap siklus monev hanya menerima satu laporan. Setelah batas waktu terlewat, form
-                ditutup, hubungi Operator LPPM bila membutuhkan perpanjangan.
+                Setiap siklus monev hanya menerima satu laporan. Setelah batas waktu terlewat,
+                formulir ditutup, hubungi Operator LPPM bila membutuhkan perpanjangan.
             </AppBanner>
             <AppBanner v-if="override" tone="warning">
                 Anda mendapatkan perpanjangan akses hingga
@@ -80,10 +80,10 @@ const confirmSubmit = () => submit(() => (confirmOpen.value = false))
                     </Button>
                     <div class="flex gap-2">
                         <Button variant="outline" :disabled="processing" @click="save">
-                            Simpan Draft
+                            Simpan Draf
                         </Button>
                         <Button :disabled="processing || !can.submit" @click="confirmOpen = true">
-                            <Check class="size-4" /> Submit Laporan
+                            <Check class="size-4" /> Kirim Laporan
                         </Button>
                     </div>
                 </div>
@@ -91,9 +91,9 @@ const confirmSubmit = () => submit(() => (confirmOpen.value = false))
         </div>
         <ConfirmDialog
             v-model:open="confirmOpen"
-            :title="`Submit laporan ${report.cycleName}?`"
-            description="Laporan yang sudah disubmit tidak bisa disunting lagi."
-            confirm-label="Submit Laporan"
+            :title="`Kirim laporan ${report.cycleName}?`"
+            description="Laporan yang sudah dikirim tidak bisa disunting lagi."
+            confirm-label="Kirim Laporan"
             :processing="processing"
             @confirm="confirmSubmit"
         />

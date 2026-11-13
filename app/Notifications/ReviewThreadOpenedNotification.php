@@ -24,7 +24,7 @@ class ReviewThreadOpenedNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Ulir review baru | SIMPAS')
+            ->subject('Ulir penilaian baru | SIMPAS')
             ->line($this->message());
     }
 
@@ -33,7 +33,7 @@ class ReviewThreadOpenedNotification extends Notification implements ShouldQueue
     {
         return (new NotificationPayload(
             type: 'review_thread_opened',
-            title: 'Ulir review baru',
+            title: 'Ulir penilaian baru',
             message: $this->message(),
             context: [
                 'form_submission_id' => $this->summary->form_submission_id,
@@ -44,6 +44,6 @@ class ReviewThreadOpenedNotification extends Notification implements ShouldQueue
 
     private function message(): string
     {
-        return "Reviewer membuka ulir review baru atas pengajuan #{$this->summary->form_submission_id}.";
+        return "Penilai membuka ulir penilaian baru atas pengajuan #{$this->summary->form_submission_id}.";
     }
 }

@@ -35,7 +35,7 @@ final class ReviewerWorkload
             return null;
         }
 
-        return "Reviewer ini sedang memegang {$active} penugasan aktif, melebihi batas {$max} yang ditetapkan skema. Penugasan tetap dapat dilanjutkan.";
+        return "Penilai ini sedang memegang {$active} penugasan aktif, melebihi batas {$max} yang ditetapkan skema. Penugasan tetap dapat dilanjutkan.";
     }
 
     /** Skema yang tidak menyatakan batasnya tidak membatasi apa pun. */

@@ -50,7 +50,7 @@ describe('FormEngine/FormFieldDialog', () => {
 
         expect(wrapper.findComponent(OptionSelect).props('disabled')).toBe(true)
         expect(text()).toContain(
-            'Tipe terkunci: sudah ada 4 jawaban. Tambahkan field baru untuk tipe lain; field ini tetap terbaca apa adanya.'
+            'Tipe terkunci: sudah ada 4 jawaban. Tambahkan isian baru untuk tipe lain; isian ini tetap terbaca apa adanya.'
         )
     })
 
@@ -69,7 +69,7 @@ describe('FormEngine/FormFieldDialog', () => {
         expect(text()).not.toContain('Tipe terkunci')
         select.vm.$emit('update:modelValue', '5')
         await flushPromises()
-        button('Simpan Field').click()
+        button('Simpan Isian').click()
         await flushPromises()
 
         expect(text()).toContain('Tambahkan minimal satu opsi')
@@ -78,13 +78,13 @@ describe('FormEngine/FormFieldDialog', () => {
 
     it('[FE-CHANGE-06] hint draft lama saat field menjadi wajib', async () => {
         await open(field())
-        expect(text()).not.toContain('draft berjalan tidak dipaksa')
+        expect(text()).not.toContain('draf berjalan tidak dipaksa')
 
         document.querySelector<HTMLButtonElement>('#field-required')?.click()
         await flushPromises()
 
         expect(text()).toContain(
-            'Berlaku untuk pengajuan yang dimulai setelah diterbitkan; draft berjalan tidak dipaksa mengisi ulang.'
+            'Berlaku untuk pengajuan yang dimulai setelah diterbitkan; draf berjalan tidak dipaksa mengisi ulang.'
         )
     })
 
@@ -99,7 +99,7 @@ describe('FormEngine/FormFieldDialog', () => {
     it('menolak tipe ber-opsi tanpa opsi', async () => {
         await open(field({ fieldTypeId: 5 }))
 
-        button('Simpan Field').click()
+        button('Simpan Isian').click()
         await flushPromises()
 
         expect(text()).toContain('Tambahkan minimal satu opsi')
@@ -109,7 +109,7 @@ describe('FormEngine/FormFieldDialog', () => {
     it('menolak label kosong', async () => {
         await open(field({ label: '' }))
 
-        button('Simpan Field').click()
+        button('Simpan Isian').click()
         await flushPromises()
 
         expect(text()).toContain('Label wajib diisi')
@@ -131,7 +131,7 @@ describe('FormEngine/FormFieldDialog', () => {
         input.value = '  '
         input.dispatchEvent(new Event('input'))
         await flushPromises()
-        button('Simpan Field').click()
+        button('Simpan Isian').click()
         await flushPromises()
 
         expect(text()).toContain('Label opsi tidak boleh kosong')
@@ -142,7 +142,7 @@ describe('FormEngine/FormFieldDialog', () => {
         await open(field({ fieldTypeId: 5, options: [{ id: 21, label: 'Dasar' }] }))
         button('Tambah Opsi').click()
         await flushPromises()
-        button('Simpan Field').click()
+        button('Simpan Isian').click()
         await flushPromises()
 
         expect(wrapper.emitted('save')?.[0]?.[0]).toMatchObject({
@@ -158,7 +158,7 @@ describe('FormEngine/FormFieldDialog', () => {
         input.value = 'Mitra'
         input.dispatchEvent(new Event('input'))
         await flushPromises()
-        button('Simpan Field').click()
+        button('Simpan Isian').click()
         await flushPromises()
 
         expect(wrapper.emitted('save')?.[0]?.[0]).toMatchObject({
@@ -198,7 +198,7 @@ describe('FormEngine/FormFieldDialog', () => {
             expect(text()).not.toContain(RELABEL_WARNING)
             await setLabel('Judul Penelitian')
             expect(text()).toContain(
-                'Hanya untuk memperbaiki ketikan. Kalau pertanyaannya berbeda, tambahkan field baru, jawaban lama tetap tercatat di field lama.'
+                'Hanya untuk memperbaiki ketikan. Kalau pertanyaannya berbeda, tambahkan isian baru, jawaban lama tetap tercatat di isian lama.'
             )
             await setLabel('Judul')
             expect(text()).not.toContain(RELABEL_WARNING)
@@ -222,7 +222,7 @@ describe('FormEngine/FormFieldDialog', () => {
             await setLabel('Judul Baru')
 
             expect(text()).not.toContain(RELABEL_WARNING)
-            button('Simpan Field').click()
+            button('Simpan Isian').click()
             await flushPromises()
             expect(wrapper.emitted('save')?.[0]?.[0]).toMatchObject({ label: 'Judul Baru' })
         })

@@ -28,7 +28,7 @@ const wizardUrl = (step: number) =>
     <SectionCard title="Bagian yang Dapat Disunting">
         <!-- BR-SM-02 — field wajib diperiksa ulang saat kirim ulang -->
         <AppBanner v-if="missingFields.length > 0" tone="warning">
-            {{ missingFields.length }} field wajib masih kosong. Lengkapi sebelum mengirim ulang.
+            {{ missingFields.length }} isian wajib masih kosong. Lengkapi sebelum mengirim ulang.
             <ul class="mt-2 list-disc pl-4">
                 <li v-for="field in missingFields" :key="field.fieldId">
                     <Link v-if="canEdit" :href="wizardUrl(field.step)" class="underline">{{
@@ -39,7 +39,7 @@ const wizardUrl = (step: number) =>
             </ul>
         </AppBanner>
 
-        <nav v-if="canEdit" aria-label="Langkah wizard" class="divide-y rounded-md border">
+        <nav v-if="canEdit" aria-label="Langkah pengisian" class="divide-y rounded-md border">
             <Link
                 v-for="section in sections"
                 :key="section.step"

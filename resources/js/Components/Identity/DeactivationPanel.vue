@@ -22,9 +22,9 @@ const impact = computed(() =>
     [
         `${props.user.name} tidak akan bisa masuk dan tidak menerima penugasan baru.`,
         props.runningReviews > 0
-            ? `${props.runningReviews} penugasan review berjalan akan tetap ada dan perlu diganti Operator.`
+            ? `${props.runningReviews} penugasan penilaian berjalan akan tetap ada dan perlu diganti Operator.`
             : null,
-        'Sesi yang sedang login akan diakhiri.',
+        'Sesi yang sedang masuk akan diakhiri.',
         'Pengajuan, evaluasi, dan riwayatnya tetap tersimpan.',
     ]
         .filter((sentence) => sentence !== null)
@@ -73,7 +73,7 @@ const deactivate = () => {
             </template>
         </template>
         <AppBanner v-else tone="info">
-            User yang masih menjadi ketua pengajuan aktif tidak dapat dinonaktifkan sebelum
+            Pengguna yang masih menjadi ketua pengajuan aktif tidak dapat dinonaktifkan sebelum
             kepemilikannya dialihkan.
         </AppBanner>
         <Button

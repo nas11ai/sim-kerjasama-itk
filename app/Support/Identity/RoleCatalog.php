@@ -13,8 +13,8 @@ final class RoleCatalog
     /** @var array<string, string> */
     public const LABELS = [
         'researcher' => 'Peneliti',
-        'reviewer_internal' => 'Reviewer (internal)',
-        'reviewer_external' => 'Reviewer (eksternal)',
+        'reviewer_internal' => 'Penilai (internal)',
+        'reviewer_external' => 'Penilai (eksternal)',
         'operator' => 'Operator',
         'admin' => 'Admin',
     ];

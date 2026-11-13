@@ -6,10 +6,10 @@ import type { NotificationRow } from '@/types/notification'
 
 const row: NotificationRow = {
     id: 'a1',
-    title: 'Penugasan review baru',
+    title: 'Penugasan penilaian baru',
     message: 'Anda ditugaskan untuk mengevaluasi sebuah pengajuan.',
     category: 'review',
-    categoryLabel: 'Review',
+    categoryLabel: 'Penilaian',
     createdAt: '2026-07-03T10:00:00',
     isRead: false,
 }
@@ -28,7 +28,7 @@ afterEach(() => {
 
 describe('NotificationItem', () => {
     it('menampilkan meta "<kategori> · <waktu relatif>"', () => {
-        expect(mountItem(row).text()).toContain('Review · 2 jam lalu')
+        expect(mountItem(row).text()).toContain('Penilaian · 2 jam lalu')
     })
 
     it('badge mengikuti isRead', () => {

@@ -27,7 +27,7 @@ class ReviewCommentAddedNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Komentar baru pada ulir review | SIMPAS')
+            ->subject('Komentar baru pada ulir penilaian | SIMPAS')
             ->line($this->message());
     }
 
@@ -36,7 +36,7 @@ class ReviewCommentAddedNotification extends Notification implements ShouldQueue
     {
         return (new NotificationPayload(
             type: 'review_comment_added',
-            title: 'Komentar baru pada ulir review',
+            title: 'Komentar baru pada ulir penilaian',
             message: $this->message(),
             context: [
                 'form_submission_id' => $this->submissionId,
@@ -50,6 +50,6 @@ class ReviewCommentAddedNotification extends Notification implements ShouldQueue
     {
         $kind = $this->comment->parent_comment_id === null ? 'Komentar' : 'Balasan';
 
-        return "{$kind} baru masuk pada ulir review atas pengajuan #{$this->submissionId}.";
+        return "{$kind} baru masuk pada ulir penilaian atas pengajuan #{$this->submissionId}.";
     }
 }

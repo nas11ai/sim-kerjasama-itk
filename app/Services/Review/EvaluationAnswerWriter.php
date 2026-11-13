@@ -21,7 +21,7 @@ final class EvaluationAnswerWriter
     {
         // BR-FE-05 — evaluasi yang sudah disubmit, atau dikunci tenggatnya, tidak bisa disunting.
         if (!$response->canBeEdited()) {
-            throw ValidationException::withMessages(['error' => 'Formulir ini tidak dapat diedit lagi.']);
+            throw ValidationException::withMessages(['error' => 'Formulir ini tidak dapat diubah lagi.']);
         }
 
         self::assertOwnFields($response, $input);
@@ -61,12 +61,12 @@ final class EvaluationAnswerWriter
 
         if ($otherVersion) {
             throw ValidationException::withMessages([
-                'responses' => 'Form evaluasi ini sudah diganti ke versi baru. Muat ulang halaman lalu isi ulang penilaian Anda.',
+                'responses' => 'Formulir evaluasi ini sudah diganti ke versi baru. Muat ulang halaman lalu isi ulang penilaian Anda.',
             ]);
         }
 
         throw ValidationException::withMessages([
-            'responses' => 'Jawaban memuat field yang bukan milik formulir evaluasi ini.',
+            'responses' => 'Jawaban memuat isian yang bukan milik formulir evaluasi ini.',
         ]);
     }
 }

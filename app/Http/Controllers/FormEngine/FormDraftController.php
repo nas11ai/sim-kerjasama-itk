@@ -41,7 +41,7 @@ class FormDraftController extends Controller
         $affected = NotifyFormChange::run($form, $notify);
 
         return back()->with('success', $notify && $affected > 0
-            ? "Form diterbitkan. {$affected} peneliti diberi tahu."
-            : 'Form diterbitkan.');
+            ? "Formulir diterbitkan. {$affected} peneliti diberi tahu."
+            : 'Formulir diterbitkan.');
     }
 }

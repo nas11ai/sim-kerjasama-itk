@@ -82,7 +82,7 @@ it('submissions.view-all memberi tiga kartu pengajuan; draft dan laporan anak ti
         ->and($cards['active']->value)->toBe('2')
         ->and($cards['active']->meta)->toBe('Semua skema')
         ->and($cards['awaitingReviewer']->value)->toBe('1')
-        ->and($cards['awaitingReviewer']->meta)->toBe('Status Disubmit')
+        ->and($cards['awaitingReviewer']->meta)->toBe('Status Menunggu Penilaian')
         ->and($cards['awaitingReviewer']->href)->toBe(route('admin.submissions.index', ['status' => 'submitted']));
 });
 
@@ -122,7 +122,7 @@ it('users.manage memberi kartu User Aktif', function () {
 
     expect(array_keys($cards))->toBe(['activeUsers'])
         ->and($cards['activeUsers']->value)->toBe((string) User::query()->where('is_active', true)->count())
-        ->and($cards['activeUsers']->meta)->toBe('Semua role');
+        ->and($cards['activeUsers']->meta)->toBe('Semua peran');
 });
 
 it('operator di sistem kosong mendapat angka nol', function () {

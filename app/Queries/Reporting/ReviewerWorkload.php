@@ -50,7 +50,7 @@ class ReviewerWorkload implements ChangesNoState
     {
         $type = ReviewerTypeCatalog::LABELS[$reviewer->reviewer_type] ?? $reviewer->reviewer_type;
 
-        return ($reviewer->user->name ?? 'Reviewer')." ({$type})";
+        return ($reviewer->user->name ?? 'Penilai')." ({$type})";
     }
 
     private function open(Reviewer $reviewer): int

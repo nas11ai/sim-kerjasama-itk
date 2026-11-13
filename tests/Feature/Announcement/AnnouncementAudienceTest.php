@@ -95,7 +95,7 @@ it('peran yang bisa dipilih adalah lima peran DDD', function () {
 
 it('describe menamai sasaran pengumuman', function () {
     expect(AnnouncementAudience::describe('public', []))->toBe('Publik')
-        ->and(AnnouncementAudience::describe('private', []))->toBe('Semua pengguna login')
+        ->and(AnnouncementAudience::describe('private', []))->toBe('Semua pengguna yang sudah masuk')
         ->and(AnnouncementAudience::describe('private', ['researcher', 'operator']))->toBe('Dosen, Operator LPPM');
 });
 

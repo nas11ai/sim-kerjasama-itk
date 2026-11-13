@@ -46,7 +46,7 @@ watch(open, (isOpen) => isOpen && fill(), { immediate: true })
 const locked = computed(() => draft.value.answerCount > 0)
 const lockHint = computed(() =>
     locked.value
-        ? `Tipe terkunci: sudah ada ${draft.value.answerCount} jawaban. Tambahkan field baru untuk tipe lain; field ini tetap terbaca apa adanya.`
+        ? `Tipe terkunci: sudah ada ${draft.value.answerCount} jawaban. Tambahkan isian baru untuk tipe lain; isian ini tetap terbaca apa adanya.`
         : undefined
 )
 const hasOptions = computed(
@@ -65,8 +65,8 @@ const becomesRequired = computed(
 <template>
     <ActionDialog
         v-model:open="open"
-        :title="field ? 'Edit Field' : 'Tambah Field'"
-        submit-label="Simpan Field"
+        :title="field ? 'Ubah Isian' : 'Tambah Isian'"
+        submit-label="Simpan Isian"
         @submit="save"
     >
         <FormField id="field-label" label="Label" required :error="errors.label">
@@ -91,7 +91,7 @@ const becomesRequired = computed(
             </div>
             <!-- BR-FE-18 / FE-CHANGE-06 -->
             <p v-if="becomesRequired" class="text-xs text-muted-foreground">
-                Berlaku untuk pengajuan yang dimulai setelah diterbitkan; draft berjalan tidak
+                Berlaku untuk pengajuan yang dimulai setelah diterbitkan; draf berjalan tidak
                 dipaksa mengisi ulang.
             </p>
         </div>

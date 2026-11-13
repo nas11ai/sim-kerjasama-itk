@@ -76,7 +76,7 @@ class StartChildSubmission
 
         if ($accessControl === null) {
             throw ValidationException::withMessages([
-                'form_phase_detail_id' => 'Fase ini belum tertaut ke formulir mana pun.',
+                'form_phase_detail_id' => 'Tahap ini belum tertaut ke formulir mana pun.',
             ]);
         }
 

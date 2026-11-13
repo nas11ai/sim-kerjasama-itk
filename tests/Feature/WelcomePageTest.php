@@ -17,7 +17,7 @@ it('[K7] tamu yang membuka / melihat halaman sambutan dengan pengumuman publik',
     ]);
     Announcement::create([
         'title' => 'Internal',
-        'content' => 'Hanya untuk user masuk.',
+        'content' => 'Hanya untuk pengguna masuk.',
         'type' => 'private',
         'created_by' => User::factory()->create()->id,
     ]);

@@ -46,7 +46,7 @@ const submit = () => form.post(route('login'), { onFinish: () => form.reset('pas
                     required
                 />
             </FormField>
-            <FormField id="password" label="Password" required>
+            <FormField id="password" label="Kata Sandi" required>
                 <Input
                     id="password"
                     v-model="form.password"
@@ -65,7 +65,7 @@ const submit = () => form.post(route('login'), { onFinish: () => form.reset('pas
                     Ingat saya
                 </Label>
                 <Link v-if="canResetPassword" :href="route('password.request')" class="underline">
-                    Lupa password?
+                    Lupa kata sandi?
                 </Link>
             </div>
 

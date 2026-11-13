@@ -105,7 +105,7 @@ it('[IAM-DEACT-04] reviewer dalam masa tugas yang akunnya nonaktif tidak bisa di
     $reviewer = reviewerInTenure(active: false);
 
     expect(fn () => AssignReviewer::run($submission, $reviewer))
-        ->toThrow(ValidationException::class, 'Akun reviewer ini nonaktif, jadi tidak dapat ditugaskan.');
+        ->toThrow(ValidationException::class, 'Akun penilai ini nonaktif, jadi tidak dapat ditugaskan.');
     expect(SubmissionReviewer::query()->where('reviewer_id', $reviewer->id)->exists())->toBeFalse();
 });
 
@@ -145,7 +145,7 @@ it('[IAM-DEACT-12] user nonaktif tidak bisa ditambahkan sebagai anggota peneliti
     UserProfile::factory()->create(['user_id' => $joko->id]);
 
     expect(fn () => AddResearchMember::run($submission, $joko, ResearchMember::ROLE_MEMBER))
-        ->toThrow(ValidationException::class, 'Akun user ini nonaktif, jadi tidak dapat ditambahkan sebagai anggota.');
+        ->toThrow(ValidationException::class, 'Akun pengguna ini nonaktif, jadi tidak dapat ditambahkan sebagai anggota.');
     expect($submission->researchMembers()->exists())->toBeFalse();
 });
 

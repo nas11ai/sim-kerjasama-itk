@@ -73,7 +73,7 @@ it('[REV-OUTCOME-03] Setujui ditolak selama ada catatan terbuka, menyebut jumlah
         ApproveSubmission::run($submission, approveOperator());
         $this->fail('Setujui seharusnya ditolak.');
     } catch (ValidationException $e) {
-        expect($e->errors()['approve'][0])->toBe('1 catatan reviewer masih terbuka.');
+        expect($e->errors()['approve'][0])->toBe('1 catatan penilai masih terbuka.');
     }
 
     expect($submission->fresh()->status)->toBeInstanceOf(UnderReview::class);
@@ -111,7 +111,7 @@ it('[REV-OUTCOME-10] fase butuh review tanpa reviewer tidak siap', function () {
     $readiness = DecisionReadiness::run($submission);
 
     expect($readiness->ready)->toBeFalse()
-        ->and($readiness->blockers)->toBe(['Belum ada reviewer.']);
+        ->and($readiness->blockers)->toBe(['Belum ada penilai.']);
 });
 
 it('[REV-OUTCOME-07] Tolak beralasan pada pengajuan siap diputuskan', function () {

@@ -61,7 +61,7 @@ const remove = () => {
 
 <template>
     <div class="flex flex-col gap-6">
-        <SectionCard title="Step 4: Anggota Penelitian">
+        <SectionCard title="Langkah 4: Anggota Penelitian">
             <AppBanner v-if="page.props.errors?.id" tone="denial">
                 {{ page.props.errors.id }}
             </AppBanner>

@@ -155,7 +155,7 @@ it('judul dan meta baris dari spesifikasi', function () {
             ->where('groups.0.outputs.0.headline', 'Optimasi Nutrisi Hidroponik Berbasis IoT')
             ->where('groups.0.outputs.0.meta', 'Nama Jurnal X · Nasional Terakreditasi · 2026')
             ->where('groups.0.outputs.0.fileCount', 0)
-            ->where('groups.0.outputs.1.meta', 'Nama Jurnal X · Nasional Terakreditasi · 2026 · 2 file lampiran')
+            ->where('groups.0.outputs.1.meta', 'Nama Jurnal X · Nasional Terakreditasi · 2026 · 2 berkas lampiran')
             ->where('groups.0.outputs.1.fileCount', 2));
 });
 

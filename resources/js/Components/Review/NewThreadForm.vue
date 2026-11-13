@@ -38,7 +38,7 @@ const open = () =>
 </script>
 
 <template>
-    <SectionCard title="Buat Ringkasan Review">
+    <SectionCard title="Buat Ringkasan Penilaian">
         <template v-if="!canCreate">
             <!-- BR-FE-06 — gerbangnya evaluation_status penugasan, bukan status pengajuan -->
             <AppBanner tone="lock">

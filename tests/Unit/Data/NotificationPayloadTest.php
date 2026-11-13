@@ -7,13 +7,13 @@ use App\Data\Contract\NotificationPayload;
 it('menyusun tiga kunci wajib', function () {
     $payload = new NotificationPayload(
         type: 'reviewer_assigned',
-        title: 'Penugasan review baru',
+        title: 'Penugasan penilaian baru',
         message: 'Anda ditugaskan untuk mengevaluasi sebuah pengajuan.',
     );
 
     expect($payload->toArray())->toBe([
         'type' => 'reviewer_assigned',
-        'title' => 'Penugasan review baru',
+        'title' => 'Penugasan penilaian baru',
         'message' => 'Anda ditugaskan untuk mengevaluasi sebuah pengajuan.',
     ]);
 });

@@ -63,7 +63,7 @@ const definitions: QuickActionDef[] = [
         permission: 'submissions.view-all',
     },
     {
-        label: 'Tugaskan Reviewer',
+        label: 'Tugaskan Penilai',
         routeName: 'admin.submissions.index',
         params: { status: 'submitted' },
         icon: Users,

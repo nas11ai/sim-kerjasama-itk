@@ -29,7 +29,7 @@ const show = (filter: AssignmentIndexPageProps['filter']) =>
     <AppLayout>
         <PageHeader
             title="Penugasan Penilaian"
-            subtitle="Submission yang ditugaskan kepada Anda untuk dievaluasi."
+            subtitle="Pengajuan yang ditugaskan kepada Anda untuk dievaluasi."
         >
             <template #actions>
                 <div class="inline-flex rounded-md border p-0.5" role="group">

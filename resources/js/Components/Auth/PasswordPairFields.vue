@@ -8,8 +8,8 @@ withDefaults(
     {
         error: undefined,
         hint: undefined,
-        label: 'Password',
-        confirmationLabel: 'Konfirmasi Password',
+        label: 'Kata Sandi',
+        confirmationLabel: 'Konfirmasi Kata Sandi',
     }
 )
 

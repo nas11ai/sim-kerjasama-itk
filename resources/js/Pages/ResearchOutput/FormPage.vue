@@ -23,7 +23,7 @@ const { form, definition, canSave, changeType, submit } = useOutputForm(props)
 const page = usePage()
 const errors = computed<Record<string, string>>(() => page.props.errors ?? {})
 
-const title = computed(() => (props.outputId === null ? 'Tambah Luaran' : 'Edit Luaran'))
+const title = computed(() => (props.outputId === null ? 'Tambah Luaran' : 'Ubah Luaran'))
 const subtitle = computed(() => [props.submissionTitle, props.scheme].filter(Boolean).join(' · '))
 const cancelHref = computed(() =>
     props.outputId === null

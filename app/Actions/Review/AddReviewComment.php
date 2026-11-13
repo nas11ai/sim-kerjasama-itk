@@ -75,7 +75,7 @@ class AddReviewComment
         $assignment = $reviewer === null ? null : ActiveReviewerAssignment::run($submission, $reviewer->id);
 
         if ($reviewer === null || $assignment === null) {
-            throw new AuthorizationException('Anda tidak memiliki izin untuk mengomentari review ini');
+            throw new AuthorizationException('Anda tidak memiliki izin untuk mengomentari penilaian ini');
         }
 
         if (!$assignment->hasSettledEvaluation()) {

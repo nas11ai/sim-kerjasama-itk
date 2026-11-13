@@ -41,7 +41,7 @@ class FormDefinitionRequest extends FormRequest
     /** @return array<string, string> */
     public function messages(): array
     {
-        return ['form_type_id.not_in' => 'Tipe Biodata tidak tersedia untuk form ini.', ...$this->fieldMessages()];
+        return ['form_type_id.not_in' => 'Tipe Biodata tidak tersedia untuk formulir ini.', ...$this->fieldMessages()];
     }
 
     /**

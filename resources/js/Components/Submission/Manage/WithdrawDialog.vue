@@ -49,7 +49,7 @@ const summary = computed(() => [
             id="withdraw-reason"
             v-model="form.reason"
             label="Alasan"
-            placeholder="Misal: permintaan researcher, duplikasi pendanaan, force majeure."
+            placeholder="Misal: permintaan peneliti, duplikasi pendanaan, force majeure."
             required
             :error="form.errors.reason"
         />

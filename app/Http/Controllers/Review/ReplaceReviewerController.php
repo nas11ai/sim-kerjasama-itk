@@ -32,6 +32,6 @@ class ReplaceReviewerController extends Controller
             $validated['note'] ?? null,
         );
 
-        return back()->with('success', 'Reviewer berhasil diganti.');
+        return back()->with('success', 'Penilai berhasil diganti.');
     }
 }

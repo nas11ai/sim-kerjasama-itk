@@ -38,7 +38,7 @@ const row: OperatorSubmissionRow = {
     leadName: 'Dr. Budi Santoso',
     organization: 'FTI: Teknik Mesin',
     scheme: 'Penelitian DIPA 2026',
-    status: { key: 'under_review', label: 'Direview', variant: 'default' },
+    status: { key: 'under_review', label: 'Dinilai', variant: 'default' },
     submittedAt: '2026-01-12T08:00:00+08:00',
     reviewerCount: 2,
 }

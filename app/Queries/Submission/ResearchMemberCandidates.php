@@ -56,7 +56,7 @@ class ResearchMemberCandidates implements ChangesNoState
             name: $user->name,
             nidn: $user->userProfile?->nidn,
             blockedReason: in_array($user->id, $reviewerIds, true)
-                ? "{$user->name} sedang ditugaskan sebagai reviewer pengajuan ini, jadi ia tidak dapat ditambahkan sebagai anggota."
+                ? "{$user->name} sedang ditugaskan sebagai penilai pengajuan ini, jadi ia tidak dapat ditambahkan sebagai anggota."
                 : null,
         ))->all());
     }

@@ -25,7 +25,7 @@ const props = defineProps<NotificationIndexPageProps>()
 const chips: { value: NotificationFilter; label: string }[] = [
     { value: 'all', label: 'Semua' },
     { value: 'unread', label: 'Belum dibaca' },
-    { value: 'review', label: 'Review' },
+    { value: 'review', label: 'Penilaian' },
     { value: 'monev', label: 'Monev' },
 ]
 

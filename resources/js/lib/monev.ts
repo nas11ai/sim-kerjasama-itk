@@ -19,12 +19,12 @@ const NODE_STATE: Record<MonevCycleState, PhaseNodeState> = {
 function metaOf(cycle: MonevCycle, previous: string): string {
     switch (cycle.state) {
         case 'open':
-            return `Deadline ${formatDate(cycle.deadline)}`
+            return `Tenggat ${formatDate(cycle.deadline)}`
         case 'submitted':
         case 'done':
-            return `Disubmit ${formatDate(cycle.submittedAt)}`
+            return `Dikirim ${formatDate(cycle.submittedAt)}`
         case 'closed':
-            return 'Ditutup, deadline lewat'
+            return 'Ditutup, tenggat lewat'
         case 'locked':
             return `Terbuka setelah ${previous} selesai`
         case 'frozen':

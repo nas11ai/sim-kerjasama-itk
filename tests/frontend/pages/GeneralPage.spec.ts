@@ -39,8 +39,8 @@ const props = (): GeneralPageProps => ({
         category({}),
         category({
             key: 'submission-types',
-            label: 'Tipe Submission',
-            usedBy: 'Skema, Submission, Review, Monev',
+            label: 'Tipe Pengajuan',
+            usedBy: 'Skema, Pengajuan, Penilaian, Monev',
             editable: false,
         }),
         category({
@@ -90,7 +90,7 @@ describe('SystemConfig/GeneralPage', () => {
         for (const tab of ['Semua Kategori', 'Referensi Luaran', 'Referensi Skema', 'Lainnya']) {
             expect(text).toContain(tab)
         }
-        for (const card of ['Referensi Luaran', 'Referensi Skema & Submission', 'Anggaran']) {
+        for (const card of ['Referensi Luaran', 'Referensi Skema & Pengajuan', 'Anggaran']) {
             expect(text).toContain(card)
         }
         expect(text).toContain('2 item · dipakai oleh luaran dan target luaran pengajuan')
@@ -107,7 +107,7 @@ describe('SystemConfig/GeneralPage', () => {
 
         expect(wrapper.text()).toContain('Tipe Luaran')
         expect(wrapper.text()).not.toContain('Komponen Anggaran')
-        expect(wrapper.text()).not.toContain('Referensi Skema & Submission')
+        expect(wrapper.text()).not.toContain('Referensi Skema & Pengajuan')
     })
 
     it('channel notifikasi tampil di Semua Kategori dan Lainnya saja', async () => {

@@ -54,7 +54,7 @@ const remove = (index: number) => (attached.value = attached.value.filter((_, i)
 <template>
     <section class="space-y-3">
         <div class="flex flex-wrap items-center justify-between gap-2">
-            <h3 class="text-sm font-semibold">Form evaluasi untuk {{ label }}</h3>
+            <h3 class="text-sm font-semibold">Formulir evaluasi untuk {{ label }}</h3>
             <Link class="text-sm underline" :href="route('admin.evaluation-forms.index')"
                 >Kelola di Formulir Evaluasi</Link
             >
@@ -68,7 +68,7 @@ const remove = (index: number) => (attached.value = attached.value.filter((_, i)
                 @remove="remove(index)"
             />
         </ul>
-        <p v-else class="text-sm text-muted-foreground">Belum ada form evaluasi terpasang.</p>
+        <p v-else class="text-sm text-muted-foreground">Belum ada formulir evaluasi terpasang.</p>
         <div
             v-if="available.length > 0"
             class="flex flex-wrap items-end gap-3 rounded-lg border border-dashed p-3"
@@ -90,7 +90,7 @@ const remove = (index: number) => (attached.value = attached.value.filter((_, i)
             </FormField>
             <div class="flex items-center gap-2 pb-2">
                 <Switch :id="`${prefix}-required`" v-model="required" />
-                <Label :for="`${prefix}-required`" class="font-normal">Wajib diisi reviewer</Label>
+                <Label :for="`${prefix}-required`" class="font-normal">Wajib diisi penilai</Label>
             </div>
             <Button type="button" :disabled="chosen === null" @click="attach"
                 ><Plus class="size-4" />Pasang</Button

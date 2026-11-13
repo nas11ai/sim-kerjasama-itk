@@ -109,7 +109,7 @@ describe('UserIndexPage', () => {
         const wrapper = mountPage([pendingRow])
         const headers = wrapper.findAll('th').map((th) => th.text())
 
-        expect(headers).toEqual(['Nama', 'Email', 'NIDN', 'Organisasi', 'Role', 'Status', ''])
+        expect(headers).toEqual(['Nama', 'Email', 'NIDN', 'Organisasi', 'Peran', 'Status', ''])
         expect(wrapper.text()).toContain('Peneliti')
         expect(wrapper.text()).toContain('Aktif')
         expect(wrapper.text()).toContain('Menunggu Verifikasi')
@@ -162,7 +162,7 @@ describe('UserIndexPage', () => {
         const wrapper = mountPage([pendingRow])
         const role = wrapper
             .findAllComponents(FilterSelect)
-            .find((select) => select.props('label') === 'Role')
+            .find((select) => select.props('label') === 'Peran')
 
         role?.vm.$emit('update:modelValue', 'operator')
         await nextTick()
@@ -176,14 +176,14 @@ describe('UserIndexPage', () => {
 
     it('banner ketua pengajuan aktif tampil', () => {
         expect(mountPage([pendingRow]).text()).toContain(
-            'User yang masih menjadi ketua pengajuan aktif tidak dapat dinonaktifkan sebelum kepemilikannya dialihkan.'
+            'Pengguna yang masih menjadi ketua pengajuan aktif tidak dapat dinonaktifkan sebelum kepemilikannya dialihkan.'
         )
     })
 
     it('EmptyState saat tidak ada user', () => {
-        expect(mountPage([]).text()).toContain('Belum ada user.')
+        expect(mountPage([]).text()).toContain('Belum ada pengguna.')
         expect(mountPage([], { filters: { ...noFilters, role: 'operator' } }).text()).toContain(
-            'Tidak ada user yang cocok dengan filter.'
+            'Tidak ada pengguna yang cocok dengan filter.'
         )
     })
 

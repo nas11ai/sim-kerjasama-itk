@@ -28,7 +28,7 @@ class OutputWriteAccess implements ChangesNoState
 
     public const NOT_APPROVED = 'Luaran baru dapat ditambahkan setelah pengajuan disetujui.';
 
-    public const REVIEWER = 'Reviewer dapat membaca luaran, tapi tidak mengubahnya.';
+    public const REVIEWER = 'Penilai dapat membaca luaran, tapi tidak mengubahnya.';
 
     public const MEMBER = 'Anda terdaftar sebagai anggota. Hanya ketua dan co-investigator yang dapat mengubah luaran.';
 

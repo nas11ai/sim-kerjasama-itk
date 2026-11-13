@@ -38,7 +38,7 @@ import OptionSelect from '@/Components/app/OptionSelect.vue'
 import UserShowPage from '@/Pages/Identity/UserShowPage.vue'
 import type { DeactivationBlockerData, UserShowPageProps } from '@/types/identity'
 
-const underReview = { key: 'under_review', label: 'Direview', variant: 'default' } as const
+const underReview = { key: 'under_review', label: 'Dinilai', variant: 'default' } as const
 
 const blocker = (overrides: Partial<DeactivationBlockerData> = {}): DeactivationBlockerData => ({
     submissionId: 42,
@@ -171,24 +171,24 @@ describe('UserShowPage', () => {
             .findAll('button[role="tab"]')
             .map((t) => t.text())
 
-        expect(tabs).toEqual(['Profil', 'Riwayat Submission (2)', 'Riwayat Penilai (1)'])
+        expect(tabs).toEqual(['Profil', 'Riwayat Pengajuan (2)', 'Riwayat Penilai (1)'])
         expect(mountPage({ tab: 'reviews' }).text()).toContain('Kajian Mangrove')
         expect(mountPage().text()).not.toContain('Kajian Mangrove')
     })
 
     it('Tunjuk sebagai Reviewer hanya bila can.appointReviewer', async () => {
         const wrapper = mountPage()
-        await button(wrapper, 'Tunjuk sebagai Reviewer')?.trigger('click')
+        await button(wrapper, 'Tunjuk sebagai Penilai')?.trigger('click')
         await nextTick()
 
         const appoint = wrapper
             .findAllComponents(ActionDialog)
-            .find((d) => d.props('title') === 'Tunjuk sebagai Reviewer')
+            .find((d) => d.props('title') === 'Tunjuk sebagai Penilai')
         expect(appoint?.props('open')).toBe(true)
 
         const base = props()
         const denied = mountPage({ can: { ...base.can, appointReviewer: false } })
-        expect(button(denied, 'Tunjuk sebagai Reviewer')).toBeUndefined()
+        expect(button(denied, 'Tunjuk sebagai Penilai')).toBeUndefined()
     })
 
     it('[IAM-DEACT-07] tidak ada aksi hapus; aksi yang tersedia Nonaktifkan bila can.deactivate', () => {
@@ -268,9 +268,9 @@ describe('UserShowPage', () => {
         const description = confirmDialog(wrapper, 'Nonaktifkan').props('description')
 
         expect(description).toContain(
-            '2 penugasan review berjalan akan tetap ada dan perlu diganti Operator.'
+            '2 penugasan penilaian berjalan akan tetap ada dan perlu diganti Operator.'
         )
-        expect(description).toContain('Sesi yang sedang login akan diakhiri.')
+        expect(description).toContain('Sesi yang sedang masuk akan diakhiri.')
         expect(description).toContain('Pengajuan, evaluasi, dan riwayatnya tetap tersimpan.')
     })
 
@@ -280,7 +280,7 @@ describe('UserShowPage', () => {
         expect(text).toContain('Membuat pengajuan')
         expect(text).toContain('Mengekspor laporan')
         expect(text).toContain(
-            'Hak akses dari role dan hak akses langsung berdiri sendiri, mencabut salah satunya tidak mencabut yang lain. Perubahan role dan hak akses hanya dapat dilakukan oleh Admin.'
+            'Hak akses dari peran dan hak akses langsung berdiri sendiri, mencabut salah satunya tidak mencabut yang lain. Perubahan peran dan hak akses hanya dapat dilakukan oleh Admin.'
         )
     })
 
@@ -363,7 +363,7 @@ describe('UserShowPage', () => {
                     ...base.access,
                     roles: [
                         { value: 'researcher', label: 'Peneliti' },
-                        { value: 'reviewer_internal', label: 'Reviewer (internal)' },
+                        { value: 'reviewer_internal', label: 'Penilai (internal)' },
                     ],
                     assignableRoles: [
                         { value: 'researcher', label: 'Peneliti' },
@@ -376,7 +376,7 @@ describe('UserShowPage', () => {
         })
         await button(wrapper, 'Ubah Peran')?.trigger('click')
         await nextTick()
-        expect(document.body.textContent).toContain('Tidak diubah di sini: Reviewer (internal)')
+        expect(document.body.textContent).toContain('Tidak diubah di sini: Penilai (internal)')
 
         document.querySelector<HTMLButtonElement>('#assign-role-operator')?.click()
         await nextTick()

@@ -72,7 +72,7 @@ describe('MonevManageIndexPage', () => {
         const text = mountPage([row()]).text()
 
         expect(text).toContain('Manajemen Siklus Monev')
-        expect(text).toContain('Semua submission APPROVED beserta progres siklus monev-nya.')
+        expect(text).toContain('Semua pengajuan berstatus Disetujui beserta progres siklus monev-nya.')
         for (const column of ['Judul', 'Ketua', 'Skema', 'Siklus Berjalan', 'Status']) {
             expect(text).toContain(column)
         }

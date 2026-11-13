@@ -147,7 +147,7 @@ it('[REV-VIS-05] peneliti tidak menerima skor sebelum keputusan final', function
             ->where('scores.visible', false)
             ->where('scores.scores', [])
             // Ruang kosong tanpa penjelasan membuat orang mengira sistemnya rusak.
-            ->where('scores.reason', 'Hasil review terbuka setelah keputusan akhir atas pengajuan ini diambil.')
+            ->where('scores.reason', 'Hasil penilaian terbuka setelah keputusan akhir atas pengajuan ini diambil.')
             ->etc());
 });
 

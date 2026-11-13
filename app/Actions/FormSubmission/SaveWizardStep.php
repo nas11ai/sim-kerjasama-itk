@@ -46,7 +46,7 @@ class SaveWizardStep
         $resolved = ResolveWizardSubmission::make()->handle($answers->formId, $answers->submissionPeriodId, $user);
 
         if ($resolved?->id !== $submission->id) {
-            throw new ConflictHttpException('Pengajuan ini bukan draft terbaru Anda untuk form dan periode ini.');
+            throw new ConflictHttpException('Pengajuan ini bukan draf terbaru Anda untuk formulir dan periode ini.');
         }
 
         return SaveSubmissionDraft::make()->handle($answers, $user);

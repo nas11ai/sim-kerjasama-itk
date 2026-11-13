@@ -83,7 +83,7 @@ describe('ReferenceItemsDialog', () => {
         mountDialog(
             category({
                 key: 'submission-types',
-                label: 'Tipe Submission',
+                label: 'Tipe Pengajuan',
                 editable: false,
                 items: [item({ name: 'Penelitian', usageCount: 4 })],
             })
@@ -91,7 +91,7 @@ describe('ReferenceItemsDialog', () => {
         await flushPromises()
 
         expect(bodyText()).toContain(
-            'Tipe Submission hanya dapat diubah lewat seeder. Bukan kekurangan antarmuka, nilainya mengikat empat context sekaligus.'
+            'Tipe Pengajuan hanya dapat diubah lewat seeder. Bukan kekurangan antarmuka, nilainya mengikat empat context sekaligus.'
         )
         for (const label of ['Ganti Nama', 'Nonaktifkan', 'Hapus']) {
             expect(bodyButton(label)).toBeUndefined()

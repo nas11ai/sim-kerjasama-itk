@@ -51,7 +51,7 @@ const verify = (card: VerificationCardData) => {
             title="Antrian Verifikasi NIDN"
             subtitle="Pendaftar baru menunggu verifikasi, periksa kecocokan NIDN sebelum menyetujui."
             :back-href="route('admin.users.index')"
-            back-label="Daftar User"
+            back-label="Daftar Pengguna"
         >
             <template #badge>
                 <Badge variant="secondary">{{ pending.length }} menunggu</Badge>

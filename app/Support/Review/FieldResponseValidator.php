@@ -25,7 +25,7 @@ final class FieldResponseValidator
         // Nilai kosong hanya bisa melanggar satu hal. Aturan tipe dan aturan
         // kustom tidak punya apa pun untuk diperiksa.
         if (!$response->hasValue()) {
-            return $field->is_required ? ["Field '{$field->label}' is required"] : [];
+            return $field->is_required ? ["Isian '{$field->label}' wajib diisi."] : [];
         }
 
         $value = $response->value ?? '';
@@ -43,10 +43,10 @@ final class FieldResponseValidator
 
         return match ($field->fieldType->name ?? '') {
             'email' => filter_var($value, FILTER_VALIDATE_EMAIL) === false
-                ? ["Field '{$label}' must be a valid email address"] : [],
+                ? ["Isian '{$label}' harus berupa alamat email yang valid."] : [],
             'url' => filter_var($value, FILTER_VALIDATE_URL) === false
-                ? ["Field '{$label}' must be a valid URL"] : [],
-            'number' => is_numeric($value) ? [] : ["Field '{$label}' must be a number"],
+                ? ["Isian '{$label}' harus berupa URL yang valid."] : [],
+            'number' => is_numeric($value) ? [] : ["Isian '{$label}' harus berupa angka."],
             default => [],
         };
     }
@@ -81,13 +81,13 @@ final class FieldResponseValidator
     {
         return match ($rule) {
             'min_length' => mb_strlen($value) < (int) $limit
-                ? "Field '{$label}' must be at least {$limit} characters" : null,
+                ? "Isian '{$label}' minimal {$limit} karakter." : null,
             'max_length' => mb_strlen($value) > (int) $limit
-                ? "Field '{$label}' must not exceed {$limit} characters" : null,
+                ? "Isian '{$label}' maksimal {$limit} karakter." : null,
             'min_value' => is_numeric($value) && (float) $value < (float) $limit
-                ? "Field '{$label}' must be at least {$limit}" : null,
+                ? "Isian '{$label}' minimal {$limit}." : null,
             'max_value' => is_numeric($value) && (float) $value > (float) $limit
-                ? "Field '{$label}' must not exceed {$limit}" : null,
+                ? "Isian '{$label}' maksimal {$limit}." : null,
             default => null,
         };
     }

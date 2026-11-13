@@ -162,7 +162,7 @@ it('rejects answers for fields of another version', function () {
 
     try {
         saveDraft($seat, [$v2Field->id => 'Salah versi']);
-        $this->fail('Jawaban untuk field versi lain harus ditolak.');
+        $this->fail('Jawaban untuk isian versi lain harus ditolak.');
     } catch (ValidationException $e) {
         expect($e->errors())->toHaveKey('responses');
     }

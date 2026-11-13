@@ -37,12 +37,12 @@ const selects = computed((): FilterSelectSpec<Exclude<keyof ManageIndexFilters, 
     <AppLayout>
         <PageHeader
             title="Semua Pengajuan"
-            subtitle="Seluruh submission di sistem, filter lanjutan tersedia."
+            subtitle="Seluruh pengajuan di sistem, filter lanjutan tersedia."
         >
             <template #actions>
                 <Button as-child variant="outline">
                     <Link :href="route('reporting.exports.index')"
-                        ><Download class="size-4" /> Export</Link
+                        ><Download class="size-4" /> Ekspor</Link
                     >
                 </Button>
             </template>
@@ -51,8 +51,8 @@ const selects = computed((): FilterSelectSpec<Exclude<keyof ManageIndexFilters, 
             v-model:search="filters.search"
             :selects="selects"
             :values="filters"
-            search-placeholder="Cari judul / lead researcher..."
-            search-label="Cari judul atau lead researcher"
+            search-placeholder="Cari judul / ketua peneliti..."
+            search-label="Cari judul atau ketua peneliti"
             @select="(key, value) => (filters[key] = value)"
         />
         <OperatorSubmissionTable :rows="submissions.data" :filtered="filtered" />

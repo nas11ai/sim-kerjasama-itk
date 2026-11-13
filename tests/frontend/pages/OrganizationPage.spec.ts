@@ -141,7 +141,7 @@ describe('OrganizationPage', () => {
         expect(text).toContain('Program Studi')
         expect(text).toContain('14, seluruhnya aktif')
         expect(text).toContain(
-            'Nonaktifkan dan Hapus adalah dua operasi dengan ambang berbeda: nonaktif melihat user aktif, hapus melihat profil apa pun.'
+            'Nonaktifkan dan Hapus adalah dua operasi dengan ambang berbeda: nonaktif melihat pengguna aktif, hapus melihat profil apa pun.'
         )
     })
 
@@ -158,7 +158,7 @@ describe('OrganizationPage', () => {
 
         expect(labels).toContain('Tambah Unit Induk')
         expect(labels).toContain('Tambah Sub-unit')
-        expect(labels).toContain('Edit Nama / Tipe')
+        expect(labels).toContain('Ubah Nama / Tipe')
     })
 
     it('[IAM-ORG-16] unit nonaktif tidak menawarkan Tambah Sub-unit', () => {
@@ -167,6 +167,6 @@ describe('OrganizationPage', () => {
             .map((b) => b.text().trim())
 
         expect(labels).not.toContain('Tambah Sub-unit')
-        expect(labels).toContain('Edit Nama / Tipe')
+        expect(labels).toContain('Ubah Nama / Tipe')
     })
 })

@@ -31,7 +31,7 @@ const send = () =>
 <template>
     <ActionDialog
         v-model:open="open"
-        :title="ended ? 'Perpanjang Masa Tugas' : 'Edit Periode'"
+        :title="ended ? 'Perpanjang Masa Tugas' : 'Ubah Periode'"
         :description="reviewer.name"
         submit-label="Simpan"
         :processing="form.processing"

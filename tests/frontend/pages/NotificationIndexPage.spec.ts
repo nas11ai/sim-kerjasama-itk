@@ -29,10 +29,10 @@ import type {
 
 const row: NotificationRow = {
     id: 'n-1',
-    title: 'Penugasan review baru',
+    title: 'Penugasan penilaian baru',
     message: 'Anda ditugaskan untuk mengevaluasi sebuah pengajuan.',
     category: 'review',
-    categoryLabel: 'Review',
+    categoryLabel: 'Penilaian',
     createdAt: '2026-07-03T10:00:00',
     isRead: false,
 }
@@ -129,7 +129,7 @@ describe('Notification/IndexPage', () => {
         expect(button(wrapper, 'Belum dibaca')?.attributes('aria-pressed')).toBe('true')
         expect(button(wrapper, 'Semua')?.attributes('aria-pressed')).toBe('false')
 
-        await button(wrapper, 'Review')?.trigger('click')
+        await button(wrapper, 'Penilaian')?.trigger('click')
         await nextTick()
 
         expect(router.get).toHaveBeenCalledWith(

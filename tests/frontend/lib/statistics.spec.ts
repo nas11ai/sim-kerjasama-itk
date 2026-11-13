@@ -26,7 +26,7 @@ describe('formatAge', () => {
 
 describe('formatSinceSubmit', () => {
     it('umur item tindak lanjut sejak submit', () => {
-        expect(formatSinceSubmit(12)).toBe('12 hari sejak submit')
-        expect(formatSinceSubmit(0)).toBe('disubmit hari ini')
+        expect(formatSinceSubmit(12)).toBe('12 hari sejak dikirim')
+        expect(formatSinceSubmit(0)).toBe('dikirim hari ini')
     })
 })

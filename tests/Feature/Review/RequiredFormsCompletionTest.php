@@ -30,7 +30,7 @@ function completionFixture(): array
 
 function completionForm(FormPhaseDetail $detail, int $order): ReviewEvaluationForm
 {
-    return evaluationFormOn($detail, [], title: "Form {$order}");
+    return evaluationFormOn($detail, [], title: "Formulir {$order}");
 }
 
 it('menganggap reviewer tanpa form wajib sudah selesai', function () {

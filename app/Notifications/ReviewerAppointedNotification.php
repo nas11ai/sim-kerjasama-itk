@@ -27,8 +27,8 @@ class ReviewerAppointedNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Anda ditunjuk sebagai reviewer')
-            ->line('Operator LPPM menunjuk Anda sebagai reviewer '.$this->label().'.');
+            ->subject('Anda ditunjuk sebagai penilai')
+            ->line('Operator LPPM menunjuk Anda sebagai penilai '.$this->label().'.');
     }
 
     /** @return array<string, int|string|null> */
@@ -36,8 +36,8 @@ class ReviewerAppointedNotification extends Notification
     {
         return (new NotificationPayload(
             type: 'reviewer_appointed',
-            title: 'Ditunjuk sebagai reviewer',
-            message: 'Anda ditunjuk sebagai reviewer '.$this->label().'.',
+            title: 'Ditunjuk sebagai penilai',
+            message: 'Anda ditunjuk sebagai penilai '.$this->label().'.',
             context: ['reviewer_type' => $this->reviewerType],
         ))->toArray();
     }

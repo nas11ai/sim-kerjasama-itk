@@ -38,7 +38,7 @@ class MonevReportController extends Controller
     {
         SaveMonevReport::run($report, $request->toInput(), $this->viewer($request, $report));
 
-        return back()->with('success', 'Draft laporan disimpan.');
+        return back()->with('success', 'Draf laporan disimpan.');
     }
 
     public function submit(MonevReportRequest $request, FormSubmission $report): RedirectResponse
@@ -51,7 +51,7 @@ class MonevReportController extends Controller
         $name = $report->formPhaseDetail === null ? 'monev' : MonevCycles::nameOf($report->formPhaseDetail);
 
         // W132 — frame menaut ke detail laporan, bukan ke Daftar Monev.
-        return redirect()->route('monev.reports.show', $report)->with('success', "Laporan {$name} disubmit.");
+        return redirect()->route('monev.reports.show', $report)->with('success', "Laporan {$name} dikirim.");
     }
 
     public function show(Request $request, FormSubmission $report): Response

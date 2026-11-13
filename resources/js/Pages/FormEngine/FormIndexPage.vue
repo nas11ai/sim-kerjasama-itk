@@ -37,12 +37,12 @@ const selects = computed((): FilterSelectSpec<Exclude<keyof FormIndexFilters, 's
     <AppLayout>
         <PageHeader
             title="Pembuat Formulir"
-            subtitle="Kelola form pengajuan & monev, susunan field dapat diubah sewaktu-waktu."
+            subtitle="Kelola formulir pengajuan & monev, susunan isian dapat diubah sewaktu-waktu."
         >
             <template #actions>
                 <Button as-child>
                     <Link :href="route('admin.forms.create')"
-                        ><Plus class="size-4" /> Buat Form Baru</Link
+                        ><Plus class="size-4" /> Buat Formulir Baru</Link
                     >
                 </Button>
             </template>
@@ -51,8 +51,8 @@ const selects = computed((): FilterSelectSpec<Exclude<keyof FormIndexFilters, 's
             v-model:search="filters.search"
             :selects="selects"
             :values="filters"
-            search-placeholder="Cari nama form..."
-            search-label="Cari nama form"
+            search-placeholder="Cari nama formulir..."
+            search-label="Cari nama formulir"
             @select="(key, value) => (filters[key] = value)"
         />
         <FormTable
@@ -64,8 +64,8 @@ const selects = computed((): FilterSelectSpec<Exclude<keyof FormIndexFilters, 's
         <PaginationBar :page="forms" />
         <!-- W76 / BR-FE-19 — Form yang pernah dipakai dinonaktifkan, bukan dihapus -->
         <p class="mt-4 text-xs text-muted-foreground">
-            Form yang pernah dipakai pengajuan tidak dapat dihapus, nonaktifkan agar berhenti
-            menerima pengajuan baru. Menonaktifkan form memerlukan konfirmasi.
+            Formulir yang pernah dipakai pengajuan tidak dapat dihapus, nonaktifkan agar berhenti
+            menerima pengajuan baru. Menonaktifkan formulir memerlukan konfirmasi.
         </p>
         <FormDeleteBlockedDialog
             v-model:open="blocked"
@@ -76,9 +76,9 @@ const selects = computed((): FilterSelectSpec<Exclude<keyof FormIndexFilters, 's
             v-model:toggling="toggling"
             v-model:deleting="deleting"
             :toggle-copy="actions.toggleCopy.value"
-            delete-title="Hapus form?"
-            :delete-description="`${target?.title ?? ''} beserta field-nya dihapus permanen.`"
-            delete-confirm-label="Hapus Form"
+            delete-title="Hapus formulir?"
+            :delete-description="`${target?.title ?? ''} beserta isiannya dihapus permanen.`"
+            delete-confirm-label="Hapus Formulir"
             :destructive-toggle="target?.isActive ?? false"
             :processing="processing"
             @confirm-toggle="actions.confirmToggle"

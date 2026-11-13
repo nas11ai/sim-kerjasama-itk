@@ -36,13 +36,13 @@ const subtitle = computed(() =>
 // W55 — tab "Log Aktivitas" menunggu Reporting/AuditPage (R1).
 const tabs = computed(() => [
     { value: 'profile', label: 'Profil' },
-    { value: 'submissions', label: `Riwayat Submission (${props.submissions.length})` },
+    { value: 'submissions', label: `Riwayat Pengajuan (${props.submissions.length})` },
     { value: 'reviews', label: `Riwayat Penilai (${props.reviews.length})` },
 ])
 
 const summaryItems = computed(() => [
-    { label: 'Submission Aktif', value: `${props.summary.activeLeadSubmissions} (lead)` },
-    { label: 'Review Berjalan', value: String(props.summary.runningReviews) },
+    { label: 'Pengajuan Aktif', value: `${props.summary.activeLeadSubmissions} (ketua)` },
+    { label: 'Penilaian Berjalan', value: String(props.summary.runningReviews) },
     { label: 'Terdaftar', value: formatDate(props.summary.registeredAt) },
 ])
 </script>
@@ -54,14 +54,14 @@ const summaryItems = computed(() => [
             :title="user.name"
             :subtitle="subtitle"
             :back-href="route('admin.users.index')"
-            back-label="Daftar User"
+            back-label="Daftar Pengguna"
         >
             <template #badge
                 ><AccountStatusBadges :user-id="user.id" :status="user.status"
             /></template>
             <template v-if="can.appointReviewer" #actions>
                 <Button variant="outline" @click="appointing = true"
-                    ><UserCheck class="size-4" />Tunjuk sebagai Reviewer</Button
+                    ><UserCheck class="size-4" />Tunjuk sebagai Penilai</Button
                 >
             </template>
         </PageHeader>

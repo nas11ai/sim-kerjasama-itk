@@ -28,7 +28,7 @@ class MonevEvaluationSubmittedNotification extends Notification
     {
         return (new MailMessage)
             ->subject('Hasil evaluasi monev tersedia')
-            ->line('Reviewer sudah menyelesaikan penilaian atas laporan monev Anda.')
+            ->line('Penilai sudah menyelesaikan penilaian atas laporan monev Anda.')
             ->line('Skor dan catatannya dapat dibaca sekarang.');
     }
 
@@ -38,7 +38,7 @@ class MonevEvaluationSubmittedNotification extends Notification
         return (new NotificationPayload(
             type: 'monev_evaluation_submitted',
             title: 'Hasil evaluasi monev tersedia',
-            message: 'Reviewer sudah menyelesaikan penilaian atas laporan monev Anda.',
+            message: 'Penilai sudah menyelesaikan penilaian atas laporan monev Anda.',
             context: ['form_submission_id' => $this->report->id],
         ))->toArray();
     }

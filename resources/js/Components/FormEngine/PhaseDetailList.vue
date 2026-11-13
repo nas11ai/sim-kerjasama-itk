@@ -83,7 +83,7 @@ const remove = (key: string) => (details.value = details.value.filter((d) => d.k
                         @remove="remove(detail.key)"
                     >
                         <Badge :variant="detail.needsReview ? 'default' : 'outline'">{{
-                            detail.needsReview ? 'Perlu Review' : 'Tanpa Review'
+                            detail.needsReview ? 'Perlu Penilaian' : 'Tanpa Penilaian'
                         }}</Badge>
                     </FieldRowActions>
                 </div>

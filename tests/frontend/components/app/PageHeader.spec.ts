@@ -18,7 +18,7 @@ describe('PageHeader', () => {
     // E2E-01 — dua tombol aksi berdampingan melebihi 390px bila tidak boleh turun baris.
     it('tombol aksi boleh turun baris di layar sempit', () => {
         const wrapper = mount(PageHeader, {
-            props: { title: 'Daftar User' },
+            props: { title: 'Daftar Pengguna' },
             slots: {
                 actions: '<button>Undangan Registrasi</button><button>Antrian Verifikasi</button>',
             },

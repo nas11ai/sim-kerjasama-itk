@@ -41,7 +41,7 @@ it('section "Pengajuan Saya" berisi empat kartu frame', function () {
     expect($section->key)->toBe('researcher')
         ->and($section->title)->toBe('Pengajuan Saya')
         ->and(array_map(fn (KpiCardData $c) => $c->label, $section->cards))
-        ->toBe(['Submission Aktif', 'Dalam Revisi', 'Disetujui', 'Notifikasi']);
+        ->toBe(['Pengajuan Aktif', 'Dalam Revisi', 'Disetujui', 'Notifikasi']);
 });
 
 it('Submission Aktif memakai predikat Active Submission: DRAFT dan APPROVED ikut, REJECTED/WITHDRAWN tidak', function () {
@@ -55,7 +55,7 @@ it('Submission Aktif memakai predikat Active Submission: DRAFT dan APPROVED ikut
     $cards = rdCards($budi);
 
     expect($cards['active']->value)->toBe('3')
-        ->and($cards['active']->meta)->toBe('1 dalam review')
+        ->and($cards['active']->meta)->toBe('1 dalam penilaian')
         ->and($cards['approved']->value)->toBe('1');
 });
 
@@ -89,7 +89,7 @@ it('pengajuan orang lain tidak terhitung', function () {
     $cards = rdCards(User::factory()->create());
 
     expect($cards['active']->value)->toBe('0')
-        ->and($cards['active']->meta)->toBe('0 dalam review');
+        ->and($cards['active']->meta)->toBe('0 dalam penilaian');
 });
 
 it('kartu Notifikasi = belum dibaca dan menaut ke daftar notifikasi', function () {

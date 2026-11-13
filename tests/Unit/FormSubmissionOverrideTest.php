@@ -49,7 +49,7 @@ it('revoke sets is_active to false', function () {
     ]);
 
     $phaseType = PhaseType::create(['name' => 'review']);
-    $formPhase = FormPhase::create(['title' => 'Phase 1']);
+    $formPhase = FormPhase::create(['title' => 'Tahap 1']);
     $organization = Organization::create([
         'name' => 'ITK',
         'type' => 'institution',

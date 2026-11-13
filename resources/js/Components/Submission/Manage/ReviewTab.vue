@@ -17,10 +17,10 @@ const scores = computed(() => ({ visible: true, reason: null, scores: props.shee
     <div class="flex flex-col gap-4">
         <ScoreSection
             :scores="scores"
-            note="Lembar reviewer yang digantikan tetap tersimpan dan ditandai “Digantikan”."
+            note="Lembar penilai yang digantikan tetap tersimpan dan ditandai “Digantikan”."
         />
         <section class="flex flex-col gap-4">
-            <h2 class="text-base font-semibold">Diskusi Reviewer</h2>
+            <h2 class="text-base font-semibold">Diskusi Penilai</h2>
             <!-- BR-REV-15 — Operator membaca ulir, tidak membalas -->
             <ReviewThreadCard
                 v-for="thread in threads"

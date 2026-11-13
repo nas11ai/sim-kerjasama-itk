@@ -23,7 +23,7 @@ const summary = computed(() => [
     { label: 'Ketua', value: props.submission.leadName },
     { label: 'Status Saat Ini', value: props.submission.status.label },
     {
-        label: 'Reviewer Aktif',
+        label: 'Penilai Aktif',
         value: `${props.activeReviewerCount}, evaluasi akan dihentikan`,
     },
 ])
@@ -41,7 +41,7 @@ const summary = computed(() => [
     >
         <AppBanner tone="warning">
             <strong>Aksi ini tidak dapat dibatalkan.</strong> Gunakan setelah meninjau hasil
-            evaluasi reviewer, atau untuk kondisi khusus seperti plagiarisme dan pelanggaran
+            evaluasi penilai, atau untuk kondisi khusus seperti plagiarisme dan pelanggaran
             administratif.
         </AppBanner>
         <InfoGrid :items="summary" />
@@ -52,7 +52,7 @@ const summary = computed(() => [
             id="reject-reason"
             v-model="form.reason"
             label="Penjelasan Detail"
-            placeholder="Dikirimkan ke researcher via notifikasi, tulis dengan jelas."
+            placeholder="Dikirimkan ke peneliti via notifikasi, tulis dengan jelas."
             required
             :error="form.errors.reason"
         />

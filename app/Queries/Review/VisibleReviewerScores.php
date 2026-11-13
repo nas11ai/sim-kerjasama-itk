@@ -38,14 +38,14 @@ class VisibleReviewerScores implements ChangesNoState
     {
         // BR-MON-09 — laporan monev terbuka begitu satu reviewer submit, bukan menunggu keputusan.
         if ($submission->submitted_by === $user->id && $submission->parent_submission_id !== null) {
-            return 'Hasil evaluasi akan tampil begitu reviewer menyelesaikan penilaiannya.';
+            return 'Hasil evaluasi akan tampil begitu penilai menyelesaikan penilaiannya.';
         }
 
         if ($submission->submitted_by === $user->id) {
             // BR-REV-12 — bukan "review selesai", melainkan keputusan final.
-            return 'Hasil review terbuka setelah keputusan akhir atas pengajuan ini diambil.';
+            return 'Hasil penilaian terbuka setelah keputusan akhir atas pengajuan ini diambil.';
         }
 
-        return 'Skor reviewer lain terbuka bagi reviewer internal setelah seluruh evaluasi selesai.';
+        return 'Skor penilai lain terbuka bagi penilai internal setelah seluruh evaluasi selesai.';
     }
 }

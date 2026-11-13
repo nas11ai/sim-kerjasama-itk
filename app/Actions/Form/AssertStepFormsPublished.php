@@ -38,6 +38,6 @@ class AssertStepFormsPublished implements ChangesNoState
             return;
         }
 
-        throw ValidationException::withMessages(['phase_details' => "Form \"{$unpublished->title}\" belum pernah diterbitkan."]);
+        throw ValidationException::withMessages(['phase_details' => "Formulir \"{$unpublished->title}\" belum pernah diterbitkan."]);
     }
 }

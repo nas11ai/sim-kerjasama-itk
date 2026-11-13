@@ -41,7 +41,7 @@ describe('AssignmentCard', () => {
         const wrapper = mountCard()
 
         expect(wrapper.text()).toContain('Dr. Budi Santoso · Penelitian Dasar')
-        expect(wrapper.text()).toContain('Deadline evaluasi:')
+        expect(wrapper.text()).toContain('Tenggat evaluasi:')
         expect(wrapper.text()).toContain('Evaluasi Pending')
         const action = wrapper.find('a')
         expect(action.text()).toContain('Mulai Evaluasi')
@@ -56,6 +56,6 @@ describe('AssignmentCard', () => {
     })
 
     it('tanpa tenggat baris deadline tidak dirender', () => {
-        expect(mountCard({ dueDate: null }).text()).not.toContain('Deadline evaluasi')
+        expect(mountCard({ dueDate: null }).text()).not.toContain('Tenggat evaluasi')
     })
 })

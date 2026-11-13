@@ -29,13 +29,13 @@ final class WizardStepGate
     public const STEP_REVIEW = 7;
 
     public const LABELS = [
-        self::STEP_FORM_PERIOD => 'Pilih Form & Periode',
+        self::STEP_FORM_PERIOD => 'Pilih Formulir & Periode',
         self::STEP_BASIC_INFO => 'Informasi Dasar',
         self::STEP_SCHEME => 'Skema, TKT & Target Luaran',
         self::STEP_MEMBERS => 'Anggota Penelitian',
         self::STEP_BUDGET => 'Rencana Anggaran',
-        self::STEP_FILES => 'Upload Berkas',
-        self::STEP_REVIEW => 'Review & Submit',
+        self::STEP_FILES => 'Unggah Berkas',
+        self::STEP_REVIEW => 'Periksa & Kirim',
     ];
 
     /**

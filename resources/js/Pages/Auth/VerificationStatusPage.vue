@@ -66,8 +66,8 @@ const details = computed(() => [
                     >Alasan: {{ verification.rejectionReason ?? '-' }}</AppBanner
                 >
                 <AppBanner tone="info">
-                    Draft yang sudah Anda siapkan tetap tersimpan dan tetap dapat disunting. Yang
-                    tertutup hanya tombol Submit.
+                    Draf yang sudah Anda siapkan tetap tersimpan dan tetap dapat disunting. Yang
+                    tertutup hanya tombol Kirim.
                 </AppBanner>
             </template>
             <AppBanner v-else tone="info">
@@ -77,7 +77,7 @@ const details = computed(() => [
 
         <div class="mt-6 space-y-2">
             <Button as-child class="w-full">
-                <Link :href="route('dashboard')">Lanjut ke Dashboard</Link>
+                <Link :href="route('dashboard')">Lanjut ke Beranda</Link>
             </Button>
             <Button as-child variant="outline" class="w-full">
                 <Link :href="route('logout')" method="post" as="button">

@@ -49,12 +49,12 @@ const submit = () =>
 </script>
 
 <template>
-    <SectionCard title="Request Export Baru">
+    <SectionCard title="Ajukan Ekspor Baru">
         <form class="flex flex-col gap-4" @submit.prevent="submit">
             <div class="grid gap-4 sm:grid-cols-2">
                 <FormField
                     id="export-type"
-                    label="Jenis Export"
+                    label="Jenis Ekspor"
                     required
                     :hint="`Lebih dari ${threshold} baris diproses di latar belakang.`"
                     :error="form.errors.type"
@@ -136,7 +136,7 @@ const submit = () =>
                     </label>
                 </RadioGroup>
                 <Button type="submit" :disabled="form.processing">
-                    <Download class="size-4" aria-hidden="true" /> Request Export
+                    <Download class="size-4" aria-hidden="true" /> Ajukan Ekspor
                 </Button>
             </div>
         </form>

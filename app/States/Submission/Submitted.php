@@ -13,7 +13,7 @@ class Submitted extends SubmissionStatus
 
     public function label(): string
     {
-        return 'Menunggu Review';
+        return 'Menunggu Penilaian';
     }
 
     public function color(): string

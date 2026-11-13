@@ -30,7 +30,7 @@ class PublishEvaluationFormVersion
     public function handle(ReviewEvaluationForm $form, array $fields, User $actor): ReviewEvaluationFormVersion
     {
         if ($fields === []) {
-            throw ValidationException::withMessages(['fields' => 'Form evaluasi butuh minimal satu field.']);
+            throw ValidationException::withMessages(['fields' => 'Formulir evaluasi butuh minimal satu isian.']);
         }
 
         return DB::transaction(function () use ($form, $fields, $actor): ReviewEvaluationFormVersion {

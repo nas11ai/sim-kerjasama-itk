@@ -53,19 +53,19 @@ const send = () => {
 <template>
     <ActionDialog
         v-model:open="open"
-        title="Pindahkan User"
-        description="Riwayat pengajuan user tetap terbaca setelah ia pindah unit."
+        title="Pindahkan Pengguna"
+        description="Riwayat pengajuan pengguna tetap terbaca setelah ia pindah unit."
         submit-label="Pindahkan"
         :processing="form.processing"
         :submit-disabled="form.user_id === null || target === null"
         @submit="send"
     >
-        <FormField id="move-user-search" label="User">
+        <FormField id="move-user-search" label="Pengguna">
             <Input
                 id="move-user-search"
                 v-model="search"
                 type="search"
-                placeholder="Cari nama / email user..."
+                placeholder="Cari nama / email pengguna..."
             />
         </FormField>
         <EmptyState v-if="people.length === 0" title="Tidak ada anggota yang cocok." />

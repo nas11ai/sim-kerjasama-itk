@@ -13,7 +13,7 @@ class UnderReview extends SubmissionStatus
 
     public function label(): string
     {
-        return 'Sedang Direview';
+        return 'Sedang Dinilai';
     }
 
     public function color(): string

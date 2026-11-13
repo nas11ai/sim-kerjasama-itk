@@ -16,7 +16,7 @@ import type { PhaseDetailEditData } from '@/types/form-engine'
 const saved = (overrides: Partial<PhaseDetailEditData> = {}): PhaseDetailEditData => ({
     order: 1,
     formAccessControlId: 7,
-    formTitle: 'Form Proposal',
+    formTitle: 'Formulir Proposal',
     accessLabel: 'Pengaju · Fakultas Sains',
     phaseTypeId: 3,
     phaseTypeName: 'Isi Proposal',
@@ -64,7 +64,7 @@ describe('lib/phaseDefinition', () => {
         expect(labels[0]).toBe('Pengajuan')
         expect(labels).toContain('Laporan Monev I')
         expect(labels).toContain('Laporan Monev X')
-        expect(labels.at(-1)).toBe('Upload Luaran')
+        expect(labels.at(-1)).toBe('Unggah Luaran')
         expect(labels).toHaveLength(12)
     })
 
@@ -81,13 +81,13 @@ describe('lib/phaseDefinition', () => {
     it('[FE-WINDOW-09] Upload Luaran mematikan Perlu Review dan tidak bersiklus', () => {
         const output = applyStepKind(
             detail({ needsReview: true, deadlineCycle: 3 }),
-            optionByLabel('Upload Luaran').value
+            optionByLabel('Unggah Luaran').value
         )
 
         expect(output).toMatchObject({
             deadlineType: 'output',
             deadlineCycle: null,
-            deadlineLabel: 'Upload Luaran',
+            deadlineLabel: 'Unggah Luaran',
             needsReview: false,
         })
     })

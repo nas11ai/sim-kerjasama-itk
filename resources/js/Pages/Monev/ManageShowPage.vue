@@ -43,12 +43,12 @@ const nodes = computed(() => phaseNodes(props.cycles.map((managed) => managed.cy
             </div>
             <div class="flex flex-col gap-4">
                 <AppBanner tone="info">
-                    Penugasan reviewer monev dilakukan manual per siklus. Reviewer yang masa
-                    tugasnya berakhir tidak muncul di saran, namun tetap dapat dicari manual.
+                    Penugasan penilai monev dilakukan manual per siklus. Penilai yang masa tugasnya
+                    berakhir tidak muncul di saran, namun tetap dapat dicari manual.
                 </AppBanner>
                 <!-- BR-MON-10 -->
                 <AppBanner tone="info">
-                    Mengaktifkan siklus memberi tahu peneliti dan reviewer yang ditugaskan pada
+                    Mengaktifkan siklus memberi tahu peneliti dan penilai yang ditugaskan pada
                     siklus itu. Selama siklus belum diaktifkan, tidak ada pemberitahuan yang
                     terkirim, jadwal monev berjarak bulanan, dan tenggatnya bisa terlanjur berjalan
                     tanpa ada yang tahu.

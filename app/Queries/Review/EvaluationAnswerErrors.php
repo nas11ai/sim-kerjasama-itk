@@ -47,6 +47,6 @@ class EvaluationAnswerErrors implements ChangesNoState
             return array_values(FieldResponseValidator::errorsFor($answer));
         }
 
-        return $field->is_required ? ["Field '{$field->label}' wajib diisi."] : [];
+        return $field->is_required ? ["Isian '{$field->label}' wajib diisi."] : [];
     }
 }

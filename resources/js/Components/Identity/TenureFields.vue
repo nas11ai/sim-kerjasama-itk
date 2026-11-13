@@ -34,7 +34,7 @@ const losesScores = computed(() => props.previousType === 'internal' && type.val
         </template>
     </FormField>
     <AppBanner v-if="losesScores" tone="warning">
-        Mengubah tipe menjadi Eksternal akan mencabut kemampuan melihat skor reviewer lain. Evaluasi
+        Mengubah tipe menjadi Eksternal akan mencabut kemampuan melihat skor penilai lain. Evaluasi
         yang sudah ditulis tidak berubah.
     </AppBanner>
     <div class="grid gap-4 sm:grid-cols-2">

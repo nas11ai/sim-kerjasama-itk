@@ -25,7 +25,7 @@ class AccountReactivatedNotification extends Notification
         return (new MailMessage)
             ->subject('Akun Anda aktif kembali')
             ->line('Akun Anda di SIMPAS diaktifkan kembali oleh LPPM.')
-            ->line('Anda bisa login lagi dengan email dan kata sandi yang sama.');
+            ->line('Anda bisa masuk lagi dengan email dan kata sandi yang sama.');
     }
 
     /** @return array<string, int|string|null> */
@@ -34,7 +34,7 @@ class AccountReactivatedNotification extends Notification
         return (new NotificationPayload(
             type: 'account_reactivated',
             title: 'Akun aktif kembali',
-            message: 'Akun Anda diaktifkan kembali. Anda bisa login seperti biasa.',
+            message: 'Akun Anda diaktifkan kembali. Anda bisa masuk seperti biasa.',
         ))->toArray();
     }
 }

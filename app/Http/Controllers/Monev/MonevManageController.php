@@ -73,7 +73,7 @@ class MonevManageController extends Controller
 
         AssignCycleReviewer::run($submission, $detail, $request->reviewer(), $operator);
 
-        return back()->with('success', 'Reviewer ditugaskan.');
+        return back()->with('success', 'Penilai ditugaskan.');
     }
 
     /** @return list<ReviewerCandidateData> */

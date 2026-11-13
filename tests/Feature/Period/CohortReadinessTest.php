@@ -197,7 +197,7 @@ it('[FE-READY-04] Batas Evaluasi sebelum Batas Submit menggagalkan cek urutan', 
     $cohort = readinessOf($period, $phase);
 
     expect(issuesOf($cohort, ReadinessCheck::DateOrder))
-        ->toBe([['message' => 'Batas Evaluasi tidak boleh lebih awal dari Batas Submit.', 'blocking' => true]])
+        ->toBe([['message' => 'Batas Evaluasi tidak boleh lebih awal dari Batas Pengiriman.', 'blocking' => true]])
         ->and(checkOf($cohort, ReadinessCheck::DateOrder)->state())->toBe('failed')
         ->and($cohort->status())->toBe('blocked');
 });
@@ -210,7 +210,7 @@ it('[FE-READY-05] langkah Pengajuan direview tanpa Formulir Evaluasi wajib aktif
     $cohort = readinessOf($fx['period'], $fx['phase']);
 
     expect(issuesOf($cohort, ReadinessCheck::RequiredEvaluationForm))->toBe([[
-        'message' => 'Langkah 1 (Pengajuan) direview, tapi belum punya Formulir Evaluasi wajib yang aktif.',
+        'message' => 'Langkah 1 (Pengajuan) dinilai, tapi belum punya Formulir Evaluasi wajib yang aktif.',
         'blocking' => true,
     ]])
         ->and(checkOf($cohort, ReadinessCheck::MissingDate)->state())->toBe('passed')
@@ -240,7 +240,7 @@ it('[FE-READY-06] Operator melihat daftar cek per angkatan; tabel periode menghi
             ->where('cohorts.0.checks.0.issues.0', ['message' => 'Batas Evaluasi belum diatur.', 'blocking' => true])
             ->where('cohorts.0.checks.1.title', 'Urutan tanggal masuk akal')
             ->where('cohorts.0.checks.1.state', 'passed')
-            ->where('cohorts.0.checks.2.title', 'Langkah yang direview punya Formulir Evaluasi wajib')
+            ->where('cohorts.0.checks.2.title', 'Langkah yang dinilai punya Formulir Evaluasi wajib')
             ->where('cohorts.1.phaseTitle', 'Hibah Mandiri')
             ->where('cohorts.1.status', 'ready'));
 
@@ -277,7 +277,7 @@ it('[FE-READY-07] tanggal dan Formulir Evaluasi langkah monev yang belum diatur 
 });
 
 it('[FE-WINDOW-08] mendaftar celah Batas Evaluasi langkah yang direview', function () {
-    $phase = readyPhase('Fase Celah');
+    $phase = readyPhase('Tahap Celah');
     $step = scheduleStep($phase, needsReview: true);
     $period = schedulePeriod($phase, 'Periode A');
     calendarDate($period, DeadlineType::Submit, now()->addWeek());
@@ -293,7 +293,7 @@ it('[FE-WINDOW-08] mendaftar celah Batas Evaluasi langkah yang direview', functi
 });
 
 it('mendaftar tanggal kerja yang hilang, tetapi tidak Batas Evaluasi langkah yang tidak direview', function () {
-    $phase = readyPhase('Fase Celah');
+    $phase = readyPhase('Tahap Celah');
     scheduleStep($phase, cycle: 1, needsReview: false, order: 3);
     $period = schedulePeriod($phase, 'Periode B');
 
@@ -311,7 +311,7 @@ it('judges readiness on every step even when the researcher can access only the 
 
     expect(readinessOffered($fx['user'], $fx['period']))->toBeNull()
         ->and(issuesOf(readinessOf($fx['period'], $fx['phase']), ReadinessCheck::DateOrder))
-        ->toBe([['message' => 'Batas Laporan Monev I tidak boleh lebih awal dari Batas Submit.', 'blocking' => true]]);
+        ->toBe([['message' => 'Batas Laporan Monev I tidak boleh lebih awal dari Batas Pengiriman.', 'blocking' => true]]);
     expectStartRefused($fx);
 });
 
@@ -384,7 +384,7 @@ it('warns, not blocks, on a monev step without a required evaluation form', func
     $cohort = readinessOf($fx['period'], $fx['phase']);
 
     expect(issuesOf($cohort, ReadinessCheck::RequiredEvaluationForm))->toBe([[
-        'message' => 'Langkah 3 (Laporan Monev I) direview, tapi belum punya Formulir Evaluasi wajib yang aktif.',
+        'message' => 'Langkah 3 (Laporan Monev I) dinilai, tapi belum punya Formulir Evaluasi wajib yang aktif.',
         'blocking' => false,
     ]])
         ->and(checkOf($cohort, ReadinessCheck::MissingDate)->state())->toBe('passed')
@@ -404,7 +404,7 @@ it('blocks on an order violation that involves a monev date', function () {
     $cohort = readinessOf($period, $phase);
 
     expect(issuesOf($cohort, ReadinessCheck::DateOrder))
-        ->toBe([['message' => 'Batas Laporan Monev I tidak boleh lebih awal dari Batas Submit.', 'blocking' => true]])
+        ->toBe([['message' => 'Batas Laporan Monev I tidak boleh lebih awal dari Batas Pengiriman.', 'blocking' => true]])
         ->and($cohort->status())->toBe('blocked');
 
     // Tanggal yang kosong di tengah tidak memutus perbandingan: Monev II dibanding Batas Submit.
@@ -413,7 +413,7 @@ it('blocks on an order violation that involves a monev date', function () {
     calendarDate($gapped, DeadlineType::Submit, '2027-06-01 23:59:00', cycle: 2);
 
     expect(issuesOf(readinessOf($gapped, $phase), ReadinessCheck::DateOrder))
-        ->toBe([['message' => 'Batas Laporan Monev II tidak boleh lebih awal dari Batas Submit.', 'blocking' => true]]);
+        ->toBe([['message' => 'Batas Laporan Monev II tidak boleh lebih awal dari Batas Pengiriman.', 'blocking' => true]]);
 });
 
 it('does not compare dates that are not set', function () {
@@ -437,7 +437,7 @@ it('compares Batas Revisi with Batas Submit when Batas Evaluasi is missing', fun
     calendarDate($period, DeadlineType::Revision, '2027-06-10 23:59:00');
 
     expect(issuesOf(readinessOf($period, $phase), ReadinessCheck::DateOrder))
-        ->toBe([['message' => 'Batas Revisi tidak boleh lebih awal dari Batas Submit.', 'blocking' => true]]);
+        ->toBe([['message' => 'Batas Revisi tidak boleh lebih awal dari Batas Pengiriman.', 'blocking' => true]]);
 
     calendarDate($period, DeadlineType::Evaluation, '2027-07-10 23:59:00');
 

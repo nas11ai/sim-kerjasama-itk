@@ -47,7 +47,7 @@ const mountSection = (list: StepEvaluationFormData[]) => {
             'onUpdate:modelValue': (next: StepEvaluationFormData[]) =>
                 wrapper.setProps({ modelValue: next }),
             stepKey: 'step-0',
-            label: 'Review Proposal: Form Proposal',
+            label: 'Penilaian Proposal: Formulir Proposal',
             evaluationOptions: options,
         },
         global: { mocks: { route } },
@@ -73,7 +73,7 @@ describe('FormEngine/EvaluationSection', () => {
     it('mendaftar pemasangan dengan label versinya dan menautkan pustaka', () => {
         mountSection([attached({ isRequired: false })])
 
-        expect(wrapper.text()).toContain('Form evaluasi untuk Review Proposal: Form Proposal')
+        expect(wrapper.text()).toContain('Formulir evaluasi untuk Penilaian Proposal: Formulir Proposal')
         expect(wrapper.text()).toContain('Lembar Substansi')
         expect(wrapper.text()).toContain('Versi 2')
         expect(wrapper.text()).toContain('Tidak wajib')
@@ -141,7 +141,7 @@ describe('FormEngine/EvaluationSection', () => {
     it('pemasangan yang Form-nya sudah dihapus tetap bisa dilepas', () => {
         mountSection([attached({ title: '', versionLabel: '' })])
 
-        expect(wrapper.text()).toContain('Form evaluasi sudah dihapus dari pustaka')
+        expect(wrapper.text()).toContain('Formulir evaluasi sudah dihapus dari pustaka')
         expect(wrapper.find('a[href="/admin.evaluation-forms.edit/3"]').exists()).toBe(false)
         expect(button('Lepas').exists()).toBe(true)
     })

@@ -48,6 +48,6 @@ class RevisionRequestedNotification extends Notification implements ShouldQueue
 
     private function message(): string
     {
-        return "Reviewer meminta revisi atas pengajuan #{$this->submission->id}. Baca catatan reviewer lalu kirim ulang.";
+        return "Penilai meminta revisi atas pengajuan #{$this->submission->id}. Baca catatan penilai lalu kirim ulang.";
     }
 }

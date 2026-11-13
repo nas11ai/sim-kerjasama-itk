@@ -14,7 +14,7 @@ use Inertia\Testing\AssertableInertia;
 
 beforeEach(function () {
     $this->seed(PermissionSeeder::class);
-    $this->form = Form::factory()->create(['title' => 'Form Proposal']);
+    $this->form = Form::factory()->create(['title' => 'Formulir Proposal']);
 });
 
 function phaseEvaluationActor(string $role = 'admin'): User
@@ -124,7 +124,7 @@ it('menolak memasang di langkah yang tidak direview saat draf disimpan', functio
 
     $this->actingAs(phaseEvaluationActor())
         ->put(route('admin.phases.draft.update', $detail->formPhase), phaseEvaluationDraft($detail, [publishedEvaluation('Lembar Kelayakan')]))
-        ->assertSessionHasErrors(['phase_details.0.needs_review' => 'Detail ini punya 1 form evaluasi aktif, jadi tetap harus direview.']);
+        ->assertSessionHasErrors(['phase_details.0.needs_review' => 'Detail ini punya 1 formulir evaluasi aktif, jadi tetap harus dinilai.']);
 
     expect($detail->formPhase?->draft()->exists())->toBeFalse();
 });
@@ -135,5 +135,5 @@ it('menolak form evaluasi yang dipasang dua kali di satu langkah', function () {
 
     $this->actingAs(phaseEvaluationActor())
         ->put(route('admin.phases.draft.update', $detail->formPhase), phaseEvaluationDraft($detail, [$evaluation, $evaluation]))
-        ->assertSessionHasErrors(['review_evaluation_form_id' => 'Form evaluasi ini sudah terpasang di langkah ini.']);
+        ->assertSessionHasErrors(['review_evaluation_form_id' => 'Formulir evaluasi ini sudah terpasang di langkah ini.']);
 });

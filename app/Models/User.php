@@ -33,7 +33,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         static::deleting(function (): never {
             throw new DeletionNotPermitted(
-                'Akun tidak dapat dihapus, user hanya dinonaktifkan (BR-IAM-19). '
+                'Akun tidak dapat dihapus, pengguna hanya dinonaktifkan (BR-IAM-19). '
                 .'Deaktivasi mencabut kemampuan bertindak tanpa menghilangkan pengajuan, '
                 .'profil, dan jejak yang menunjuk orang ini.'
             );

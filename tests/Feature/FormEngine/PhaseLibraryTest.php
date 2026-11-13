@@ -76,11 +76,11 @@ it('lists every phase ordered by title', function () {
 });
 
 it('shows the submission form of each phase', function () {
-    $phase = libraryPhase('Fase Penelitian');
+    $phase = libraryPhase('Tahap Penelitian');
     $monev = Form::factory()->create(['title' => 'Laporan Monev']);
     libraryDetail($monev, $phase, ['order' => 2, 'deadline_cycle' => 1]);
     libraryDetail($this->form, $phase);
-    $bare = libraryPhase('Fase Tanpa Pengajuan');
+    $bare = libraryPhase('Tahap Tanpa Pengajuan');
     libraryDetail($monev, $bare, ['deadline_cycle' => 1]);
 
     $cards = collect($this->actingAs(libraryActor())->get(route('admin.phases.index'))
@@ -93,10 +93,10 @@ it('shows the submission form of each phase', function () {
 
 it('filters to phases where any step uses the form', function () {
     $monev = Form::factory()->create(['title' => 'Laporan Monev']);
-    $withMonev = libraryPhase('Fase A');
+    $withMonev = libraryPhase('Tahap A');
     libraryDetail($this->form, $withMonev);
     libraryDetail($monev, $withMonev, ['order' => 2, 'deadline_cycle' => 1]);
-    $without = libraryPhase('Fase B');
+    $without = libraryPhase('Tahap B');
     libraryDetail($this->form, $without);
 
     $this->actingAs(libraryActor());
@@ -116,14 +116,14 @@ it('returns 404 for an unknown form filter', function () {
 
 it('menghitung detail, periode, dan pengajuan per tahap', function () {
     // Fase eksplisit: fase bawaan pabrik langkah sudah tertaut periode ujinya sendiri.
-    $phase = libraryPhase('Fase Hitung');
+    $phase = libraryPhase('Tahap Hitung');
     $first = libraryDetail($this->form, $phase);
     $second = libraryDetail($this->form, $phase);
     $period = SubmissionPeriod::create(['name' => 'Penelitian DIPA 2026']);
     SubmissionPeriodPhase::create(['submission_period_id' => $period->id, 'form_phase_id' => $phase->id]);
     FormSubmission::factory()->count(2)->create(['form_phase_detail_id' => $first->id]);
     FormSubmission::factory()->create(['form_phase_detail_id' => $second->id]);
-    $bare = libraryPhase('Fase Polos');
+    $bare = libraryPhase('Tahap Polos');
     libraryDetail($this->form, $bare);
 
     $cards = collect($this->actingAs(libraryActor())->get(route('admin.phases.index'))
@@ -150,10 +150,10 @@ it('tidak menambah kueri per kartu', function () {
         return count(DB::getQueryLog());
     };
 
-    libraryDetail($this->form, libraryPhase('Fase 1'));
+    libraryDetail($this->form, libraryPhase('Tahap 1'));
     $count(); // pemanasan: request pertama memuat izin dan sesi
     $one = $count();
-    foreach (['Fase 2', 'Fase 3', 'Fase 4'] as $title) {
+    foreach (['Tahap 2', 'Tahap 3', 'Tahap 4'] as $title) {
         libraryDetail(Form::factory()->create(), libraryPhase($title));
     }
 
@@ -161,7 +161,7 @@ it('tidak menambah kueri per kartu', function () {
 });
 
 it('nama periode terurut dan tahap nonaktif tetap terdaftar', function () {
-    $phase = FormPhase::create(['title' => 'Fase Nonaktif', 'is_active' => false]);
+    $phase = FormPhase::create(['title' => 'Tahap Nonaktif', 'is_active' => false]);
     libraryDetail($this->form, $phase);
     foreach (['Zeta', 'Alfa'] as $name) {
         $period = SubmissionPeriod::create(['name' => $name]);
@@ -176,7 +176,7 @@ it('nama periode terurut dan tahap nonaktif tetap terdaftar', function () {
 });
 
 it('hides the link-period action without periods.manage', function () {
-    $phase = libraryPhase('Fase Tautan');
+    $phase = libraryPhase('Tahap Tautan');
     libraryDetail($this->form, $phase);
     $period = SubmissionPeriod::create(['name' => 'P2']);
 
@@ -229,7 +229,7 @@ it('wewenang aktif dan hapus: peneliti 403', function () {
 });
 
 it('stays on the filtered library after destroy', function () {
-    $phase = libraryPhase('Fase Hapus');
+    $phase = libraryPhase('Tahap Hapus');
     libraryDetail($this->form, $phase);
     $filtered = route('admin.phases.index', ['form' => $this->form->id]);
 

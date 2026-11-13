@@ -20,7 +20,7 @@ it('returns false for draft submission with active period', function () {
     $form = Form::factory()->create();
 
     $phaseType = PhaseType::create(['name' => 'submission']);
-    $formPhase = FormPhase::create(['title' => 'Test Phase']);
+    $formPhase = FormPhase::create(['title' => 'Test Tahap']);
     $organization = Organization::create([
         'name' => 'ITK',
         'type' => 'institution',
@@ -72,7 +72,7 @@ it('returns true for draft submission with force closed period', function () {
     $form = Form::factory()->create();
 
     $phaseType = PhaseType::create(['name' => 'submission']);
-    $formPhase = FormPhase::create(['title' => 'Test Phase']);
+    $formPhase = FormPhase::create(['title' => 'Test Tahap']);
     $organization = Organization::create([
         'name' => 'ITK',
         'type' => 'institution',
@@ -124,7 +124,7 @@ it('returns true for draft submission when all submission dates are in the past'
     $form = Form::factory()->create();
 
     $phaseType = PhaseType::create(['name' => 'submission']);
-    $formPhase = FormPhase::create(['title' => 'Test Phase']);
+    $formPhase = FormPhase::create(['title' => 'Test Tahap']);
     $organization = Organization::create([
         'name' => 'ITK',
         'type' => 'institution',
@@ -184,7 +184,7 @@ it('returns false for submitted submission regardless of period state', function
     $form = Form::factory()->create();
 
     $phaseType = PhaseType::create(['name' => 'submission']);
-    $formPhase = FormPhase::create(['title' => 'Test Phase']);
+    $formPhase = FormPhase::create(['title' => 'Test Tahap']);
     $organization = Organization::create([
         'name' => 'ITK',
         'type' => 'institution',

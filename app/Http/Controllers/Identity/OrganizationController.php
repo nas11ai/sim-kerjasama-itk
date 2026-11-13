@@ -103,7 +103,7 @@ class OrganizationController extends Controller
     {
         MoveUserToOrganization::run($this->actor($request), $request->movedUser(), $organization);
 
-        return back()->with('success', 'User dipindahkan.');
+        return back()->with('success', 'Pengguna dipindahkan.');
     }
 
     private function selectedUnit(string $id): ?OrganizationUnitData

@@ -23,7 +23,7 @@ const subtitle = computed(() =>
     [props.report.title, props.report.scheme].filter((part) => part !== null).join(' · ')
 )
 // W131 — tanpa "· tepat waktu": tidak ada satu sumber untuk menilainya.
-const info = computed(() => [{ label: 'Disubmit', value: formatDate(props.cycle.submittedAt) }])
+const info = computed(() => [{ label: 'Dikirim', value: formatDate(props.cycle.submittedAt) }])
 </script>
 
 <template>
@@ -44,7 +44,7 @@ const info = computed(() => [{ label: 'Disubmit', value: formatDate(props.cycle.
                 arsip.
             </AppBanner>
             <AppBanner v-if="can.fill" tone="info">
-                Laporan ini masih draft.
+                Laporan ini masih draf.
                 <Link
                     :href="route('monev.reports.edit', report.id)"
                     class="font-medium text-primary underline-offset-4 hover:underline"
@@ -53,7 +53,7 @@ const info = computed(() => [{ label: 'Disubmit', value: formatDate(props.cycle.
                 </Link>
             </AppBanner>
             <div class="grid gap-4 lg:grid-cols-2">
-                <SectionCard title="Laporan (Read-only)">
+                <SectionCard title="Laporan (Hanya baca)">
                     <InfoGrid :items="info" />
                     <AnswerList :answers="answers" />
                 </SectionCard>
@@ -62,7 +62,7 @@ const info = computed(() => [{ label: 'Disubmit', value: formatDate(props.cycle.
                     <!-- BR-MON-09 -->
                     <ScoreSection
                         :scores="scores"
-                        note="Evaluasi tampil setelah reviewer submit."
+                        note="Evaluasi tampil setelah penilai mengirim."
                     />
                 </div>
             </div>

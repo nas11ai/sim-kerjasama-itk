@@ -20,7 +20,7 @@ const answersOf = (score: ReviewerScore) =>
     <AppBanner v-if="!scores.visible" tone="info">
         {{ scores.reason }}
     </AppBanner>
-    <SectionCard v-else title="Hasil Evaluasi Reviewer">
+    <SectionCard v-else title="Hasil Evaluasi Penilai">
         <!-- BR-REV-19 — lembar yang digantikan versi baru tetap terbaca, diredam sebagai riwayat -->
         <div
             v-for="(score, index) in scores.scores"
@@ -40,7 +40,7 @@ const answersOf = (score: ReviewerScore) =>
             </p>
             <InfoGrid :items="answersOf(score)" />
         </div>
-        <EmptyState v-if="scores.scores.length === 0" title="Belum ada evaluasi yang disubmit." />
+        <EmptyState v-if="scores.scores.length === 0" title="Belum ada evaluasi yang dikirim." />
         <p class="text-xs text-muted-foreground">{{ note }}</p>
     </SectionCard>
 </template>

@@ -63,6 +63,6 @@ describe('FormEngine/FormPreview', () => {
     it('tanpa field menampilkan keadaan kosong', () => {
         const wrapper = mount(FormPreview, { props: { fieldTypeOptions: types, fields: [] } })
 
-        expect(wrapper.text()).toContain('Form ini tidak punya isian di langkah ini.')
+        expect(wrapper.text()).toContain('Formulir ini tidak punya isian di langkah ini.')
     })
 })

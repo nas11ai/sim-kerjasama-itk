@@ -39,7 +39,7 @@ final class AuditActorLabel
 
         if (!$causer instanceof User) {
             // Aktor yang akunnya sudah terhapus tetap bukan "Sistem".
-            return $entry->causer_id === null ? self::SYSTEM : "User #{$entry->causer_id}";
+            return $entry->causer_id === null ? self::SYSTEM : "Pengguna #{$entry->causer_id}";
         }
 
         $held = RoleCatalog::namesOf($causer->roles);

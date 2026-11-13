@@ -22,7 +22,7 @@ const field = (
 
 const mountStep = (fields: WizardField[], step = 6) =>
     mount(AnswersStep, {
-        props: { step, label: 'Upload Berkas', fields, values: {}, errors: {} },
+        props: { step, label: 'Unggah Berkas', fields, values: {}, errors: {} },
     })
 
 // E2E-12, BR-SM-02 — banner berkas mengikuti field berkas wajib milik Form.
@@ -34,7 +34,7 @@ describe('AnswersStep', () => {
             field(3, 'file', 'Lampiran', false),
         ])
 
-        expect(wrapper.text()).toContain('Wajib diunggah sebelum submit: Proposal PDF, RAB.')
+        expect(wrapper.text()).toContain('Wajib diunggah sebelum dikirim: Proposal PDF, RAB.')
         expect(wrapper.text()).not.toContain('Lampiran.')
     })
 

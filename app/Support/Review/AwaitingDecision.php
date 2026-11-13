@@ -35,7 +35,7 @@ final class AwaitingDecision
         }
 
         throw ValidationException::withMessages([
-            'reviewer_id' => 'Reviewer hanya dapat ditugaskan pada pengajuan terkirim yang belum diputuskan.',
+            'reviewer_id' => 'Penilai hanya dapat ditugaskan pada pengajuan terkirim yang belum diputuskan.',
         ]);
     }
 }

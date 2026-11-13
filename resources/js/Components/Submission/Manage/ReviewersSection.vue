@@ -18,9 +18,9 @@ const typeLabel = (type: string) => (type === 'external' ? 'Eksternal' : 'Intern
 </script>
 
 <template>
-    <SectionCard title="Reviewer Ditugaskan">
+    <SectionCard title="Penilai Ditugaskan">
         <!-- BR-REV-01 — penugasan bertahap; minimum milik skema -->
-        <p class="text-sm font-medium">{{ activeCount }} dari minimal {{ minimum }} reviewer</p>
+        <p class="text-sm font-medium">{{ activeCount }} dari minimal {{ minimum }} penilai</p>
         <ul v-if="reviewers.length > 0" class="flex flex-col divide-y">
             <li
                 v-for="reviewer in reviewers"
@@ -55,6 +55,6 @@ const typeLabel = (type: string) => (type === 'external' ? 'Eksternal' : 'Intern
                 </Button>
             </li>
         </ul>
-        <EmptyState v-else title="Belum ada reviewer ditugaskan." />
+        <EmptyState v-else title="Belum ada penilai ditugaskan." />
     </SectionCard>
 </template>

@@ -79,7 +79,7 @@ const resolve = () =>
 
         <!-- BR-REV-06 — ulir ditutup reviewer yang membukanya, bukan peneliti -->
         <AppBanner v-if="thread.isOpen && canReply && !canResolve" tone="lock">
-            Hanya reviewer yang membuka catatan ini yang dapat menandainya selesai. Balas untuk
+            Hanya penilai yang membuka catatan ini yang dapat menandainya selesai. Balas untuk
             menyampaikan perbaikan Anda.
         </AppBanner>
 

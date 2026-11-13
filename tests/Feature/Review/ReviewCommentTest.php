@@ -172,7 +172,7 @@ it('menolak reviewer yang hanya ditugaskan di pengajuan lain', function () {
     $this->actingAs($stranger)
         ->post(route('review-comments.store', $thread), ['comment_text' => 'Bukan urusan saya.'])
         ->assertForbidden()
-        ->assertSee('Anda tidak memiliki izin untuk mengomentari review ini', false);
+        ->assertSee('Anda tidak memiliki izin untuk mengomentari penilaian ini', false);
 
     expect(ReviewComment::count())->toBe(0);
 });

@@ -19,9 +19,9 @@ const emit = defineEmits<{ edit: []; remove: [] }>()
         type="button"
         variant="ghost"
         size="sm"
-        :aria-label="`Edit ${label}`"
+        :aria-label="`Ubah ${label}`"
         @click="emit('edit')"
-        ><Pencil class="size-4" />Edit</Button
+        ><Pencil class="size-4" />Ubah</Button
     >
     <Button
         type="button"

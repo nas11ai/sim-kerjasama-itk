@@ -49,7 +49,7 @@ describe('OperatorActions', () => {
         })
 
         for (const label of [
-            'Tugaskan Reviewer',
+            'Tugaskan Penilai',
             'Perpanjang Tenggat',
             'Alihkan Kepemilikan',
             'Tolak Manual',

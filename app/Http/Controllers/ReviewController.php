@@ -34,7 +34,7 @@ class ReviewController extends Controller
             $validated['auto_assign_forms'] ?? true,
         );
 
-        $response = back()->with('success', 'Berhasil menugaskan reviewer.');
+        $response = back()->with('success', 'Berhasil menugaskan penilai.');
 
         return $peringatanBeban === []
             ? $response
@@ -58,13 +58,13 @@ class ReviewController extends Controller
         $reviewer = Reviewer::where('user_id', $user->id)->first();
 
         if (!$reviewer) {
-            abort(403, 'Anda tidak terdaftar sebagai reviewer');
+            abort(403, 'Anda tidak terdaftar sebagai penilai');
         }
 
         $assignment = ActiveReviewerAssignment::run($submission, $reviewer->id);
 
         if (!$assignment) {
-            abort(403, 'Anda tidak ditugaskan sebagai reviewer untuk pengajuan ini.');
+            abort(403, 'Anda tidak ditugaskan sebagai penilai untuk pengajuan ini.');
         }
 
         return $this->openThread($request, $submission, $assignment);
@@ -79,7 +79,7 @@ class ReviewController extends Controller
             $this->storeAttachments($request, $submission),
         );
 
-        return back()->with('success', 'Thread review berhasil dibuat.');
+        return back()->with('success', 'Ulir penilaian berhasil dibuat.');
     }
 
     /** @return list<string> */

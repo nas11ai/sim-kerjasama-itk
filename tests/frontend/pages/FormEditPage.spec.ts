@@ -79,9 +79,9 @@ const props = (overrides: Partial<FormEditPageProps> = {}): FormEditPageProps =>
 
 const editing = (): FormEditPageProps =>
     props({
-        form: { id: 7, title: 'Form Proposal Penelitian', isActive: false },
+        form: { id: 7, title: 'Formulir Proposal Penelitian', isActive: false },
         general: general({
-            title: 'Form Proposal Penelitian',
+            title: 'Formulir Proposal Penelitian',
             formTypeId: 2,
             isActive: false,
             publishedAt: '2026-01-01T00:00:00+08:00',
@@ -134,25 +134,25 @@ describe('FormEngine/FormEditPage', () => {
     it('mode buat: judul, tanpa badge, tab Access Control dan Phases disabled', () => {
         const wrapper = mountPage(props())
 
-        expect(wrapper.find('h1').text()).toBe('Buat Form Baru')
+        expect(wrapper.find('h1').text()).toBe('Buat Formulir Baru')
         expect(heading(wrapper)).not.toContain('Aktif')
-        for (const label of ['Access Control', 'Phases']) {
+        for (const label of ['Kontrol Akses', 'Tahap']) {
             const el = tab(wrapper, label)
             expect(el?.element.tagName).toBe('SPAN')
             expect(el?.attributes('aria-disabled')).toBe('true')
-            expect(el?.attributes('title')).toBe('Simpan form lebih dulu')
+            expect(el?.attributes('title')).toBe('Simpan formulir lebih dulu')
         }
-        expect(tab(wrapper, 'General & Fields')?.attributes('aria-current')).toBe('page')
+        expect(tab(wrapper, 'Umum & Isian')?.attributes('aria-current')).toBe('page')
     })
 
     it('mode sunting: judul, badge status, tab Phases menaut ke pustaka bertapis (R2-W4)', () => {
         const wrapper = mountPage(editing())
 
-        expect(wrapper.find('h1').text()).toBe('Edit Form: Form Proposal Penelitian')
+        expect(wrapper.find('h1').text()).toBe('Ubah Formulir: Formulir Proposal Penelitian')
         expect(heading(wrapper)).toContain('Nonaktif')
-        expect(tab(wrapper, 'General & Fields')?.attributes('href')).toBe('/admin.forms.edit/7')
-        expect(tab(wrapper, 'Phases')?.attributes('href')).toBe('/admin.phases.index/7')
-        expect(tab(wrapper, 'Phases')?.attributes('aria-current')).toBeUndefined()
+        expect(tab(wrapper, 'Umum & Isian')?.attributes('href')).toBe('/admin.forms.edit/7')
+        expect(tab(wrapper, 'Tahap')?.attributes('href')).toBe('/admin.phases.index/7')
+        expect(tab(wrapper, 'Tahap')?.attributes('aria-current')).toBeUndefined()
         expect(wrapper.find('a[href="/admin.forms.index"]').text()).toContain('Pembuat Formulir')
     })
 
@@ -169,7 +169,7 @@ describe('FormEngine/FormEditPage', () => {
         const wrapper = mountPage(props())
 
         expect(wrapper.findAll('button').some((b) => b.text().includes('Lanjut'))).toBe(false)
-        expect(wrapper.find('button[type="submit"]').text()).toBe('Buat Form')
+        expect(wrapper.find('button[type="submit"]').text()).toBe('Buat Formulir')
         await wrapper.find('form').trigger('submit')
 
         expect(submitted).toHaveBeenCalledWith(
@@ -182,7 +182,7 @@ describe('FormEngine/FormEditPage', () => {
     it('mode sunting: Lanjut menyimpan General saja; field lama ke draf dengan id, tanpa kunci options', async () => {
         const wrapper = mountPage(editing())
 
-        await clickButton(wrapper, 'Lanjut: Access Control')
+        await clickButton(wrapper, 'Lanjut: Kontrol Akses')
         await clickButton(wrapper, 'Simpan draf')
 
         const [method, url, data] = submitted.mock.calls[0] ?? []

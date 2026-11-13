@@ -114,7 +114,7 @@ describe('FormEngine/PeriodEvaluationVersionsPage', () => {
 
         const dialog = document.querySelector('[role="dialog"]')
         expect(dialog?.textContent).toContain(
-            'Terapkan Versi 2 ke angkatan ini? 3 penilaian akan dibuka ulang dan reviewer-nya diberi tahu.'
+            'Terapkan Versi 2 ke angkatan ini? 3 penilaian akan dibuka ulang dan penilainya diberi tahu.'
         )
         const confirm = Array.from(dialog?.querySelectorAll('button') ?? []).find(
             (b) => b.textContent?.trim() === 'Terapkan Versi 2'
@@ -136,7 +136,7 @@ describe('FormEngine/PeriodEvaluationVersionsPage', () => {
 
         const dialog = document.querySelector('[role="dialog"]')
         expect(dialog?.textContent).toContain(
-            '1 pengajuan sudah lewat Batas Evaluasi. Reviewer-nya baru bisa mengisi ulang setelah diberi perpanjangan di halaman pengajuan:'
+            '1 pengajuan sudah lewat Batas Evaluasi. Penilainya baru bisa mengisi ulang setelah diberi perpanjangan di halaman pengajuan:'
         )
         expect(dialog?.querySelector('a[href="/admin.submissions.show/41"]')?.textContent).toBe(
             'Budi Santoso'

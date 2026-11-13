@@ -135,13 +135,13 @@ describe('AssignReviewersDialog', () => {
         await assign([candidate({ overloaded: true, activeLoad: 9 })])
 
         expect(text()).toContain('Beban Tinggi')
-        expect(text()).toContain('Workload: 9 aktif')
+        expect(text()).toContain('Beban: 9 aktif')
         expect(button('Dr. Sari Lestari').disabled).toBe(false)
     })
 
     it('galat penugasan tampil dan dialog tetap terbuka', async () => {
         post.mockImplementation((form, _url, options) => {
-            form.errors = { reviewer_id: 'Reviewer ini sudah ditugaskan pada siklus review ini.' }
+            form.errors = { reviewer_id: 'Penilai ini sudah ditugaskan pada siklus penilaian ini.' }
             options.onError?.()
         })
         await assign([candidate()])
@@ -149,7 +149,7 @@ describe('AssignReviewersDialog', () => {
         await click('Dr. Sari Lestari')
         await click('Tugaskan')
 
-        expect(text()).toContain('Reviewer ini sudah ditugaskan pada siklus review ini.')
+        expect(text()).toContain('Penilai ini sudah ditugaskan pada siklus penilaian ini.')
         expect(wrapper.emitted('update:open')).toBeUndefined()
     })
 
@@ -193,7 +193,7 @@ describe('ReplaceReviewerDialog', () => {
         await replace()
 
         await click('Dr. Sari Lestari')
-        await click('Ganti Reviewer')
+        await click('Ganti Penilai')
 
         const [form, url] = post.mock.calls[0]
         expect(url).toBe('/admin.submissions.replace-reviewer/9,5')
@@ -207,12 +207,12 @@ describe('ReplaceReviewerDialog', () => {
         await click('Dr. Sari Lestari')
         const note = document.querySelector<HTMLTextAreaElement>('#replace-note')
         if (note === null) {
-            throw new Error('field catatan tidak ada')
+            throw new Error('isian catatan tidak ada')
         }
         note.value = 'Tidak responsif lebih dari 7 hari'
         note.dispatchEvent(new Event('input'))
         await flushPromises()
-        await click('Ganti Reviewer')
+        await click('Ganti Penilai')
 
         expect(post.mock.calls[0][0].note).toBe('Tidak responsif lebih dari 7 hari')
     })

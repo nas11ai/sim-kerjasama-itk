@@ -25,9 +25,9 @@ class MoveUserRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'user_id.required' => 'Pilih user yang akan dipindahkan.',
-            'user_id.integer' => 'Pilih user yang akan dipindahkan.',
-            'user_id.exists' => 'User yang dipilih tidak ditemukan.',
+            'user_id.required' => 'Pilih pengguna yang akan dipindahkan.',
+            'user_id.integer' => 'Pilih pengguna yang akan dipindahkan.',
+            'user_id.exists' => 'Pengguna yang dipilih tidak ditemukan.',
         ];
     }
 

@@ -39,8 +39,8 @@ const facts = (unit: OrganizationUnitData) => [
     { label: 'Unit', value: unit.name },
     { label: 'Tipe', value: unit.typeLabel },
     { label: 'Status', value: unit.isActive ? 'Aktif' : 'Nonaktif' },
-    { label: 'User di Unit Ini', value: directUsers(unit) },
-    { label: 'User di Seluruh Subtree', value: String(unit.census.subtreeProfiles) },
+    { label: 'Pengguna di Unit Ini', value: directUsers(unit) },
+    { label: 'Pengguna di Seluruh Subunit', value: String(unit.census.subtreeProfiles) },
 ]
 
 // BR-IAM-14 — ambang deaktivasi: user aktif di seluruh subtree.
@@ -50,7 +50,7 @@ const deactivateHint = (unit: OrganizationUnitData) => {
         unitsWithActiveUsers > 0 ? `, tersebar di ${unitsWithActiveUsers} unit turunan` : ''
     const blocked = unit.canDeactivate
         ? ''
-        : `Terhalang ${subtreeActiveUsers} user aktif${spread}, pindahkan atau nonaktifkan orangnya lebih dulu. `
+        : `Terhalang ${subtreeActiveUsers} pengguna aktif${spread}, pindahkan atau nonaktifkan orangnya lebih dulu. `
 
     return `${blocked}Menonaktifkan unit memerlukan konfirmasi.`
 }
@@ -59,7 +59,7 @@ const deactivateHint = (unit: OrganizationUnitData) => {
 const deleteHint = (unit: OrganizationUnitData) =>
     unit.canDelete
         ? 'Menghapus unit memerlukan konfirmasi.'
-        : `Terhalang ${unit.census.subtreeProfiles} profil user. Penghapusan menuntut subtree benar-benar kosong, termasuk profil yang user-nya sudah nonaktif.`
+        : `Terhalang ${unit.census.subtreeProfiles} profil pengguna. Penghapusan menuntut seluruh subunit benar-benar kosong, termasuk profil yang penggunanya sudah nonaktif.`
 
 const actions = computed<ActionItem[]>(() => {
     const unit = props.unit
@@ -100,7 +100,7 @@ const actions = computed<ActionItem[]>(() => {
     if (unit.census.subtreeProfiles > 0) {
         items.push({
             key: 'move-user',
-            label: 'Pindahkan User',
+            label: 'Pindahkan Pengguna',
             icon: ArrowRightLeft,
             available: true,
             hint: 'Pindahkan anggota unit ini atau turunannya ke unit aktif lain.',
@@ -127,7 +127,7 @@ const actions = computed<ActionItem[]>(() => {
                         <Plus class="size-4" />Tambah Sub-unit
                     </Button>
                     <Button variant="outline" @click="emit('edit')">
-                        <Pencil class="size-4" />Edit Nama / Tipe
+                        <Pencil class="size-4" />Ubah Nama / Tipe
                     </Button>
                 </div>
                 <!-- BR-IAM-08 / BR-IAM-14 — kelayakan dan angka hint dari sensus backend. -->
@@ -141,9 +141,9 @@ const actions = computed<ActionItem[]>(() => {
             </template>
         </SectionCard>
         <AppBanner tone="info">
-            Nonaktifkan dan Hapus adalah dua operasi dengan ambang berbeda: nonaktif melihat user
-            aktif, hapus melihat profil apa pun. Unit yang seluruh user-nya sudah nonaktif boleh
-            dinonaktifkan, tapi belum boleh dihapus.
+            Nonaktifkan dan Hapus adalah dua operasi dengan ambang berbeda: nonaktif melihat
+            pengguna aktif, hapus melihat profil apa pun. Unit yang seluruh penggunanya sudah
+            nonaktif boleh dinonaktifkan, tapi belum boleh dihapus.
         </AppBanner>
     </div>
 </template>

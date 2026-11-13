@@ -53,13 +53,13 @@ class ReviewerManagementController extends Controller
         // BR-IAM-11 — role, idempoten per orang, BR-IAM-05, notifikasi, audit.
         AppointReviewer::run(User::findOrFail($request->userId()), $request->reviewerType(), $tenure['start'], $tenure['end']);
 
-        return back()->with('success', 'Reviewer ditunjuk.');
+        return back()->with('success', 'Penilai ditunjuk.');
     }
 
     public function update(ReviseAppointmentRequest $request, Reviewer $reviewer): RedirectResponse
     {
         ReviseReviewerAppointment::run($this->actor($request), $reviewer, $request->reviewerType(), $request->tenure());
 
-        return back()->with('success', 'Masa tugas reviewer diperbarui.');
+        return back()->with('success', 'Masa tugas penilai diperbarui.');
     }
 }

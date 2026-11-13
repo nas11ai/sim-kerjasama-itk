@@ -28,25 +28,25 @@ const options: StartPeriodOption[] = [
         id: 1,
         name: 'Penelitian DIPA 2026',
         closesAt: '2026-12-15T00:00:00.000000Z',
-        forms: [{ formId: 10, formPhaseId: 5, title: 'Form Proposal Penelitian', draftId: null }],
+        forms: [{ formId: 10, formPhaseId: 5, title: 'Formulir Proposal Penelitian', draftId: null }],
     },
     {
         id: 2,
         name: 'Pengabdian 2026',
         closesAt: null,
         forms: [
-            { formId: 20, formPhaseId: 6, title: 'Form Pengabdian', draftId: 99 },
-            { formId: 21, formPhaseId: 6, title: 'Form Pengabdian Mandiri', draftId: null },
+            { formId: 20, formPhaseId: 6, title: 'Formulir Pengabdian', draftId: 99 },
+            { formId: 21, formPhaseId: 6, title: 'Formulir Pengabdian Mandiri', draftId: null },
         ],
     },
 ]
 
 const submission: WizardSubmission = {
     id: 7,
-    title: 'Form Proposal Penelitian',
-    status: { key: 'draft', label: 'Draft', variant: 'secondary' },
+    title: 'Formulir Proposal Penelitian',
+    status: { key: 'draft', label: 'Draf', variant: 'secondary' },
     period: 'Penelitian DIPA 2026',
-    form: 'Form Proposal Penelitian',
+    form: 'Formulir Proposal Penelitian',
     lastUpdatedAt: '2026-10-31T01:00:00.000000Z',
 }
 
@@ -68,11 +68,11 @@ beforeEach(() => {
 
 describe('StartStep', () => {
     it('menampilkan alasan penolakan Form nonaktif (errors.form_id)', () => {
-        pageErrors.form_id = 'Form ini sudah tidak menerima pengajuan baru.'
+        pageErrors.form_id = 'Formulir ini sudah tidak menerima pengajuan baru.'
 
         const wrapper = mountStart()
 
-        expect(wrapper.text()).toContain('Form ini sudah tidak menerima pengajuan baru.')
+        expect(wrapper.text()).toContain('Formulir ini sudah tidak menerima pengajuan baru.')
     })
 
     it('menampilkan alasan penolakan tahap (errors.form_phase_id)', () => {
@@ -90,8 +90,8 @@ describe('StartStep', () => {
 
         const forms = wrapper.findAllComponents(OptionSelect)[1].props('options')
         expect(forms.map((form) => form.label)).toEqual([
-            'Form Pengabdian',
-            'Form Pengabdian Mandiri',
+            'Formulir Pengabdian',
+            'Formulir Pengabdian Mandiri',
         ])
     })
 
@@ -103,7 +103,7 @@ describe('StartStep', () => {
 
         const link = wrapper.find('a[href="/user.submissions.wizard/99"]')
         expect(link.exists()).toBe(true)
-        expect(link.text()).toContain('Lanjutkan draft')
+        expect(link.text()).toContain('Lanjutkan draf')
     })
 
     it('Lanjut memanggil router.post ke user.submissions.store dengan form_phase_id', async () => {
@@ -126,7 +126,7 @@ describe('StartStep', () => {
         expect(wrapper.findAllComponents(OptionSelect)).toHaveLength(0)
         expect(wrapper.text()).toContain('Penelitian DIPA 2026')
         expect(wrapper.text()).toContain(
-            'Form dan periode tidak dapat diganti setelah draft dibuat.'
+            'Formulir dan periode tidak dapat diganti setelah draf dibuat.'
         )
     })
 })

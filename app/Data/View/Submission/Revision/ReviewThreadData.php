@@ -49,10 +49,10 @@ final class ReviewThreadData extends Data
         return new self(
             id: $summary->id,
             // BR-REV-15 — penulis asli tetap; pemegang yang berhak me-resolve bisa berpindah.
-            reviewer: $summary->author->user->name ?? 'Reviewer',
+            reviewer: $summary->author->user->name ?? 'Penilai',
             inheritedBy: $summary->reviewer_id === $summary->author_reviewer_id
                 ? null
-                : ($summary->reviewer?->user->name ?? 'Reviewer'),
+                : ($summary->reviewer?->user->name ?? 'Penilai'),
             isOpen: $summary->status === 'open',
             notes: $summary->summary_notes,
             at: $summary->created_at?->toIso8601String(),

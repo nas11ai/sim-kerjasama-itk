@@ -16,7 +16,7 @@ const columns = [
     { key: 'title', label: 'Judul' },
     { key: 'scheme', label: 'Skema' },
     { key: 'status', label: 'Status' },
-    { key: 'submittedAt', label: 'Tanggal Submit' },
+    { key: 'submittedAt', label: 'Tanggal Kirim' },
     { key: 'action', label: '' },
 ]
 </script>
@@ -48,7 +48,7 @@ const columns = [
                 <Badge
                     v-if="row.isArchived"
                     variant="outline"
-                    title="Draft dari periode yang sudah ditutup, tidak dapat diedit lagi."
+                    title="Draf dari periode yang sudah ditutup, tidak dapat diubah lagi."
                 >
                     Diarsipkan
                 </Badge>

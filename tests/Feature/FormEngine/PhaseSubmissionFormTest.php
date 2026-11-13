@@ -27,7 +27,7 @@ use Spatie\Activitylog\Models\Activity;
 
 beforeEach(function () {
     $this->admin = User::factory()->create();
-    $this->phaseTypeId = PhaseType::create(['name' => 'Tipe Pustaka Fase'])->id;
+    $this->phaseTypeId = PhaseType::create(['name' => 'Tipe Pustaka Tahap'])->id;
     $this->formType = regularFormType();
 });
 
@@ -108,7 +108,7 @@ it('[FE-PHASE-02] rejects a phase with two submission forms', function () {
     ]);
 
     expect($errors['phase_details'][0] ?? null)->toBe(
-        'Satu tahap hanya untuk satu Form pengajuan: Pengajuan Penelitian, Pengajuan Pengmas. Buat tahap terpisah untuk tiap Form.',
+        'Satu tahap hanya untuk satu Formulir pengajuan: Pengajuan Penelitian, Pengajuan Pengmas. Buat tahap terpisah untuk tiap Formulir.',
     )->and(FormPhase::count())->toBe(0);
 });
 
@@ -128,11 +128,11 @@ it('[FE-PHASE-04] rejects a monev report that reuses the submission form', funct
     $errors = phaseErrors([stepInput($submission), stepInput($submission, $type, $cycle)]);
 
     expect($errors['phase_details.1.form_access_control_id'][0] ?? null)
-        ->toBe('Laporan Monev dan Upload Luaran memakai Form selain Form pengajuan.')
+        ->toBe('Laporan Monev dan Unggah Luaran memakai Formulir selain Formulir pengajuan.')
         ->and(FormPhase::count())->toBe(0);
 })->with([
     'Laporan Monev I' => [DeadlineType::Submit, 1],
-    'Upload Luaran' => [DeadlineType::Output, null],
+    'Unggah Luaran' => [DeadlineType::Output, null],
 ]);
 
 it('[FE-PHASE-05] keeps a used phase from gaining a second submission form', function () {
@@ -148,7 +148,7 @@ it('[FE-PHASE-05] keeps a used phase from gaining a second submission form', fun
         new FormPhaseDetailInput(null, $step->form_access_control_id, $this->phaseTypeId, false, DeadlineType::Submit, null),
         stepInput(libraryAccess('Pengajuan Pengmas')),
     ]), $this->admin))->toThrow(fn (ValidationException $e) => expect($e->errors()['phase_details'][0] ?? null)
-        ->toBe('Satu tahap hanya untuk satu Form pengajuan: Pengajuan Penelitian, Pengajuan Pengmas. Buat tahap terpisah untuk tiap Form.'));
+        ->toBe('Satu tahap hanya untuk satu Formulir pengajuan: Pengajuan Penelitian, Pengajuan Pengmas. Buat tahap terpisah untuk tiap Formulir.'));
 
     expect($phase->formPhaseDetails()->count())->toBe(1)
         ->and($phase->draft()->exists())->toBeFalse()

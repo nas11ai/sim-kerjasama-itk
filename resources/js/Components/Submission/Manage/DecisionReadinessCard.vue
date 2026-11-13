@@ -14,7 +14,7 @@ const items = computed(() => [
         label: 'Putaran',
         value:
             props.readiness.round === null
-                ? 'Tanpa putaran review.'
+                ? 'Tanpa putaran penilaian.'
                 : roundProgressLabel(props.readiness.round),
     },
     { label: 'Catatan', value: `${props.readiness.openThreadCount} catatan terbuka` },

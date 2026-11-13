@@ -15,9 +15,9 @@ const emit = defineEmits<{
 }>()
 
 const columns = [
-    { key: 'title', label: 'Nama Form' },
+    { key: 'title', label: 'Nama Formulir' },
     { key: 'type', label: 'Tipe' },
-    { key: 'fields', label: 'Field Aktif' },
+    { key: 'fields', label: 'Isian Aktif' },
     { key: 'submissions', label: 'Pengajuan Aktif' },
     { key: 'status', label: 'Status' },
     { key: 'action', label: '' },
@@ -44,7 +44,7 @@ const columns = [
             <div class="flex justify-end gap-2">
                 <Button as-child size="sm" variant="outline">
                     <Link :href="route('admin.forms.edit', row.id)"
-                        ><Pencil class="size-4" />Edit</Link
+                        ><Pencil class="size-4" />Ubah</Link
                     >
                 </Button>
                 <Button size="sm" variant="outline" @click="emit('toggle-active', row)"
@@ -58,7 +58,7 @@ const columns = [
         <template #empty>
             <EmptyState
                 :icon="FileText"
-                :title="filtered ? 'Tidak ada form yang cocok' : 'Belum ada form'"
+                :title="filtered ? 'Tidak ada formulir yang cocok' : 'Belum ada formulir'"
             />
         </template>
     </DataTable>

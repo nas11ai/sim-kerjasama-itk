@@ -62,7 +62,7 @@ class AppointReviewer
     {
         if (!array_key_exists($type, self::ROLES)) {
             throw ValidationException::withMessages([
-                'reviewer_type' => 'Tipe reviewer harus internal atau eksternal.',
+                'reviewer_type' => 'Tipe penilai harus internal atau eksternal.',
             ]);
         }
 
@@ -70,7 +70,7 @@ class AppointReviewer
         // penunjukan adalah bentuk paling awal dari itu.
         if (!$user->is_active) {
             throw ValidationException::withMessages([
-                'user_id' => 'Akun ini nonaktif dan tidak dapat ditunjuk sebagai reviewer.',
+                'user_id' => 'Akun ini nonaktif dan tidak dapat ditunjuk sebagai penilai.',
             ]);
         }
 
@@ -78,7 +78,7 @@ class AppointReviewer
         // menunjuk ulang pemilik duplikat mengubah baris yang salah: tolak sampai dirapikan.
         if (Reviewer::where('user_id', $user->id)->count() > 1) {
             throw ValidationException::withMessages([
-                'user_id' => 'User ini punya lebih dari satu record reviewer; rapikan duplikatnya dulu.',
+                'user_id' => 'Pengguna ini punya lebih dari satu record penilai; rapikan duplikatnya dulu.',
             ]);
         }
     }

@@ -17,10 +17,10 @@ defineProps<SummaryPageProps>()
 </script>
 
 <template>
-    <Head title="Review Summary & Diskusi" />
+    <Head title="Ringkasan Penilaian & Diskusi" />
     <AppLayout>
         <PageHeader
-            title="Review Summary & Diskusi"
+            title="Ringkasan Penilaian & Diskusi"
             :subtitle="submission.title"
             :back-href="route('reviewer.assignments.index')"
             back-label="Penugasan Penilaian"
@@ -48,7 +48,7 @@ defineProps<SummaryPageProps>()
             <!-- BR-REV-11 — skor rekan dan alasannya tertutup dibaca dari payload -->
             <ScoreSection
                 :scores="scores"
-                note="Skor rekan terbuka bagi reviewer internal setelah seluruh evaluasi selesai."
+                note="Skor rekan terbuka bagi penilai internal setelah seluruh evaluasi selesai."
             />
             <AppBanner tone="info">
                 Catatan yang masih terbuka saat putaran selesai dikirim ke peneliti sebagai

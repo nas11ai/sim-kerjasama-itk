@@ -86,7 +86,7 @@ it('status berurutan menurut alur dan berbagi dari total', function () {
 
     $byStatus = collect(overview(2026)['byStatus']);
 
-    expect($byStatus->pluck('label')->all())->toBe(['Menunggu Review', 'Sedang Direview', 'Perlu Revisi', 'Diajukan Ulang', 'Disetujui', 'Ditolak', 'Ditarik Kembali'])
+    expect($byStatus->pluck('label')->all())->toBe(['Menunggu Penilaian', 'Sedang Dinilai', 'Perlu Revisi', 'Diajukan Ulang', 'Disetujui', 'Ditolak', 'Ditarik Kembali'])
         ->and($byStatus->firstWhere('key', 'under_review')->share)->toBe(0.5);
 });
 

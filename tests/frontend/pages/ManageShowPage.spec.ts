@@ -91,7 +91,7 @@ const props = (
         evaluationSheets: [],
         threads: [],
         ownershipCandidates: [],
-        overrideTarget: { phaseLabel: 'Fase Proposal: Batas Submit', affectedReviewers: [] },
+        overrideTarget: { phaseLabel: 'Tahap Proposal: Batas Pengiriman', affectedReviewers: [] },
         operatorCan: {
             assignReviewers: true,
             replaceReviewer: true,
@@ -104,7 +104,7 @@ const props = (
         decisionReadiness: {
             ready: false,
             approvable: false,
-            blockers: ['Belum ada reviewer.'],
+            blockers: ['Belum ada penilai.'],
             openThreadCount: 0,
             round: null,
         },
@@ -135,13 +135,13 @@ describe('ManageShowPage', () => {
     })
 
     it('[REV-OUTCOME-10] menunggu penugasan reviewer', () => {
-        expect(mountPage(props()).text()).toContain('Pengajuan menunggu penugasan reviewer.')
+        expect(mountPage(props()).text()).toContain('Pengajuan menunggu penugasan penilai.')
     })
 
     it('menunggu penugasan tidak tampil setelah ada reviewer aktif', () => {
         const wrapper = mountPage(props({ reviewers: [reviewer()], activeReviewerCount: 1 }))
 
-        expect(wrapper.text()).not.toContain('Pengajuan menunggu penugasan reviewer.')
+        expect(wrapper.text()).not.toContain('Pengajuan menunggu penugasan penilai.')
     })
 
     it('[REV-REASSIGN-01] reviewer digantikan tampil berlabel tanpa tombol ganti', () => {
@@ -181,7 +181,7 @@ describe('ManageShowPage', () => {
 
         expect(wrapper.text()).toContain('Penarikan bersifat final.')
         const actionLabels = [
-            'Tugaskan Reviewer',
+            'Tugaskan Penilai',
             'Perpanjang Tenggat',
             'Alihkan Kepemilikan',
             'Tolak Manual',
@@ -209,7 +209,7 @@ describe('ManageShowPage', () => {
                     decisionReadiness: {
                         ready: true,
                         approvable: false,
-                        blockers: ['1 catatan reviewer masih terbuka.'],
+                        blockers: ['1 catatan penilai masih terbuka.'],
                         openThreadCount: 1,
                         round: { kind: 'assessment', number: 1, finished: 2, total: 2 },
                     },
@@ -220,7 +220,7 @@ describe('ManageShowPage', () => {
 
         const approve = wrapper.findAll('button').find((b) => b.text().includes('Setujui'))
         expect(approve?.attributes('disabled')).toBeDefined()
-        expect(wrapper.text()).toContain('1 catatan reviewer masih terbuka.')
+        expect(wrapper.text()).toContain('1 catatan penilai masih terbuka.')
     })
 
     it('[REV-OUTCOME-11] Setujui tersedia bila siap tanpa catatan terbuka', () => {
@@ -275,7 +275,7 @@ describe('ManageShowPage', () => {
 
     it('[REV-ASSIGN-06] peringatan beban dari flash ditampilkan', () => {
         const warning =
-            'Reviewer ini sedang memegang 9 penugasan aktif, melebihi batas 8 yang ditetapkan skema. Penugasan tetap dapat dilanjutkan.'
+            'Penilai ini sedang memegang 9 penugasan aktif, melebihi batas 8 yang ditetapkan skema. Penugasan tetap dapat dilanjutkan.'
         page.props.flash.workloadWarnings = [warning]
 
         expect(mountPage(props()).text()).toContain(warning)

@@ -53,7 +53,7 @@ const props = (overrides: Partial<MonevReportShowPageProps> = {}): MonevReportSh
         submittedAt: '2025-09-20T10:00:00+08:00',
         openedAt: null,
     },
-    status: { key: 'submitted', label: 'Disubmit', variant: 'secondary' },
+    status: { key: 'submitted', label: 'Dikirim', variant: 'secondary' },
     answers: [
         {
             label: 'Ringkasan Kemajuan',
@@ -64,7 +64,7 @@ const props = (overrides: Partial<MonevReportShowPageProps> = {}): MonevReportSh
     ],
     scores: {
         visible: false,
-        reason: 'Hasil evaluasi akan tampil begitu reviewer menyelesaikan penilaiannya.',
+        reason: 'Hasil evaluasi akan tampil begitu penilai menyelesaikan penilaiannya.',
         scores: [],
     },
     threads: [],
@@ -86,8 +86,8 @@ describe('Monev/ReportShowPage', () => {
 
         expect(text).toContain('Detail Laporan Monev I')
         expect(text).toContain('Pemetaan Karbon Biru Pesisir Balikpapan · Pengabdian DIPA 2025')
-        expect(text).toContain('Disubmit')
-        expect(text).toContain('Laporan (Read-only)')
+        expect(text).toContain('Dikirim')
+        expect(text).toContain('Laporan (Hanya baca)')
         expect(text).toContain('Survey lapangan 3 lokasi pesisir selesai')
         expect(text).toContain('Diskusi')
         expect(text).toContain('Belum ada diskusi.')
@@ -95,7 +95,7 @@ describe('Monev/ReportShowPage', () => {
 
     it('[MON-REVIEW-08] evaluasi belum disubmit menampilkan catatan menunggu', () => {
         expect(mountPage().text()).toContain(
-            'Hasil evaluasi akan tampil begitu reviewer menyelesaikan penilaiannya.'
+            'Hasil evaluasi akan tampil begitu penilai menyelesaikan penilaiannya.'
         )
     })
 
@@ -108,7 +108,7 @@ describe('Monev/ReportShowPage', () => {
     it('draft milik ketua menawarkan Lanjutkan Laporan', () => {
         const wrapper = mountPage({ can: { fill: true, reply: true, resolveThreads: false } })
 
-        expect(wrapper.text()).toContain('Laporan ini masih draft.')
+        expect(wrapper.text()).toContain('Laporan ini masih draf.')
         const link = wrapper.findAll('a').find((a) => a.text().includes('Lanjutkan Laporan'))
         expect(link?.attributes('href')).toBe(route('monev.reports.edit', 9))
     })

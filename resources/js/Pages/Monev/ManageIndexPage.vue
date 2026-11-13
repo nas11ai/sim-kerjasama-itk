@@ -30,7 +30,7 @@ const selects = computed((): FilterSelectSpec<Exclude<keyof MonevBoardFilters, '
     <AppLayout>
         <PageHeader
             title="Manajemen Siklus Monev"
-            subtitle="Semua submission APPROVED beserta progres siklus monev-nya."
+            subtitle="Semua pengajuan berstatus Disetujui beserta progres siklus monev-nya."
         />
         <FilterToolbar
             v-model:search="filters.search"

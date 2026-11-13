@@ -15,10 +15,10 @@ import type { WizardReview, WizardSubmission } from '@/types/submission-wizard'
 
 const submission: WizardSubmission = {
     id: 7,
-    title: 'Form Proposal',
-    status: { key: 'draft', label: 'Draft', variant: 'secondary' },
+    title: 'Formulir Proposal',
+    status: { key: 'draft', label: 'Draf', variant: 'secondary' },
     period: 'DIPA 2026',
-    form: 'Form Proposal',
+    form: 'Formulir Proposal',
     lastUpdatedAt: '2026-10-31T01:00:00.000000Z',
 }
 
@@ -63,21 +63,21 @@ describe('ReviewStep', () => {
                 {
                     fieldId: 1,
                     label: 'Judul',
-                    message: "Field 'Judul' wajib diisi sebelum submit.",
+                    message: "Isian 'Judul' wajib diisi sebelum dikirim.",
                     step: 2,
                 },
                 {
                     fieldId: 9,
                     label: 'Proposal PDF',
-                    message: "Field 'Proposal PDF' wajib diisi sebelum submit.",
+                    message: "Isian 'Proposal PDF' wajib diisi sebelum dikirim.",
                     step: 6,
                 },
             ],
         })
 
-        expect(wrapper.text()).toContain('2 field wajib belum terisi. Perbaiki sebelum mengirim.')
+        expect(wrapper.text()).toContain('2 isian wajib belum terisi. Perbaiki sebelum mengirim.')
         expect(wrapper.text()).toContain(
-            "Proposal PDF · Field 'Proposal PDF' wajib diisi sebelum submit."
+            "Proposal PDF · Isian 'Proposal PDF' wajib diisi sebelum dikirim."
         )
 
         await wrapper.find('button[data-goto="6"]').trigger('click')

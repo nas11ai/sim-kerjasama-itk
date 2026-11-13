@@ -26,7 +26,7 @@ class ReviewFormResponseController extends Controller
     {
         SaveEvaluationDraft::run($assignment, $request->toInput(), $this->actor($request));
 
-        return back()->with('success', 'Draft berhasil disimpan.');
+        return back()->with('success', 'Draf berhasil disimpan.');
     }
 
     public function submit(EvaluationAnswersRequest $request, ReviewerFormAssignment $assignment)

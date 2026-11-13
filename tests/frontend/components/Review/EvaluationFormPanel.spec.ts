@@ -24,7 +24,7 @@ import type { EvaluationForm } from '@/types/review'
 const draft: EvaluationForm = {
     formId: 4,
     assignmentId: 31,
-    title: 'Form Substansi',
+    title: 'Formulir Substansi',
     description: null,
     required: true,
     state: 'draft',
@@ -143,9 +143,9 @@ describe('EvaluationFormPanel', () => {
     it('kesalahan kiriman ditampilkan', async () => {
         const wrapper = mountPanel()
 
-        forms[0].errors = { responses: "Field 'Originalitas' wajib diisi." }
+        forms[0].errors = { responses: "Isian 'Originalitas' wajib diisi." }
         await flushPromises()
 
-        expect(wrapper.text()).toContain("Field 'Originalitas' wajib diisi.")
+        expect(wrapper.text()).toContain("Isian 'Originalitas' wajib diisi.")
     })
 })

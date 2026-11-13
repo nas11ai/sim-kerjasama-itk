@@ -13,7 +13,7 @@ it('menyalin key, label, dan variant dari state', function (string $state, strin
         ->and($data->label)->toBe($label)
         ->and($data->variant)->toBe($variant);
 })->with([
-    'under review' => [UnderReview::class, 'under_review', 'Sedang Direview', 'secondary'],
+    'under penilaian' => [UnderReview::class, 'under_review', 'Sedang Dinilai', 'secondary'],
     'rejected' => [Rejected::class, 'rejected', 'Ditolak', 'destructive'],
-    'draft' => [Draft::class, 'draft', 'Draft', 'secondary'],
+    'draft' => [Draft::class, 'draft', 'Draf', 'secondary'],
 ]);

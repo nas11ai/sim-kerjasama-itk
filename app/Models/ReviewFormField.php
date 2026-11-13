@@ -25,7 +25,7 @@ class ReviewFormField extends Model
     protected static function booted(): void
     {
         static::updating(function (): void {
-            throw new LogicException('Field versi form evaluasi yang terbit tidak dapat diubah.');
+            throw new LogicException('Isian versi formulir evaluasi yang terbit tidak dapat diubah.');
         });
     }
 

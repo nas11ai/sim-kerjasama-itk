@@ -55,26 +55,26 @@ class AssertStepEvaluationForms implements ChangesNoState
 
         if (!$detail->needsReview && $active > 0) {
             throw ValidationException::withMessages([
-                "phase_details.{$index}.needs_review" => "Detail ini punya {$active} form evaluasi aktif, jadi tetap harus direview.",
+                "phase_details.{$index}.needs_review" => "Detail ini punya {$active} formulir evaluasi aktif, jadi tetap harus dinilai.",
             ]);
         }
 
         // B12 — draf tidak ber-FK, jadi Formulir Evaluasi bisa dihapus dari pustaka sesudah draf disimpan.
         if (array_diff($ids, $existing) !== []) {
             throw ValidationException::withMessages([
-                "phase_details.{$index}.evaluation_forms" => 'Form evaluasi yang terpasang di langkah ini sudah dihapus dari pustaka. Lepaskan lalu simpan draf.',
+                "phase_details.{$index}.evaluation_forms" => 'Formulir evaluasi yang terpasang di langkah ini sudah dihapus dari pustaka. Lepaskan lalu simpan draf.',
             ]);
         }
 
         if (array_diff($ids, $published) !== []) {
             throw ValidationException::withMessages([
-                'review_evaluation_form_id' => 'Form evaluasi ini belum pernah diterbitkan, jadi belum bisa dipasang.',
+                'review_evaluation_form_id' => 'Formulir evaluasi ini belum pernah diterbitkan, jadi belum bisa dipasang.',
             ]);
         }
 
         if (count($ids) !== count(array_unique($ids))) {
             throw ValidationException::withMessages([
-                'review_evaluation_form_id' => 'Form evaluasi ini sudah terpasang di langkah ini.',
+                'review_evaluation_form_id' => 'Formulir evaluasi ini sudah terpasang di langkah ini.',
             ]);
         }
     }

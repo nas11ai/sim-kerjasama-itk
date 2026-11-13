@@ -6,23 +6,27 @@ import { computed } from 'vue'
 
 import DataTable from '@/Components/app/DataTable.vue'
 import EmptyState from '@/Components/app/EmptyState.vue'
-import FilterSelect from '@/Components/app/FilterSelect.vue'
+import FilterToolbar from '@/Components/app/FilterToolbar.vue'
 import PageHeader from '@/Components/app/PageHeader.vue'
 import PaginationBar from '@/Components/app/PaginationBar.vue'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
-import { Input } from '@/Components/ui/input'
 import { useFilters } from '@/composables/useFilters'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import { formatDate } from '@/lib/format'
 import type { BadgeVariant } from '@/types/BadgeVariant'
 import type { HistoryPageProps, ReviewHistoryRow } from '@/types/review'
+import type { FilterSelectSpec } from '@/types/submission-page'
 
 const props = defineProps<HistoryPageProps>()
 
 const { filters } = useFilters('reviewer.history.index', props.filters)
 
 const filtered = computed(() => Object.values(props.filters).some((value) => value !== ''))
+
+const selects = computed((): FilterSelectSpec<'year'>[] => [
+    { key: 'year', label: 'Tahun', allLabel: 'Semua tahun', options: props.yearOptions },
+])
 
 // Skor dan tipe konteks tidak digambar: keduanya tidak tersimpan (W22).
 const columns = [
@@ -46,23 +50,16 @@ const variants: Record<ReviewHistoryRow['status'], BadgeVariant> = {
     <AppLayout>
         <PageHeader
             title="Riwayat Penilaian"
-            subtitle="Semua evaluasi yang pernah Anda kerjakan, read-only, termasuk siklus monev sebelumnya."
+            subtitle="Semua evaluasi yang pernah Anda kerjakan, hanya baca, termasuk siklus monev sebelumnya."
         />
-        <div class="mb-4 flex flex-col gap-2 sm:flex-row">
-            <Input
-                v-model="filters.search"
-                type="search"
-                placeholder="Cari judul submission..."
-                aria-label="Cari judul submission"
-                class="sm:max-w-xs"
-            />
-            <FilterSelect
-                v-model="filters.year"
-                :options="yearOptions"
-                all-label="Semua tahun"
-                label="Tahun"
-            />
-        </div>
+        <FilterToolbar
+            v-model:search="filters.search"
+            :selects="selects"
+            :values="filters"
+            search-placeholder="Cari judul pengajuan atau formulir..."
+            search-label="Cari judul pengajuan atau formulir"
+            @select="(key, value) => (filters[key] = value)"
+        />
         <DataTable :rows="history.data" :columns="columns">
             <template #cell-title="{ row }">
                 <span class="font-medium">{{ row.title }}</span>
@@ -85,7 +82,7 @@ const variants: Record<ReviewHistoryRow['status'], BadgeVariant> = {
                     :title="
                         filtered
                             ? 'Tidak ada riwayat yang cocok dengan filter'
-                            : 'Belum ada riwayat review'
+                            : 'Belum ada riwayat penilaian'
                     "
                 />
             </template>

@@ -33,7 +33,7 @@ class AddResearchMember
         // BR-IAM-05, IAM-DEACT-12 — akun nonaktif tidak menerima keterlibatan baru.
         if (!$candidate->is_active) {
             throw ValidationException::withMessages([
-                'user_id' => 'Akun user ini nonaktif, jadi tidak dapat ditambahkan sebagai anggota.',
+                'user_id' => 'Akun pengguna ini nonaktif, jadi tidak dapat ditambahkan sebagai anggota.',
             ]);
         }
 
@@ -41,7 +41,7 @@ class AddResearchMember
 
         if ($profile === null) {
             throw ValidationException::withMessages([
-                'user_id' => 'User ini belum melengkapi profil, jadi belum dapat ditambahkan sebagai anggota.',
+                'user_id' => 'Pengguna ini belum melengkapi profil, jadi belum dapat ditambahkan sebagai anggota.',
             ]);
         }
 

@@ -18,7 +18,7 @@ class ReviewerCoverage implements ChangesNoState
 {
     use AsAction;
 
-    private const BUCKETS = ['Tanpa reviewer', '1 reviewer', '2 reviewer', '3+ reviewer'];
+    private const BUCKETS = ['Tanpa penilai', '1 penilai', '2 penilai', '3+ penilai'];
 
     /** @return list<RankedCountData> */
     public function handle(StatisticsFilters $filters): array

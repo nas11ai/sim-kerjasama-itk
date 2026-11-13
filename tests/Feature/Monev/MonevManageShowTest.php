@@ -166,7 +166,7 @@ it('[MON-REVIEW-01] menugaskan reviewer siklus lewat HTTP', function () {
 
     assignCycle(monevManager(), $fx, 'monev1', $reviewer)
         ->assertRedirect(route('monev.manage.show', $fx['parent']))
-        ->assertSessionHas('success', 'Reviewer ditugaskan.');
+        ->assertSessionHas('success', 'Penilai ditugaskan.');
 
     $laporan = monevReportOf($fx, 'monev1');
     expect($laporan->submitted_by)->toBe($fx['owner']->id)

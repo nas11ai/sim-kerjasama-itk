@@ -51,7 +51,7 @@ it('[FE-WINDOW-02] evaluasi ditolak setelah batas evaluasinya sendiri lewat', fu
 
 it('[FE-WINDOW-03] revisi punya jendelanya sendiri', function () {
     $period = SubmissionPeriod::factory()->create();
-    windowDate($period, 'Batas Submit', now()->subDay()->toDateTimeString());
+    windowDate($period, 'Batas Pengiriman', now()->subDay()->toDateTimeString());
     windowDate($period, 'Batas Revisi', now()->addWeek()->toDateTimeString());
     $detail = FormPhaseDetail::factory()->forPeriod($period)->create();
     $revisi = FormSubmission::factory()->create(['form_phase_detail_id' => $detail->id, 'status' => NeedsRevision::class]);
@@ -66,7 +66,7 @@ it('[FE-WINDOW-03] revisi punya jendelanya sendiri', function () {
 
 it('[FE-WINDOW-03] tanpa Batas Revisi, revisi kembali memakai Batas Submit', function () {
     $period = SubmissionPeriod::factory()->create();
-    $submit = windowDate($period, 'Batas Submit', now()->addWeek()->toDateTimeString());
+    $submit = windowDate($period, 'Batas Pengiriman', now()->addWeek()->toDateTimeString());
     $detail = FormPhaseDetail::factory()->forPeriod($period)->create();
     $revisi = FormSubmission::factory()->create(['form_phase_detail_id' => $detail->id, 'status' => NeedsRevision::class]);
 
@@ -127,10 +127,10 @@ it('[BR-FE-26] langkah tanpa tanggal di kalender ditolak dengan alasan jadwal be
 
 it('[BR-FE-08] langkah yang tanggalnya lewat tetap ditolak dengan alasan batas waktu', function () {
     $period = SubmissionPeriod::factory()->create();
-    windowDate($period, 'Batas Submit', now()->subDay()->toDateTimeString());
+    windowDate($period, 'Batas Pengiriman', now()->subDay()->toDateTimeString());
     $detail = FormPhaseDetail::factory()->forPeriod($period)->create();
     $draft = FormSubmission::factory()->create(['form_phase_detail_id' => $detail->id, 'status' => Draft::class]);
 
     expect(fn () => PhaseAccessGate::assertOpenFor($draft, $detail))
-        ->toThrow(HttpException::class, 'Batas waktu fase ini sudah lewat. Hubungi Operator LPPM untuk meminta perpanjangan.');
+        ->toThrow(HttpException::class, 'Batas waktu tahap ini sudah lewat. Hubungi Operator LPPM untuk meminta perpanjangan.');
 });

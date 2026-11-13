@@ -63,8 +63,8 @@ class FormField extends Model
 
             if ($terjawab > 0) {
                 throw ValidationException::withMessages([
-                    'field_type_id' => "Tipe field ini tidak dapat diubah karena sudah ada {$terjawab} jawaban yang tersimpan. "
-                        .'Tambahkan field baru dengan tipe yang diinginkan; field lama tetap terbaca apa adanya.',
+                    'field_type_id' => "Tipe isian ini tidak dapat diubah karena sudah ada {$terjawab} jawaban yang tersimpan. "
+                        .'Tambahkan isian baru dengan tipe yang diinginkan; isian lama tetap terbaca apa adanya.',
                 ]);
             }
         });

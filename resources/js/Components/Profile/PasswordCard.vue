@@ -10,11 +10,11 @@ import { Input } from '@/Components/ui/input'
 const form = useForm({ current_password: '', password: '', password_confirmation: '' })
 
 const fields = [
-    { key: 'current_password', label: 'Password Lama', autocomplete: 'current-password' },
-    { key: 'password', label: 'Password Baru', autocomplete: 'new-password' },
+    { key: 'current_password', label: 'Kata Sandi Lama', autocomplete: 'current-password' },
+    { key: 'password', label: 'Kata Sandi Baru', autocomplete: 'new-password' },
     {
         key: 'password_confirmation',
-        label: 'Konfirmasi Password Baru',
+        label: 'Konfirmasi Kata Sandi Baru',
         autocomplete: 'new-password',
     },
 ] as const
@@ -24,8 +24,8 @@ const save = () =>
 </script>
 
 <template>
-    <SectionCard title="Ganti Password">
-        <form aria-label="Ganti Password" class="flex flex-col gap-4" @submit.prevent="save">
+    <SectionCard title="Ganti Kata Sandi">
+        <form aria-label="Ganti Kata Sandi" class="flex flex-col gap-4" @submit.prevent="save">
             <div class="grid gap-4 md:grid-cols-3">
                 <FormField
                     v-for="field in fields"
@@ -48,7 +48,7 @@ const save = () =>
                 </FormField>
             </div>
             <Button type="submit" variant="outline" class="self-start" :disabled="form.processing">
-                Ubah Password
+                Ubah Kata Sandi
             </Button>
         </form>
     </SectionCard>

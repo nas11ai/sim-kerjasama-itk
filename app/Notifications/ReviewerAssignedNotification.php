@@ -28,7 +28,7 @@ class ReviewerAssignedNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Penugasan review baru')
+            ->subject('Penugasan penilaian baru')
             ->line('Anda ditugaskan untuk mengevaluasi sebuah pengajuan.')
             ->line('Pengajuan #'.$this->submission->id);
     }
@@ -38,7 +38,7 @@ class ReviewerAssignedNotification extends Notification
     {
         return (new NotificationPayload(
             type: 'reviewer_assigned',
-            title: 'Penugasan review baru',
+            title: 'Penugasan penilaian baru',
             message: 'Anda ditugaskan untuk mengevaluasi sebuah pengajuan.',
             context: ['form_submission_id' => $this->submission->id],
         ))->toArray();

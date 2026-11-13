@@ -79,7 +79,7 @@ const columns = [
                     >
                 </Button>
                 <Button size="sm" variant="outline" @click="emit('edit', row)"
-                    ><Pencil class="size-4" />Edit</Button
+                    ><Pencil class="size-4" />Ubah</Button
                 >
                 <!-- Close Early — hanya periode yang masih terbuka (W68) -->
                 <Button v-if="row.closable" size="sm" variant="outline" @click="emit('close', row)"

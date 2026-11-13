@@ -38,7 +38,7 @@ describe('FormEngine/PhaseDetailDialog', () => {
         await open(detail())
 
         expect(kindSelect()?.props('disabled')).toBeFalsy()
-        expect(document.body.textContent).toContain('Edit Langkah')
+        expect(document.body.textContent).toContain('Ubah Langkah')
     })
 
     // W97 — review terkunci oleh form evaluasi aktif yang terpasang di langkah draf itu sendiri.
@@ -66,6 +66,6 @@ describe('FormEngine/PhaseDetailDialog', () => {
         )
 
         expect(document.body.querySelector('[role="switch"]')?.hasAttribute('disabled')).toBe(true)
-        expect(document.body.textContent).toContain('Detail ini punya 1 form evaluasi aktif.')
+        expect(document.body.textContent).toContain('Detail ini punya 1 formulir evaluasi aktif.')
     })
 })

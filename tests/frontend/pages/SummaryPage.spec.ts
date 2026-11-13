@@ -36,7 +36,7 @@ const baseProps: SummaryPageProps = {
         period: null,
         leadName: 'Dr. Budi Santoso',
         memberCount: 1,
-        status: { key: 'under_review', label: 'Direview', variant: 'secondary' },
+        status: { key: 'under_review', label: 'Dinilai', variant: 'secondary' },
     },
     threads: [
         {
@@ -51,7 +51,7 @@ const baseProps: SummaryPageProps = {
         },
     ],
     canCreateThread: true,
-    scores: { visible: false, reason: 'Skor reviewer lain terbuka nanti.', scores: [] },
+    scores: { visible: false, reason: 'Skor penilai lain terbuka nanti.', scores: [] },
     round: {
         kind: 'assessment',
         finishLabel: 'Selesai menilai',
@@ -93,6 +93,6 @@ describe('SummaryPage', () => {
         const wrapper = mountPage({ threads: [] })
 
         expect(wrapper.text()).toContain('Belum ada catatan ringkasan.')
-        expect(wrapper.text()).toContain('Skor reviewer lain terbuka nanti.')
+        expect(wrapper.text()).toContain('Skor penilai lain terbuka nanti.')
     })
 })

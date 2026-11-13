@@ -29,7 +29,7 @@ class FormChangedNotification extends Notification
         return (new MailMessage)
             ->subject('Formulir pengajuan berubah')
             ->line('Formulir "'.$this->form->title.'" diperbarui Admin.')
-            ->line('Buka kembali draft Anda untuk memeriksa isian yang terdampak.');
+            ->line('Buka kembali draf Anda untuk memeriksa isian yang terdampak.');
     }
 
     /** @return array<string, int|string|null> */
@@ -38,7 +38,7 @@ class FormChangedNotification extends Notification
         return (new NotificationPayload(
             type: 'form_changed',
             title: 'Formulir pengajuan berubah',
-            message: 'Formulir "'.$this->form->title.'" diperbarui. Periksa kembali draft Anda.',
+            message: 'Formulir "'.$this->form->title.'" diperbarui. Periksa kembali draf Anda.',
             context: ['form_id' => $this->form->id],
         ))->toArray();
     }

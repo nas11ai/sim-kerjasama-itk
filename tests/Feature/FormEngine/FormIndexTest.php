@@ -105,7 +105,7 @@ it('field aktif tidak menghitung field terarsip', function () {
 
 it('filter tipe, status, dan pencarian tidak peka huruf', function () {
     $type = FormType::factory()->create();
-    $a = Form::factory()->create(['title' => 'Form Proposal LPPM', 'form_type_id' => $type->id]);
+    $a = Form::factory()->create(['title' => 'Formulir Proposal LPPM', 'form_type_id' => $type->id]);
     $b = Form::factory()->create(['title' => 'Laporan Monev', 'is_active' => false]);
 
     expect(listedFormIds([]))->toBe([$a->id, $b->id])

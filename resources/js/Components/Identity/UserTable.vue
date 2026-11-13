@@ -17,7 +17,7 @@ const columns = [
     { key: 'email', label: 'Email' },
     { key: 'nidn', label: 'NIDN' },
     { key: 'organization', label: 'Organisasi' },
-    { key: 'roles', label: 'Role' },
+    { key: 'roles', label: 'Peran' },
     { key: 'status', label: 'Status' },
     { key: 'action', label: '' },
 ]
@@ -49,7 +49,11 @@ const columns = [
         <template #empty>
             <EmptyState
                 :icon="Users"
-                :title="filtered ? 'Tidak ada user yang cocok dengan filter.' : 'Belum ada user.'"
+                :title="
+                    filtered
+                        ? 'Tidak ada pengguna yang cocok dengan filter.'
+                        : 'Belum ada pengguna.'
+                "
             />
         </template>
     </DataTable>

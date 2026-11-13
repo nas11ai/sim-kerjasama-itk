@@ -36,7 +36,7 @@ const reactivate = () => {
         <ConfirmDialog
             v-model:open="confirming"
             title="Aktifkan kembali akun?"
-            :description="`${user.name} bisa login lagi. Kepemilikan yang sudah dialihkan dan penugasan yang sudah diganti tidak dikembalikan.`"
+            :description="`${user.name} bisa masuk lagi. Kepemilikan yang sudah dialihkan dan penugasan yang sudah diganti tidak dikembalikan.`"
             confirm-label="Aktifkan"
             :processing="processing"
             @confirm="reactivate"

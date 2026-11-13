@@ -73,7 +73,7 @@ it('[SM-SUBMIT-03] dua draft ke skema berbeda boleh hidup bersamaan', function (
     // helper di dalam Action.
     [$owner, $organization] = actingResearcher();
 
-    $formPhase = FormPhase::create(['title' => 'Fase Pengajuan', 'is_active' => true]);
+    $formPhase = FormPhase::create(['title' => 'Tahap Pengajuan', 'is_active' => true]);
 
     // Dua Form, keduanya terbuka untuk organisasi Budi lewat FormAccessControl.
     $formInternal = Form::factory()->create();

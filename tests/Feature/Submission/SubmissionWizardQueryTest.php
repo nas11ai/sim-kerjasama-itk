@@ -145,7 +145,7 @@ it('[SM-WIZARD-04] langkah 5 membawa alasan penguncian', function () {
         ->and($steps[1]->blockedReason)->toBeNull()
         ->and($steps[2]->completed)->toBeTrue()
         ->and($steps[3]->completed)->toBeFalse()
-        ->and($steps[0]->label)->toBe('Pilih Form & Periode');
+        ->and($steps[0]->label)->toBe('Pilih Formulir & Periode');
 });
 
 it('[SM-WIZARD-06] langkah 7 mendaftar field wajib yang kosong beserta langkahnya', function () {
@@ -162,7 +162,7 @@ it('[SM-WIZARD-06] langkah 7 mendaftar field wajib yang kosong beserta langkahny
     expect($missing)->toHaveCount(2)
         ->and($missing[$judul->id]->step)->toBe(2)
         ->and($missing[$proposal->id]->step)->toBe(6)
-        ->and($missing[$proposal->id]->message)->toBe("Field 'Proposal PDF' wajib diisi sebelum submit.")
+        ->and($missing[$proposal->id]->message)->toBe("Isian 'Proposal PDF' wajib diisi sebelum dikirim.")
         ->and($review->accountBlock)->toBeNull()
         ->and(SubmissionWizard::run($owner, $submission, 2)['review'])->toBeNull();
 });
@@ -240,7 +240,7 @@ it('draft periode lain tidak ditautkan', function () {
 it('dua tahap ber-Form pengajuan sama di satu periode: yang ditawarkan selalu tahap tertua', function () {
     // Pustaka fase (R2) membuat tahap mudah disalin; tanpa urutan, baris tautan menentukan pilihannya.
     $fx = wizardFixture();
-    $copy = FormPhase::create(['title' => 'Fase Uji Salinan', 'is_active' => true]);
+    $copy = FormPhase::create(['title' => 'Tahap Uji Salinan', 'is_active' => true]);
     phaseStep($copy, $fx['detail']->fresh()->only(['form_access_control_id', 'phase_type_id', 'order', 'needs_review', 'deadline_type', 'deadline_cycle']));
     $fx['phase']->submissionPeriodPhases()->delete();
     wizardQueryPhaseInPeriod($fx['period']->id, $copy->id);

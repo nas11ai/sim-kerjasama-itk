@@ -72,10 +72,10 @@ const confirmRemove = () => {
 </script>
 
 <template>
-    <SectionCard title="Fields (seret untuk mengubah urutan)">
+    <SectionCard title="Isian (seret untuk mengubah urutan)">
         <template #actions>
             <Button type="button" size="sm" @click="openDialog(NEW)"
-                ><Plus class="size-4" />Tambah Field</Button
+                ><Plus class="size-4" />Tambah Isian</Button
             >
         </template>
         <SortableRows v-model="fields" :label-of="(field) => field.label">
@@ -116,7 +116,7 @@ const confirmRemove = () => {
             v-if="fields.length === 0 && archived.length === 0"
             class="text-sm text-muted-foreground"
         >
-            Belum ada field.
+            Belum ada isian.
         </p>
         <FormFieldDialog
             v-model:open="dialogOpen"
@@ -127,8 +127,8 @@ const confirmRemove = () => {
         />
         <ConfirmDialog
             v-model:open="confirmOpen"
-            title="Hapus field?"
-            :description="`${removingLabel} diarsipkan, bukan dihapus permanen. Jawaban lama tetap terbaca di tampilan read-only.`"
+            title="Hapus isian?"
+            :description="`${removingLabel} diarsipkan, bukan dihapus permanen. Jawaban lama tetap terbaca di tampilan hanya baca.`"
             confirm-label="Hapus"
             destructive
             @confirm="confirmRemove"

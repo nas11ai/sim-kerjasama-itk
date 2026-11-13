@@ -91,7 +91,7 @@ class StartSubmission
     private function assertAcceptsNewSubmissions(int $formId, int $submissionPeriodId, FormPhaseDetail $detail): void
     {
         if (Form::query()->whereKey($formId)->where('is_active', false)->exists()) {
-            throw ValidationException::withMessages(['form_id' => 'Form ini sudah tidak menerima pengajuan baru.']);
+            throw ValidationException::withMessages(['form_id' => 'Formulir ini sudah tidak menerima pengajuan baru.']);
         }
 
         if (FormPhase::query()->whereKey($detail->form_phase_id)->where('is_active', false)->exists()) {

@@ -12,16 +12,16 @@ import type { WizardField, WizardSubmission } from '@/types/submission-wizard'
 
 const submission: WizardSubmission = {
     id: 7,
-    title: 'Form Proposal',
-    status: { key: 'draft', label: 'Draft', variant: 'secondary' },
+    title: 'Formulir Proposal',
+    status: { key: 'draft', label: 'Draf', variant: 'secondary' },
     period: 'DIPA 2026',
-    form: 'Form Proposal',
+    form: 'Formulir Proposal',
     lastUpdatedAt: '2026-10-31T01:00:00.000000Z',
 }
 
 const field = (id: number, type: WizardField['type'], value: string | null): WizardField => ({
     id,
-    label: `Field ${id}`,
+    label: `Isian ${id}`,
     type,
     required: false,
     value,
@@ -100,8 +100,8 @@ describe('useWizardStep', () => {
         const step = useWizardStep(submission, 6, fields)
         step.values[3] = new File(['isi'], 'besar.pdf')
         step.go(7)
-        page.props.errors = { 'responses.2.value': 'Ukuran file terlalu besar. Maksimal 10MB.' }
+        page.props.errors = { 'responses.2.value': 'Ukuran berkas terlalu besar. Maksimal 10MB.' }
 
-        expect(step.errors.value).toEqual({ field_3: 'Ukuran file terlalu besar. Maksimal 10MB.' })
+        expect(step.errors.value).toEqual({ field_3: 'Ukuran berkas terlalu besar. Maksimal 10MB.' })
     })
 })

@@ -60,7 +60,7 @@ const abstrak: FormFieldEditData = {
 }
 
 const general = (overrides: Partial<FormGeneralData> = {}): FormGeneralData => ({
-    title: 'Form Proposal',
+    title: 'Formulir Proposal',
     description: null,
     formTypeId: 2,
     isActive: true,
@@ -76,7 +76,7 @@ const general = (overrides: Partial<FormGeneralData> = {}): FormGeneralData => (
 const mountTab = (overrides: Partial<FormGeneralData> = {}, creating = false) =>
     mount(FormGeneralTab, {
         props: {
-            form: creating ? null : { id: 7, title: 'Form Proposal', isActive: true },
+            form: creating ? null : { id: 7, title: 'Formulir Proposal', isActive: true },
             general: general(overrides),
             fieldTypeOptions: [
                 { value: '1', name: 'text', label: 'Teks', hasOptions: false, limitType: 'length' },
@@ -130,12 +130,12 @@ describe('FormEngine/FormGeneralTab', () => {
     it('mode buat mengirim General beserta field sebagai draf pertama', async () => {
         tab({ fields: [], publishedFields: [], archivedFields: [], publishedAt: null }, true)
 
-        await click('Buat Form')
+        await click('Buat Formulir')
 
         expect(submitted.mock.calls[0]).toMatchObject([
             'post',
             '/admin.forms.store',
-            { title: 'Form Proposal', fields: [] },
+            { title: 'Formulir Proposal', fields: [] },
         ])
         expect(document.body.textContent).not.toContain('Simpan draf')
     })
@@ -144,7 +144,7 @@ describe('FormEngine/FormGeneralTab', () => {
         tab()
 
         await click('Simpan')
-        await click('Lanjut: Access Control')
+        await click('Lanjut: Kontrol Akses')
 
         expect(submitted.mock.calls[0]).toMatchObject([
             'put',
@@ -197,14 +197,14 @@ describe('FormEngine/FormGeneralTab', () => {
 
         expect(wrapper.text()).toContain('Lokasi (lama)')
         expect(wrapper.text()).toContain('Diarsipkan')
-        expect(wrapper.findAll('button[aria-label="Edit Lokasi (lama)"]')).toHaveLength(0)
+        expect(wrapper.findAll('button[aria-label="Ubah Lokasi (lama)"]')).toHaveLength(0)
     })
 
     it('banner draf Form yang sudah terbit', () => {
         const wrapper = tab({ hasDraft: true })
 
         expect(wrapper.text()).toContain(
-            'Draf belum diterbitkan. Peneliti masih melihat field terbitan terakhir.'
+            'Draf belum diterbitkan. Peneliti masih melihat isian terbitan terakhir.'
         )
     })
 
@@ -212,7 +212,7 @@ describe('FormEngine/FormGeneralTab', () => {
         const wrapper = tab({ hasDraft: false, publishedAt: null })
 
         expect(wrapper.text()).toContain(
-            'Draf belum diterbitkan. Form ini belum bisa dipakai tahap.'
+            'Draf belum diterbitkan. Formulir ini belum bisa dipakai tahap.'
         )
     })
 
@@ -237,7 +237,7 @@ describe('FormEngine/FormGeneralTab', () => {
         await click('Terbitkan')
 
         expect(dialogText()).toContain(
-            '1 field baru wajib, berlaku untuk pengajuan yang dibuat sesudah ini. 2 peneliti dengan draf berjalan tidak terpengaruh. Label "Judul" diubah pada field yang sudah dijawab 3 pengajuan. 1 field dihapus, jawaban lamanya tetap tersimpan.'
+            '1 isian baru wajib, berlaku untuk pengajuan yang dibuat sesudah ini. 2 peneliti dengan draf berjalan tidak terpengaruh. Label "Judul" diubah pada isian yang sudah dijawab 3 pengajuan. 1 isian dihapus, jawaban lamanya tetap tersimpan.'
         )
     })
 
@@ -246,7 +246,7 @@ describe('FormEngine/FormGeneralTab', () => {
 
         await click('Terbitkan')
 
-        expect(dialogText()).toContain('Terbitkan perubahan Form ini?')
+        expect(dialogText()).toContain('Terbitkan perubahan Formulir ini?')
         expect(dialogText()).not.toContain('Kirim notifikasi')
     })
 
@@ -286,13 +286,13 @@ describe('FormEngine/FormGeneralTab', () => {
     it('galat baris tampil di baris, galat lain di banner', () => {
         serverErrors.value = {
             'fields.1.label': 'Label wajib diisi.',
-            field_type_id: 'Tipe field terkunci.',
+            field_type_id: 'Tipe isian terkunci.',
         }
         const wrapper = tab()
 
         const rows = wrapper.findAll('li')
         expect(rows[1]?.text()).toContain('Label wajib diisi.')
         expect(rows[0]?.text()).not.toContain('Label wajib diisi.')
-        expect(wrapper.text()).toContain('Tipe field terkunci.')
+        expect(wrapper.text()).toContain('Tipe isian terkunci.')
     })
 })

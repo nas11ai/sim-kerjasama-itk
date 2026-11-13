@@ -16,21 +16,21 @@ type Tab = { key: string; label: string; href: string | null; title?: string }
 const tabs = computed((): Tab[] => {
     const form = props.form
     if (form === null) {
-        const title = 'Simpan form lebih dulu'
+        const title = 'Simpan formulir lebih dulu'
         return [
-            { key: 'general', label: 'General & Fields', href: route('admin.forms.create') },
-            { key: 'access', label: 'Access Control', href: null, title },
-            { key: 'phases', label: 'Phases', href: null, title },
+            { key: 'general', label: 'Umum & Isian', href: route('admin.forms.create') },
+            { key: 'access', label: 'Kontrol Akses', href: null, title },
+            { key: 'phases', label: 'Tahap', href: null, title },
         ]
     }
     return [
-        { key: 'general', label: 'General & Fields', href: route('admin.forms.edit', form.id) },
+        { key: 'general', label: 'Umum & Isian', href: route('admin.forms.edit', form.id) },
         {
             key: 'access',
-            label: 'Access Control',
+            label: 'Kontrol Akses',
             href: route('admin.forms.access.index', form.id),
         },
-        { key: 'phases', label: 'Phases', href: route('admin.phases.index', { form: form.id }) },
+        { key: 'phases', label: 'Tahap', href: route('admin.phases.index', { form: form.id }) },
     ]
 })
 
@@ -39,7 +39,7 @@ const base = 'inline-flex items-center rounded-md px-3 py-1.5 text-sm font-mediu
 
 <template>
     <nav
-        aria-label="Bagian form"
+        aria-label="Bagian formulir"
         class="mb-6 inline-flex flex-wrap items-center gap-1 rounded-lg bg-muted p-1 text-muted-foreground"
     >
         <template v-for="tab in tabs" :key="tab.key">

@@ -10,20 +10,20 @@ const emit = defineEmits<{ deactivate: [] }>()
 <template>
     <DeleteBlockedDialog
         v-model:open="open"
-        title="Form tidak bisa dihapus"
-        deactivate-label="Nonaktifkan Form"
+        title="Formulir tidak bisa dihapus"
+        deactivate-label="Nonaktifkan Formulir"
         :can-deactivate="form?.isActive ?? false"
         @deactivate="emit('deactivate')"
     >
         <!-- BR-FE-19; BR-FE-32 — langkah versi tahap terbit juga merujuknya -->
         <template v-if="(form?.submissionCount ?? 0) > 0"
-            >Form ini dipakai {{ form?.submissionCount }} pengajuan, termasuk draft dan yang sudah
-            selesai.</template
+            >Formulir ini dipakai {{ form?.submissionCount }} pengajuan, termasuk draf dan yang
+            sudah selesai.</template
         >
         <template v-else
-            >Form ini dipakai {{ form?.stepCount ?? 0 }} langkah tahap yang sudah terbit, dan versi
-            tahap terbit tidak diubah.</template
+            >Formulir ini dipakai {{ form?.stepCount ?? 0 }} langkah tahap yang sudah terbit, dan
+            versi tahap terbit tidak diubah.</template
         >
-        Form yang pernah dipakai dinonaktifkan, bukan dihapus.
+        Formulir yang pernah dipakai dinonaktifkan, bukan dihapus.
     </DeleteBlockedDialog>
 </template>

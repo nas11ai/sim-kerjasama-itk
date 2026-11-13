@@ -101,9 +101,9 @@ describe('Monev/ReportFormPage', () => {
 
         expect(text).toContain('Isi Laporan Monev I')
         expect(text).toContain('Smart Farming Hidroponik Kampus · Penelitian Mandiri')
-        expect(text).toContain('Deadline')
+        expect(text).toContain('Tenggat')
         expect(text).toContain(
-            'Setiap siklus monev hanya menerima satu laporan. Setelah batas waktu terlewat, form ditutup, hubungi Operator LPPM bila membutuhkan perpanjangan.'
+            'Setiap siklus monev hanya menerima satu laporan. Setelah batas waktu terlewat, formulir ditutup, hubungi Operator LPPM bila membutuhkan perpanjangan.'
         )
         expect(text).toContain('Laporan Kemajuan')
         expect(text).toContain('Ringkasan Kemajuan')
@@ -117,8 +117,8 @@ describe('Monev/ReportFormPage', () => {
 
         expect(wrapper.text()).toContain('Batas waktu Monev I sudah lewat.')
         expect(wrapper.text()).not.toContain('Ringkasan Kemajuan')
-        expect(button('Simpan Draft')).toBeUndefined()
-        expect(button('Submit Laporan')).toBeUndefined()
+        expect(button('Simpan Draf')).toBeUndefined()
+        expect(button('Kirim Laporan')).toBeUndefined()
     })
 
     it('[MON-CYCLE-03] siklus terkunci menampilkan alasan terkunci', () => {
@@ -130,7 +130,7 @@ describe('Monev/ReportFormPage', () => {
         expect(wrapper.text()).toContain(
             'Selesaikan Laporan Monev I lebih dulu sebelum mengisi Monev II.'
         )
-        expect(button('Simpan Draft')).toBeUndefined()
+        expect(button('Simpan Draf')).toBeUndefined()
     })
 
     it('override aktif menampilkan banner perpanjangan', () => {
@@ -155,7 +155,7 @@ describe('Monev/ReportFormPage', () => {
     it('Simpan Draft mengirim responses', async () => {
         mountPage()
 
-        button('Simpan Draft')?.click()
+        button('Simpan Draf')?.click()
         await flushPromises()
 
         expect(router.post).toHaveBeenCalledWith(
@@ -171,17 +171,17 @@ describe('Monev/ReportFormPage', () => {
     it('Submit Laporan meminta konfirmasi', async () => {
         mountPage()
 
-        button('Submit Laporan')?.click()
+        button('Kirim Laporan')?.click()
         await flushPromises()
 
-        expect(document.body.textContent).toContain('Submit laporan Monev I?')
+        expect(document.body.textContent).toContain('Kirim laporan Monev I?')
         expect(document.body.textContent).toContain(
-            'Laporan yang sudah disubmit tidak bisa disunting lagi.'
+            'Laporan yang sudah dikirim tidak bisa disunting lagi.'
         )
         expect(router.post).not.toHaveBeenCalled()
 
         const confirms = Array.from(document.querySelectorAll('button')).filter(
-            (b) => b.textContent?.trim() === 'Submit Laporan'
+            (b) => b.textContent?.trim() === 'Kirim Laporan'
         )
         confirms[confirms.length - 1]?.click()
         await flushPromises()
@@ -206,10 +206,10 @@ describe('Monev/ReportFormPage', () => {
 
     it('dialog konfirmasi tertutup saat submit ditolak', async () => {
         mountPage()
-        button('Submit Laporan')?.click()
+        button('Kirim Laporan')?.click()
         await flushPromises()
         const confirms = Array.from(document.querySelectorAll('button')).filter(
-            (b) => b.textContent?.trim() === 'Submit Laporan'
+            (b) => b.textContent?.trim() === 'Kirim Laporan'
         )
         confirms[confirms.length - 1]?.click()
         await flushPromises()
@@ -218,6 +218,6 @@ describe('Monev/ReportFormPage', () => {
         options.onError?.()
         await flushPromises()
 
-        expect(document.body.textContent).not.toContain('Submit laporan Monev I?')
+        expect(document.body.textContent).not.toContain('Kirim laporan Monev I?')
     })
 })

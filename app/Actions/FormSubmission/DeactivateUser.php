@@ -71,7 +71,7 @@ class DeactivateUser
             fn (FormSubmission $s): bool => $s->getAttribute('has_active_co_investigator') === true
         );
 
-        $base = "Masih ada {$blocking->count()} pengajuan aktif atas nama user ini. Pindahkan kepemilikannya lebih dulu.";
+        $base = "Masih ada {$blocking->count()} pengajuan aktif atas nama pengguna ini. Pindahkan kepemilikannya lebih dulu.";
 
         if ($withoutSuccessor->isEmpty()) {
             return $base;

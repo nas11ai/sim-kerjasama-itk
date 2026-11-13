@@ -50,7 +50,7 @@ const mountPage = (
             next_page_url: null,
         },
         filters: { search: '', range: '7d', action: '', actor: '' },
-        actionOptions: [{ value: 'Pengajuan disubmit', label: 'Pengajuan disubmit' }],
+        actionOptions: [{ value: 'Pengajuan dikirim', label: 'Pengajuan dikirim' }],
         actorOptions: [
             { value: 'operator', label: 'Operator' },
             { value: 'system', label: 'Sistem' },
@@ -94,7 +94,7 @@ describe('AuditPage', () => {
 
     it('Export Log Audit menaut ke ekspor jenis audit-log', () => {
         wrapper = mountPage()
-        const link = wrapper.findAll('a').find((a) => a.text().includes('Export Log Audit'))
+        const link = wrapper.findAll('a').find((a) => a.text().includes('Ekspor Log Audit'))
 
         expect(link?.attributes('href')).toBe('/reporting.exports.index?type=audit-log')
     })

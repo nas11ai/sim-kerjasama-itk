@@ -34,7 +34,7 @@ class DeleteOrganization
 
         if ($census->blocksDeletion()) {
             throw ValidationException::withMessages([
-                'organization_id' => "Masih ada {$census->subtreeProfiles} profil user di unit ini atau turunannya. "
+                'organization_id' => "Masih ada {$census->subtreeProfiles} profil pengguna di unit ini atau turunannya. "
                     .'Nonaktifkan unit ini kalau yang Anda maksud adalah memensiunkannya.',
             ]);
         }

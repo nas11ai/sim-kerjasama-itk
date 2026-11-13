@@ -69,10 +69,10 @@ class StartEvaluationForm
         $reviewer = Reviewer::where('user_id', $user->id)->first();
 
         if ($reviewer === null) {
-            throw new AuthorizationException('Anda tidak terdaftar sebagai reviewer.');
+            throw new AuthorizationException('Anda tidak terdaftar sebagai penilai.');
         }
 
         return ActiveReviewerAssignment::run($submission, $reviewer->id)
-            ?? throw new AuthorizationException('Anda tidak ditugaskan sebagai reviewer untuk pengajuan ini.');
+            ?? throw new AuthorizationException('Anda tidak ditugaskan sebagai penilai untuk pengajuan ini.');
     }
 }

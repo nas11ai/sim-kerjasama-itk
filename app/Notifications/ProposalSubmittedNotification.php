@@ -30,7 +30,7 @@ class ProposalSubmittedNotification extends Notification implements ShouldQueue
         return (new NotificationPayload(
             type: 'proposal_submitted',
             title: 'Pengajuan Baru Masuk',
-            message: "Pengajuan #{$this->submission->id} telah disubmit dan menunggu penugasan reviewer.",
+            message: "Pengajuan #{$this->submission->id} telah dikirim dan menunggu penugasan penilai.",
             context: ['form_submission_id' => $this->submission->id],
         ))->toArray();
     }
@@ -39,7 +39,7 @@ class ProposalSubmittedNotification extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->subject('Pengajuan Baru | SIMPAS')
-            ->line("Pengajuan #{$this->submission->id} telah disubmit.")
+            ->line("Pengajuan #{$this->submission->id} telah dikirim.")
             ->action('Lihat Detail', url("/submissions/{$this->submission->id}"));
     }
 }

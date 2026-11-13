@@ -47,8 +47,8 @@ function overrideDetail(SubmissionPeriod $period, FormPhase $phase, string $labe
 function overrideFixture(string $deadline = '2026-03-01 23:59:00'): array
 {
     $period = SubmissionPeriod::factory()->create(['is_force_closed' => false]);
-    $phase = FormPhase::create(['title' => 'Fase Override '.fake()->unique()->numerify('####'), 'is_active' => true]);
-    $detail = overrideDetail($period, $phase, 'Batas Submit', $deadline);
+    $phase = FormPhase::create(['title' => 'Tahap Override '.fake()->unique()->numerify('####'), 'is_active' => true]);
+    $detail = overrideDetail($period, $phase, 'Batas Pengiriman', $deadline);
 
     $owner = User::factory()->create();
     $submission = FormSubmission::factory()->create([

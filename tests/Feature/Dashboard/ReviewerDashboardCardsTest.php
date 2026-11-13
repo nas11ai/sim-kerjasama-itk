@@ -41,7 +41,7 @@ function rvAssign(Reviewer $reviewer, string $evaluationStatus, string $status =
     if ($due !== null) {
         ReviewerFormAssignment::create([
             'submission_reviewer_id' => $assignment->id,
-            'review_evaluation_form_id' => evaluationFormOn(FormPhaseDetail::factory()->create(['needs_review' => true]), [], title: 'Form '.fake()->unique()->numerify('####'))->id,
+            'review_evaluation_form_id' => evaluationFormOn(FormPhaseDetail::factory()->create(['needs_review' => true]), [], title: 'Formulir '.fake()->unique()->numerify('####'))->id,
             'is_required' => true,
             'assigned_at' => now(),
             'due_date' => $due,
@@ -63,7 +63,7 @@ it('section "Review" berisi tiga kartu frame', function () {
 
     expect($section->key)->toBe('reviewer')
         ->and(array_map(fn (KpiCardData $c) => $c->label, $section->cards))
-        ->toBe(['Perlu Dievaluasi', 'Evaluasi Selesai', 'Deadline Terdekat']);
+        ->toBe(['Perlu Dievaluasi', 'Evaluasi Selesai', 'Tenggat Terdekat']);
 });
 
 it('penugasan yang belum dinilai adalah tunggakan', function () {
@@ -134,7 +134,7 @@ it('mendekati deadline memakai URGENT_DAYS', function () {
     $result = ReviewerDashboardCards::run($reviewer);
     $cards = collect($result['section']->cards)->keyBy('key');
 
-    expect($cards['pending']->meta)->toBe('1 mendekati deadline')
+    expect($cards['pending']->meta)->toBe('1 mendekati tenggat')
         ->and($cards['nearest']->value)->toBe(DeadlineData::URGENT_DAYS.' hari')
         ->and($result['deadlines'])->toHaveCount(2)
         ->and($result['deadlines'][0]->urgent)->toBeTrue()

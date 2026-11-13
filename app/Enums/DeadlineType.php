@@ -33,7 +33,7 @@ enum DeadlineType: string
     {
         if ($cycle === null) {
             return match ($this) {
-                self::Submit => 'Batas Submit',
+                self::Submit => 'Batas Pengiriman',
                 self::Evaluation => 'Batas Evaluasi',
                 self::Revision => 'Batas Revisi',
                 self::Output => 'Batas Akhir',
@@ -57,7 +57,7 @@ enum DeadlineType: string
     public function stepLabel(?int $cycle = null): string
     {
         return match (true) {
-            $this === self::Output => 'Upload Luaran',
+            $this === self::Output => 'Unggah Luaran',
             $cycle === null => 'Pengajuan',
             default => 'Laporan '.self::cycleName($cycle),
         };

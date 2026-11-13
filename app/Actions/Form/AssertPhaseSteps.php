@@ -50,11 +50,11 @@ class AssertPhaseSteps implements ChangesNoState
             }
 
             if ($detail->deadlineCycle !== null) {
-                $errors["phase_details.{$index}.deadline_cycle"] = 'Upload Luaran tidak bersiklus.';
+                $errors["phase_details.{$index}.deadline_cycle"] = 'Unggah Luaran tidak bersiklus.';
             }
 
             if ($detail->needsReview) {
-                $errors["phase_details.{$index}.needs_review"] = 'Detail Upload Luaran tidak direview.';
+                $errors["phase_details.{$index}.needs_review"] = 'Detail Unggah Luaran tidak dinilai.';
             }
         }
 
@@ -79,8 +79,8 @@ class AssertPhaseSteps implements ChangesNoState
         }
 
         if (count($submissionForms) > 1) {
-            $errors['phase_details'] = 'Satu tahap hanya untuk satu Form pengajuan: '
-                .implode(', ', $submissionForms).'. Buat tahap terpisah untuk tiap Form.';
+            $errors['phase_details'] = 'Satu tahap hanya untuk satu Formulir pengajuan: '
+                .implode(', ', $submissionForms).'. Buat tahap terpisah untuk tiap Formulir.';
         }
 
         if ($details !== [] && !$details[0]->opensSubmission()) {
@@ -92,7 +92,7 @@ class AssertPhaseSteps implements ChangesNoState
 
             if (!$detail->opensSubmission() && isset($submissionForms[$formId])) {
                 $errors["phase_details.{$index}.form_access_control_id"] =
-                    'Laporan Monev dan Upload Luaran memakai Form selain Form pengajuan.';
+                    'Laporan Monev dan Unggah Luaran memakai Formulir selain Formulir pengajuan.';
             }
         }
 

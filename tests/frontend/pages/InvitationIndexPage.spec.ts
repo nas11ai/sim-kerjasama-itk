@@ -95,7 +95,7 @@ describe('InvitationIndexPage', () => {
 
         expect(wrapper.find('h1').text()).toBe('Undangan Registrasi')
         expect(text).toContain(
-            'Undang peneliti eksternal lewat link registrasi, akun langsung aktif tanpa verifikasi NIDN.'
+            'Undang peneliti eksternal lewat tautan registrasi, akun langsung aktif tanpa verifikasi NIDN.'
         )
         for (const label of [
             'Buat Undangan Baru',
@@ -121,7 +121,7 @@ describe('InvitationIndexPage', () => {
         const wrapper = mountPage()
 
         expect(wrapper.text()).toContain('https://simpas.test/register/invitation/abc')
-        await buttons(wrapper, 'Salin Link')[0]?.trigger('click')
+        await buttons(wrapper, 'Salin Tautan')[0]?.trigger('click')
         expect(writeText).toHaveBeenCalledWith('https://simpas.test/register/invitation/abc')
 
         page.flash = {}

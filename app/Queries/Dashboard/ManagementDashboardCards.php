@@ -51,8 +51,8 @@ class ManagementDashboardCards implements ChangesNoState
         }
 
         return [
-            new KpiCardData('active', 'Total Submission Aktif', strval($this->visibleToOperator()->active()->count()), 'Semua skema', route('admin.submissions.index')),
-            new KpiCardData('awaitingReviewer', 'Perlu Penugasan Penilai', strval($awaitingReviewer), 'Status Disubmit', route('admin.submissions.index', ['status' => Submitted::$name])),
+            new KpiCardData('active', 'Total Pengajuan Aktif', strval($this->visibleToOperator()->active()->count()), 'Semua skema', route('admin.submissions.index')),
+            new KpiCardData('awaitingReviewer', 'Perlu Penugasan Penilai', strval($awaitingReviewer), 'Status Menunggu Penilaian', route('admin.submissions.index', ['status' => Submitted::$name])),
             // BR-REV-05 — padanan penyaring "Menunggu keputusan" di daftar (W42).
             new KpiCardData('awaitingDecision', 'Menunggu Keputusan', strval(DecisionReadiness::whereReady($this->visibleToOperator())->count()), 'Siap disetujui atau ditolak', route('admin.submissions.index', ['decision' => 'awaiting'])),
         ];
@@ -65,7 +65,7 @@ class ManagementDashboardCards implements ChangesNoState
             return [];
         }
 
-        return [new KpiCardData('awaitingVerification', 'Perlu Verifikasi User', strval($awaitingVerification), 'Antrian NIDN', route('admin.verifications.index'))];
+        return [new KpiCardData('awaitingVerification', 'Perlu Verifikasi Pengguna', strval($awaitingVerification), 'Antrian NIDN', route('admin.verifications.index'))];
     }
 
     /**
@@ -86,7 +86,7 @@ class ManagementDashboardCards implements ChangesNoState
             ->where('completed_at', '>=', now()->startOfWeek())
             ->count();
 
-        return [new KpiCardData('exports', 'Export Selesai', strval($completed), 'Minggu ini', route('reporting.exports.index'))];
+        return [new KpiCardData('exports', 'Ekspor Selesai', strval($completed), 'Minggu ini', route('reporting.exports.index'))];
     }
 
     /** @return list<KpiCardData> */
@@ -99,7 +99,7 @@ class ManagementDashboardCards implements ChangesNoState
         // BR-IAM-05 — akun yang dinonaktifkan tidak dihapus, jadi disaring.
         $active = User::query()->where('is_active', true)->count();
 
-        return [new KpiCardData('activeUsers', 'User Aktif', strval($active), 'Semua role', route('admin.users.index'))];
+        return [new KpiCardData('activeUsers', 'Pengguna Aktif', strval($active), 'Semua peran', route('admin.users.index'))];
     }
 
     /** Banner antrian bagi yang menugaskan reviewer, hanya bila ada yang menunggu. */

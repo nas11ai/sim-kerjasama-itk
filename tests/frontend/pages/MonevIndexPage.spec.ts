@@ -112,7 +112,7 @@ describe('Monev/IndexPage', () => {
             }),
         ])
 
-        expect(wrapper.findAll('[data-state="done"]')[1]?.text()).toContain('Disubmit')
+        expect(wrapper.findAll('[data-state="done"]')[1]?.text()).toContain('Dikirim')
         expect(wrapper.find('[data-state="active"]').text()).toContain('Monev II')
         expect(button(wrapper, 'Isi Laporan Monev II')).toBeDefined()
     })
@@ -162,7 +162,7 @@ describe('Monev/IndexPage', () => {
         expect(badge.attributes('title')).toBe(
             'Batas waktu terlewat. Hubungi Operator LPPM bila membutuhkan perpanjangan.'
         )
-        expect(wrapper.text()).toContain('Ditutup, deadline lewat')
+        expect(wrapper.text()).toContain('Ditutup, tenggat lewat')
     })
 
     it('anggota tim melihat siapa yang mengisi laporan', () => {

@@ -24,3 +24,23 @@ it('string literal di app/ tidak memuat em-dash', function () {
 
     expect($offenders)->toBe([]);
 });
+
+it('template Blade di resources/views tidak memuat em-dash di luar komentar', function () {
+    $root = dirname(__DIR__, 3);
+    $offenders = [];
+    $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root.'/resources/views'));
+
+    foreach ($files as $file) {
+        if (!$file instanceof SplFileInfo || !str_ends_with($file->getFilename(), '.blade.php')) {
+            continue;
+        }
+
+        $source = (string) preg_replace('/\{\{--.*?--\}\}|<!--.*?-->/s', '', (string) file_get_contents($file->getPathname()));
+
+        if (str_contains($source, '—')) {
+            $offenders[] = str_replace($root.'/', '', $file->getPathname());
+        }
+    }
+
+    expect($offenders)->toBe([]);
+});

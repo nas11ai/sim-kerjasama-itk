@@ -39,7 +39,7 @@ const send = () =>
     <ActionDialog
         v-model:open="open"
         title="Ubah Peran"
-        description="Peran reviewer diberikan lewat penunjukan reviewer."
+        description="Peran penilai diberikan lewat penunjukan penilai."
         submit-label="Simpan Peran"
         :processing="form.processing"
         @submit="send"

@@ -31,8 +31,8 @@ class SubmissionPeriodActiveNotification extends Notification implements ShouldQ
     {
         return (new NotificationPayload(
             type: 'submission_period_active',
-            title: 'Periode Submission Baru Aktif',
-            message: "Periode submission '{$this->submissionPeriod->name}' telah aktif dari {$this->startDate()} hingga {$this->endDate()}.",
+            title: 'Periode Pengajuan Baru Aktif',
+            message: "Periode pengajuan '{$this->submissionPeriod->name}' telah aktif dari {$this->startDate()} hingga {$this->endDate()}.",
             context: ['submission_period_id' => $this->submissionPeriod->id],
         ))->toArray();
     }
@@ -40,10 +40,10 @@ class SubmissionPeriodActiveNotification extends Notification implements ShouldQ
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Periode Submission Baru Aktif | SIMPAS')
-            ->line("Periode submission '{$this->submissionPeriod->name}' telah dibuka.")
+            ->subject('Periode Pengajuan Baru Aktif | SIMPAS')
+            ->line("Periode pengajuan '{$this->submissionPeriod->name}' telah dibuka.")
             ->line("Berlangsung dari {$this->startDate()} hingga {$this->endDate()}.")
-            ->action('Buka Dashboard', route('dashboard'));
+            ->action('Buka Beranda', route('dashboard'));
     }
 
     /** @return Collection<int, SubmissionDate> */

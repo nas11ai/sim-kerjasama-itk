@@ -163,7 +163,7 @@ it('[FE-PHVER-05] refuses to swap the submission form of a phase a cohort is pin
         [$otherAccess->id, null],
         [$this->reportAccess->id, 1],
     ], $this->phaseType), $this->admin))->toThrow(function (ValidationException $e) {
-        expect($e->errors())->toBe(['phase_details' => ['Form pengajuan tahap ini sudah dipakai angkatan berjalan, jadi tidak bisa diganti. Buat tahap baru untuk Form lain.']]);
+        expect($e->errors())->toBe(['phase_details' => ['Formulir pengajuan tahap ini sudah dipakai angkatan berjalan, jadi tidak bisa diganti. Buat tahap baru untuk Formulir lain.']]);
     });
 
     expect($this->phase->versions()->count())->toBe(1);

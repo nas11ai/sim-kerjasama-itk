@@ -72,7 +72,7 @@ const send = () => {
     <ActionDialog
         v-model:open="open"
         :title="period ? 'Sunting Periode' : 'Buat Periode Baru'"
-        description="Setiap tanggal adalah batas akhir; periode menerima pengajuan baru sampai Batas Submit."
+        description="Setiap tanggal adalah batas akhir; periode menerima pengajuan baru sampai Batas Pengiriman."
         submit-label="Simpan Periode"
         :processing="form.processing"
         @submit="send"
@@ -84,8 +84,8 @@ const send = () => {
         </AppBanner>
         <!-- BR-SCH-08 — jumlah yang akan diberi tahu terlihat sebelum menggeser tanggal -->
         <AppBanner v-else-if="period && period.draftOwnerCount > 0" tone="info">
-            Memundurkan Batas Submit atau Batas Revisi akan memberi tahu
-            {{ period.draftOwnerCount }} peneliti yang masih punya draft di periode ini.
+            Memundurkan Batas Pengiriman atau Batas Revisi akan memberi tahu
+            {{ period.draftOwnerCount }} peneliti yang masih punya draf di periode ini.
         </AppBanner>
         <FormField id="period-name" label="Nama Periode" required :error="form.errors.name">
             <Input id="period-name" v-model="form.name" placeholder="mis. Penelitian DIPA 2027" />

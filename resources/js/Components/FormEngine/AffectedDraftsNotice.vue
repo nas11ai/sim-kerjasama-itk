@@ -12,7 +12,7 @@ const notify = defineModel<boolean>({ required: true })
 <template>
     <div v-if="count > 0" class="space-y-3">
         <AppBanner tone="warning">
-            {{ count }} peneliti punya draft berjalan pada Form ini. Centang untuk mengirimkan
+            {{ count }} peneliti punya draf berjalan pada Formulir ini. Centang untuk mengirimkan
             pemberitahuan.
         </AppBanner>
         <div class="flex items-center gap-2">

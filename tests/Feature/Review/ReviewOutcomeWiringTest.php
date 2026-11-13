@@ -105,7 +105,7 @@ it('reviewer bukan peserta putaran pemeriksaan ditolak 422', function () {
     $this->actingAs(wiringReviewer($b))
         ->from(route('reviewer.assignments.summary', $submission))
         ->post(route('reviewer.assignments.finish', $submission))
-        ->assertSessionHasErrors(['round' => 'Anda bukan peserta putaran review ini.']);
+        ->assertSessionHasErrors(['round' => 'Anda bukan peserta putaran penilaian ini.']);
 });
 
 it('pengajuan tanpa putaran (bukan milik reviewer) tidak bocor', function () {

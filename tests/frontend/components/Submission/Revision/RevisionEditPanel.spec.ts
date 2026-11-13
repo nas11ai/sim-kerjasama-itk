@@ -31,7 +31,7 @@ describe('RevisionEditPanel', () => {
             },
         })
 
-        expect(wrapper.text()).toContain('2 field wajib masih kosong.')
+        expect(wrapper.text()).toContain('2 isian wajib masih kosong.')
         expect(wrapper.find('a[href="/user.submissions.wizard/7/6"]').text()).toBe('Proposal PDF')
         expect(wrapper.find('a[href="/user.submissions.wizard/7/2"]').exists()).toBe(true)
         expect(wrapper.text()).toContain('Rencana anggaran masih dapat diubah selama revisi.')

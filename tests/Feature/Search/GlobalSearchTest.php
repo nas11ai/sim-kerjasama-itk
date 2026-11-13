@@ -237,7 +237,7 @@ it('sublabel user: NIDN atau email, ditambah Nonaktif bila akunnya nonaktif', fu
 it('peneliti tidak mendapat grup User maupun Reviewer', function () {
     $peneliti = pemegang('submissions.view-own');
     userBernama('Budi Santoso', '0012345678');
-    reviewerBernama('Budi Reviewer');
+    reviewerBernama('Budi Penilai');
 
     $this->actingAs($peneliti)->getJson(route('search', ['q' => 'budi']))
         ->assertOk()

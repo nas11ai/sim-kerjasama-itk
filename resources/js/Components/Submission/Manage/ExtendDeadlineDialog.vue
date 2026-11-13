@@ -38,7 +38,7 @@ const tomorrow = () => {
 const current = computed(() => {
     const deadline = formatDate(props.phaseAccess.deadline)
     const items = [
-        { label: 'Fase', value: props.target.phaseLabel ?? '-' },
+        { label: 'Tahap', value: props.target.phaseLabel ?? '-' },
         {
             label: 'Tenggat Awal',
             value: props.phaseAccess.is_open ? deadline : `${deadline}, terlewat`,
@@ -46,7 +46,7 @@ const current = computed(() => {
     ]
     if (props.target.affectedReviewers.length > 0) {
         items.push({
-            label: 'Reviewer Terdampak',
+            label: 'Penilai Terdampak',
             value: props.target.affectedReviewers.join(', '),
         })
     }

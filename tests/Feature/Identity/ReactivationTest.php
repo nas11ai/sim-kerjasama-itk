@@ -96,7 +96,7 @@ it('[IAM-REACT-03] reviewer yang diaktifkan dan masa tugasnya lewat tetap tidak 
     ReactivateUser::run(reactivationAdmin(), $andi);
 
     expect(fn () => AssignReviewer::run($submission, $reviewer->fresh()))
-        ->toThrow(ValidationException::class, 'Reviewer ini berada di luar masa tugasnya, jadi tidak dapat ditugaskan.');
+        ->toThrow(ValidationException::class, 'Penilai ini berada di luar masa tugasnya, jadi tidak dapat ditugaskan.');
 });
 
 it('[IAM-REACT-04] Operator tanpa users.manage tidak bisa mengaktifkan kembali', function () {

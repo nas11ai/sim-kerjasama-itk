@@ -45,7 +45,7 @@ const refreshLinks = () => router.reload({ only: ['jobs'] })
     <AppLayout>
         <PageHeader
             title="Ekspor Data"
-            subtitle="Ekspor diproses di latar belakang: Anda diberi tahu saat file siap diunduh."
+            subtitle="Ekspor diproses di latar belakang: Anda diberi tahu saat berkas siap diunduh."
         />
         <div class="flex flex-col gap-6">
             <ExportRequestCard
@@ -53,7 +53,7 @@ const refreshLinks = () => router.reload({ only: ['jobs'] })
                 :threshold="threshold"
                 :initial-type="initialType"
             />
-            <SectionCard title="Riwayat Export">
+            <SectionCard title="Riwayat Ekspor">
                 <ExportHistoryTable
                     :jobs="jobs"
                     :max-attempts="maxAttempts"
@@ -62,7 +62,7 @@ const refreshLinks = () => router.reload({ only: ['jobs'] })
                 />
             </SectionCard>
             <p class="text-xs text-muted-foreground">
-                Link unduhan berlaku {{ retentionHours }} jam sejak file siap. Ekspor yang gagal
+                Tautan unduhan berlaku {{ retentionHours }} jam sejak berkas siap. Ekspor yang gagal
                 dapat dijalankan ulang lewat tombol "Coba Lagi".
             </p>
         </div>

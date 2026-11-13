@@ -89,7 +89,7 @@ const mountDialog = async (mode: 'root' | 'child' | 'edit') => {
 
 const fill = async (name: string) => {
     const input = document.querySelector<HTMLInputElement>('#organization-unit-name')
-    if (input === null) throw new Error('field nama tidak ada')
+    if (input === null) throw new Error('isian nama tidak ada')
     input.value = name
     input.dispatchEvent(new Event('input'))
     await nextTick()
@@ -141,7 +141,7 @@ describe('OrganizationUnitDialog', () => {
         await fill('Fakultas Teknologi Industri')
         await submit()
 
-        expect(document.body.textContent).toContain('Edit Unit')
+        expect(document.body.textContent).toContain('Ubah Unit')
         expect(submitted).toHaveBeenCalledWith('put', '/admin.organizations.update/2', {
             name: 'Fakultas Teknologi Industri',
             type: 'faculty',

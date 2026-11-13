@@ -77,7 +77,7 @@ final class PhaseAccessGate
             abort(403, "Jadwal {$name} belum diatur di periode ini. Hubungi Operator LPPM.");
         }
 
-        abort(403, 'Batas waktu fase ini sudah lewat. Hubungi Operator LPPM untuk meminta perpanjangan.');
+        abort(403, 'Batas waktu tahap ini sudah lewat. Hubungi Operator LPPM untuk meminta perpanjangan.');
     }
 
     /**

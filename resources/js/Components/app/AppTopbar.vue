@@ -38,7 +38,7 @@ useEventListener(window, 'keydown', (event: KeyboardEvent) => {
             @click="paletteOpen = true"
         >
             <Search />
-            <span class="truncate">Cari halaman, pengajuan, user...</span>
+            <span class="truncate">Cari halaman, pengajuan, pengguna...</span>
             <kbd
                 class="bg-muted ml-auto hidden rounded border px-1.5 font-mono text-[10px] font-medium sm:inline-flex"
             >

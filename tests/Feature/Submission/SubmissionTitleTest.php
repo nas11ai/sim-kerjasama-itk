@@ -108,7 +108,7 @@ it('[SM-TITLE-04] Form tidak boleh punya dua field judul pengajuan', function ()
     $this->actingAs($admin)->put(route('admin.forms.draft.update', $form), ['fields' => [
         ['field_type_id' => $titleType, 'label' => 'Judul', 'is_required' => true],
         ['field_type_id' => $titleType, 'label' => 'Judul Lain', 'is_required' => false],
-    ]])->assertSessionHasErrors(['fields' => 'Form hanya boleh punya satu field bertipe Judul pengajuan.']);
+    ]])->assertSessionHasErrors(['fields' => 'Formulir hanya boleh punya satu isian bertipe Judul pengajuan.']);
 
     expect($form->fresh()->draft)->toBeNull();
 

@@ -13,12 +13,12 @@ defineProps<{ rows: OperatorSubmissionRow[]; filtered: boolean }>()
 
 const columns = [
     { key: 'title', label: 'Judul' },
-    { key: 'leadName', label: 'Lead Researcher' },
+    { key: 'leadName', label: 'Ketua Peneliti' },
     { key: 'organization', label: 'Organisasi' },
     { key: 'scheme', label: 'Skema' },
     { key: 'status', label: 'Status' },
-    { key: 'submittedAt', label: 'Submit' },
-    { key: 'reviewerCount', label: 'Reviewer' },
+    { key: 'submittedAt', label: 'Dikirim' },
+    { key: 'reviewerCount', label: 'Penilai' },
     { key: 'action', label: '' },
 ]
 </script>

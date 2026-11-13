@@ -80,7 +80,7 @@ describe('AssignCycleReviewerDialog', () => {
             })
         )
         expect(document.body.textContent).toContain(
-            'Reviewer pengajuan awal yang masih aktif disarankan lebih dulu.'
+            'Penilai pengajuan awal yang masih aktif disarankan lebih dulu.'
         )
     })
 
@@ -89,8 +89,8 @@ describe('AssignCycleReviewerDialog', () => {
         const names = Array.from(document.querySelectorAll('li')).map((li) => li.textContent ?? '')
 
         expect(names[0]).toContain('Dr. Rina Wijaya')
-        expect(names[0]).toContain('Reviewer pengajuan awal')
-        expect(names[1]).not.toContain('Reviewer pengajuan awal')
+        expect(names[0]).toContain('Penilai pengajuan awal')
+        expect(names[1]).not.toContain('Penilai pengajuan awal')
     })
 
     it('[MON-REVIEW-01] satu pilihan dikirim ke monev.manage.reviewers.store', async () => {

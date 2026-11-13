@@ -78,10 +78,10 @@ it('filter verification=pending memuat akun pending dan tidak memuat akun undang
 
 it('filter role=reviewer_internal', function () {
     Role::findOrCreate('reviewer_internal', 'web');
-    User::factory()->create(['name' => 'Rina Reviewer'])->assignRole('reviewer_internal');
+    User::factory()->create(['name' => 'Rina Penilai'])->assignRole('reviewer_internal');
     User::factory()->create(['name' => 'Budi Biasa']);
 
-    expect(directoryNames(directoryViewer(), ['role' => 'reviewer_internal']))->toBe(['Rina Reviewer']);
+    expect(directoryNames(directoryViewer(), ['role' => 'reviewer_internal']))->toBe(['Rina Penilai']);
 });
 
 it('pencarian NIDN sebagian dan karakter wildcard di-escape', function () {

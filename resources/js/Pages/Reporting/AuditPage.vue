@@ -60,7 +60,7 @@ const view = (entry: AuditEntryRow) => {
             <template #actions>
                 <Button as-child variant="outline">
                     <Link :href="route('reporting.exports.index', { type: 'audit-log' })">
-                        <Download class="size-4" /> Export Log Audit
+                        <Download class="size-4" /> Ekspor Log Audit
                     </Link>
                 </Button>
             </template>

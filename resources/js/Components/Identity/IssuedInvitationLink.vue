@@ -10,7 +10,7 @@ const props = defineProps<{ url: string }>()
 
 const copy = async () => {
     await navigator.clipboard.writeText(props.url)
-    toast({ title: 'Link undangan disalin.' })
+    toast({ title: 'Tautan undangan disalin.' })
 }
 </script>
 
@@ -24,7 +24,7 @@ const copy = async () => {
             <div class="flex flex-wrap items-center gap-2">
                 <code class="rounded bg-muted px-2 py-1 text-xs break-all">{{ url }}</code>
                 <Button size="sm" variant="outline" type="button" @click="copy"
-                    ><Copy class="size-4" />Salin Link</Button
+                    ><Copy class="size-4" />Salin Tautan</Button
                 >
             </div>
         </div>

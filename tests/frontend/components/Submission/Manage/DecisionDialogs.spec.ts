@@ -40,7 +40,7 @@ const submission: SubmissionDetail = {
     period: 'DIPA 2026',
     trl: null,
     leadName: 'Dr. Budi Santoso',
-    status: { key: 'under_review', label: 'Direview', variant: 'secondary' },
+    status: { key: 'under_review', label: 'Dinilai', variant: 'secondary' },
     submittedAt: null,
     isArchived: false,
     viewerRole: 'viewer',
@@ -111,7 +111,7 @@ describe('dialog keputusan Operator', () => {
             },
         })
 
-        expect(document.body.textContent).toContain('Putaran 1: 2 dari 2 reviewer selesai')
+        expect(document.body.textContent).toContain('Putaran 1: 2 dari 2 penilai selesai')
         await click('Setujui Pengajuan')
 
         const [, url] = post.mock.calls[0]
@@ -119,7 +119,7 @@ describe('dialog keputusan Operator', () => {
     })
 
     it('[REV-OUTCOME-03] penolakan Setujui dari backend tampil sebagai banner', async () => {
-        failWith('approve', '1 catatan reviewer masih terbuka.')
+        failWith('approve', '1 catatan penilai masih terbuka.')
         await open(ApproveDialog, {
             readiness: {
                 ready: true,
@@ -132,13 +132,13 @@ describe('dialog keputusan Operator', () => {
 
         await click('Setujui Pengajuan')
 
-        expect(document.body.textContent).toContain('1 catatan reviewer masih terbuka.')
+        expect(document.body.textContent).toContain('1 catatan penilai masih terbuka.')
     })
 
     it('[REV-OUTCOME-07] tolak mengirim alasan setelah konfirmasi kedua', async () => {
         await open(RejectDialog, { activeReviewerCount: 2 })
 
-        expect(document.body.textContent).toContain('Reviewer Aktif')
+        expect(document.body.textContent).toContain('Penilai Aktif')
         await type('#reject-reason', 'Plagiarisme terbukti pada bab metodologi.')
         await click('Tolak Pengajuan')
         expect(post).not.toHaveBeenCalled()
@@ -215,14 +215,14 @@ describe('dialog keputusan Operator', () => {
     })
 
     it('galat status dari Action tampil di dialog tolak', async () => {
-        failWith('status', 'Penolakan manual hanya untuk pengajuan yang sedang direview.')
+        failWith('status', 'Penolakan manual hanya untuk pengajuan yang sedang dinilai.')
         await open(RejectDialog, { activeReviewerCount: 0 })
 
         await click('Tolak Pengajuan')
         await click('Tolak')
 
         expect(document.body.textContent).toContain(
-            'Penolakan manual hanya untuk pengajuan yang sedang direview.'
+            'Penolakan manual hanya untuk pengajuan yang sedang dinilai.'
         )
     })
 })

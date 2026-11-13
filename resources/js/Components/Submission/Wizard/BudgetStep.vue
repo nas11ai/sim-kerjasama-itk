@@ -43,7 +43,7 @@ const remove = (item: BudgetItem) =>
 </script>
 
 <template>
-    <SectionCard title="Step 5: Rencana Anggaran">
+    <SectionCard title="Langkah 5: Rencana Anggaran">
         <!-- BR-SM-17, BR-BUD-01 -->
         <template v-if="budget.blockedReason">
             <AppBanner tone="warning">{{ budget.blockedReason }}</AppBanner>

@@ -41,7 +41,7 @@ const period = (overrides: Partial<PeriodRowData> = {}): PeriodRowData => ({
             id: 11,
             type: 'submit',
             cycle: null,
-            label: 'Batas Submit',
+            label: 'Batas Pengiriman',
             at: '2026-02-15T23:59:00+08:00',
             inputValue: '2026-02-15T23:59',
             passed: false,
@@ -90,7 +90,7 @@ const open = async (row: PeriodRowData | null) => {
             open: true,
             period: row,
             typeOptions: [
-                { value: 'submit', label: 'Batas Submit' },
+                { value: 'submit', label: 'Batas Pengiriman' },
                 { value: 'evaluation', label: 'Batas Evaluasi' },
                 { value: 'revision', label: 'Batas Revisi' },
             ],
@@ -130,7 +130,7 @@ describe('PeriodFormDialog', () => {
         await open(period())
 
         expect(text()).toContain(
-            'Memundurkan Batas Submit atau Batas Revisi akan memberi tahu 3 peneliti yang masih punya draft di periode ini.'
+            'Memundurkan Batas Pengiriman atau Batas Revisi akan memberi tahu 3 peneliti yang masih punya draf di periode ini.'
         )
     })
 
@@ -196,6 +196,6 @@ describe('PeriodFormDialog', () => {
     it('menjelaskan bahwa periode menerima pengajuan baru sampai Batas Submit (K8d)', async () => {
         await open(null)
 
-        expect(text()).toContain('menerima pengajuan baru sampai Batas Submit')
+        expect(text()).toContain('menerima pengajuan baru sampai Batas Pengiriman')
     })
 })

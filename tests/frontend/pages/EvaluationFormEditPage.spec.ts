@@ -125,7 +125,7 @@ describe('FormEngine/EvaluationFormEditPage', () => {
     it('banner draf di editor menyebut versi yang masih dipakai reviewer', () => {
         mountPage(form())
 
-        expect(wrapper.text()).toContain('Draf belum diterbitkan. Reviewer masih memakai Versi 1.')
+        expect(wrapper.text()).toContain('Draf belum diterbitkan. Penilai masih memakai Versi 1.')
     })
 
     it('Simpan draf mengirim field ke route draf', () => {
@@ -184,7 +184,7 @@ describe('FormEngine/EvaluationFormEditPage', () => {
         const preview = document.querySelector('[data-preview]')
         expect(preview?.textContent).toContain('Kebaruan')
         expect(preview?.querySelector('fieldset')?.disabled).toBe(true)
-        expect(preview?.textContent).not.toContain('Submit Evaluasi')
+        expect(preview?.textContent).not.toContain('Kirim Evaluasi')
     })
 
     it('Versi & pemakaian mendaftar riwayat versi dan tahap pemakainya', async () => {

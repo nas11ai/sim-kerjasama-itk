@@ -227,7 +227,7 @@ export const navGroups: NavGroup[] = [
             },
             {
                 // R2 — pustaka fase: tahap mandiri yang dipakai banyak periode.
-                label: 'Fase',
+                label: 'Tahap',
                 icon: Workflow,
                 routeName: 'admin.phases.index',
                 activePattern: 'admin.phases.*',

@@ -47,7 +47,7 @@ describe('FormEngine/EvaluationFormIndexPage', () => {
 
         expect(wrapper.text()).toContain('Formulir Evaluasi')
         expect(wrapper.text()).toContain(
-            'Lembar penilaian reviewer yang bisa dipasang di banyak tahap.'
+            'Lembar penilaian dari penilai yang bisa dipasang di banyak tahap.'
         )
         expect(wrapper.find('a[href="/admin.evaluation-forms.create"]').exists()).toBe(true)
         expect(wrapper.find('a[href="/admin.evaluation-forms.edit/1"]').exists()).toBe(true)
@@ -69,9 +69,9 @@ describe('FormEngine/EvaluationFormIndexPage', () => {
             card({ id: 2, title: 'Lembar Baru', latestVersionLabel: null, hasDraft: true }),
         ])
 
-        expect(wrapper.text()).toContain('Draf belum diterbitkan. Reviewer masih memakai Versi 2.')
+        expect(wrapper.text()).toContain('Draf belum diterbitkan. Penilai masih memakai Versi 2.')
         expect(wrapper.text()).toContain(
-            'Draf belum diterbitkan. Belum ada versi yang dipakai reviewer.'
+            'Draf belum diterbitkan. Belum ada versi yang dipakai penilai.'
         )
     })
 

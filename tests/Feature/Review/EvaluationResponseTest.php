@@ -158,8 +158,8 @@ it('[REV-EVAL-01] saves a draft of the answers and the final notes, audited', fu
 
 it('rejects an answer for a field of another evaluation form, saving nothing', function () {
     $assignment = evalResponseAssignment($this->submissionReviewer, $this->form);
-    $other = evaluationFormOn($this->form->stepEvaluationForms()->sole()->formPhaseDetail, [], required: false, title: 'Form lain');
-    $foreignField = evalResponseField($other, 'Milik form lain', false);
+    $other = evaluationFormOn($this->form->stepEvaluationForms()->sole()->formPhaseDetail, [], required: false, title: 'Formulir lain');
+    $foreignField = evalResponseField($other, 'Milik formulir lain', false);
 
     $this->actingAs($this->reviewerUser)
         ->post(route('reviewer.evaluation-form.save-draft', $assignment), [
@@ -177,7 +177,7 @@ it('[REV-EVAL-02] refuses to save a draft over a submitted evaluation', function
 
     $this->actingAs($this->reviewerUser)
         ->post(route('reviewer.evaluation-form.save-draft', $assignment), [
-            'responses' => [$this->required->id => 'Diubah setelah submit'],
+            'responses' => [$this->required->id => 'Diubah setelah kirim'],
         ])
         ->assertSessionHasErrors('error');
 

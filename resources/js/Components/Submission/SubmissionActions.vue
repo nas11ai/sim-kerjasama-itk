@@ -17,17 +17,17 @@ const props = defineProps<{
 // BR-SM-04 — Submit tidak ditawarkan di sini: ia tindakan ketua di langkah akhir wizard.
 const editHint = computed(() => {
     if (props.submission.isArchived) {
-        return 'Draft dari periode yang sudah ditutup, tidak dapat diedit lagi.'
+        return 'Draf dari periode yang sudah ditutup, tidak dapat diubah lagi.'
     }
     return props.can.resubmit
         ? 'Tersedia saat status Perlu Revisi.'
-        : 'Tersedia saat pengajuan masih berstatus Draft.'
+        : 'Tersedia saat pengajuan masih berstatus Draf.'
 })
 
 const actions = computed<ActionItem[]>(() => [
     {
         key: 'edit',
-        label: props.can.resubmit ? 'Mulai Revisi' : 'Edit Pengajuan',
+        label: props.can.resubmit ? 'Mulai Revisi' : 'Ubah Pengajuan',
         icon: Pencil,
         href: props.submission.editUrl ?? undefined,
         available: props.can.update && props.submission.editUrl !== null,

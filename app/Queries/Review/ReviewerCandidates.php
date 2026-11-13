@@ -42,7 +42,7 @@ class ReviewerCandidates implements ChangesNoState
 
             $candidates[] = new ReviewerCandidateData(
                 reviewerId: $reviewer->id,
-                name: $reviewer->user->name ?? 'Reviewer',
+                name: $reviewer->user->name ?? 'Penilai',
                 nidn: $reviewer->user?->userProfile?->nidn,
                 type: $reviewer->reviewer_type,
                 activeLoad: $activeLoad,

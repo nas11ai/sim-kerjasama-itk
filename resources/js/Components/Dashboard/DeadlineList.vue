@@ -18,11 +18,11 @@ function remaining(daysLeft: number): string {
 </script>
 
 <template>
-    <SectionCard title="Deadline Mendekat">
+    <SectionCard title="Tenggat Mendekat">
         <EmptyState
             v-if="deadlines.length === 0"
             :icon="CalendarClock"
-            title="Tidak ada deadline mendekat"
+            title="Tidak ada tenggat mendekat"
         />
         <ul v-else class="flex flex-col gap-2">
             <li

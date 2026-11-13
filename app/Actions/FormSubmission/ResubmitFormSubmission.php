@@ -56,7 +56,7 @@ class ResubmitFormSubmission
         // berlaku di jalur yang tidak lewat HTTP.
         if (!$user->can('resubmit', $submission)) {
             throw new AuthorizationException(
-                'Hanya lead researcher yang bisa resubmit pengajuan ini.'
+                'Hanya ketua peneliti yang bisa mengirim ulang pengajuan ini.'
             );
         }
 
@@ -64,7 +64,7 @@ class ResubmitFormSubmission
 
         if (!$status instanceof SubmissionStatus) {
             throw new RuntimeException(
-                "FormSubmission {$submission->id} tidak punya status, tidak bisa di-resubmit."
+                "FormSubmission {$submission->id} tidak punya status, tidak bisa dikirim ulang."
             );
         }
 

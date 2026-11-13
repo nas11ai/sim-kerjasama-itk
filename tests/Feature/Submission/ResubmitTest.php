@@ -105,7 +105,7 @@ it('[SM-SUBMIT-19] resubmit tanpa field wajib ditolak', function () {
 
     try {
         ResubmitFormSubmission::run($submission, $owner);
-        $this->fail('Resubmit seharusnya ditolak karena proposal PDF belum diunggah.');
+        $this->fail('Kirim ulang seharusnya ditolak karena proposal PDF belum diunggah.');
     } catch (ValidationException $e) {
         expect($e->errors())->toHaveKey('field_'.$field->id);
     }

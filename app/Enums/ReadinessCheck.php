@@ -14,7 +14,7 @@ enum ReadinessCheck: string
         return match ($this) {
             self::MissingDate => 'Tanggal setiap langkah sudah diatur',
             self::DateOrder => 'Urutan tanggal masuk akal',
-            self::RequiredEvaluationForm => 'Langkah yang direview punya Formulir Evaluasi wajib',
+            self::RequiredEvaluationForm => 'Langkah yang dinilai punya Formulir Evaluasi wajib',
         };
     }
 }

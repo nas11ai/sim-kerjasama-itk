@@ -114,7 +114,7 @@ it('[FE-EVLIB-01] refuses to attach an evaluation form that was never published'
     $form = ReviewEvaluationForm::query()->where('title', 'Lembar Proposal')->sole();
 
     libraryAttach($this->researchStep, [[$form, true]])->assertSessionHasErrors([
-        'review_evaluation_form_id' => 'Form evaluasi ini belum pernah diterbitkan, jadi belum bisa dipasang.',
+        'review_evaluation_form_id' => 'Formulir evaluasi ini belum pernah diterbitkan, jadi belum bisa dipasang.',
     ]);
 
     expect(StepEvaluationForm::query()->exists())->toBeFalse()
@@ -136,7 +136,7 @@ it('[FE-EVLIB-02] attaches one evaluation form to steps of two phases, once per 
         ->and($service->stepEvaluationForms()->sole()->is_required)->toBeFalse();
 
     libraryAttach($research, [[$form, true], [$form, true]])
-        ->assertSessionHasErrors(['review_evaluation_form_id' => 'Form evaluasi ini sudah terpasang di langkah ini.']);
+        ->assertSessionHasErrors(['review_evaluation_form_id' => 'Formulir evaluasi ini sudah terpasang di langkah ini.']);
 });
 
 it('[FE-EVLIB-03] keeps reviewers on the published version while a draft is pending', function () {
@@ -300,7 +300,7 @@ it('creates a library form and opens its editor', function () {
     $form = ReviewEvaluationForm::query()->where('title', 'Lembar Proposal')->sole();
 
     $response->assertRedirect(route('admin.evaluation-forms.edit', $form))
-        ->assertSessionHas('success', 'Form evaluasi dibuat. Susun field-nya lalu terbitkan.');
+        ->assertSessionHas('success', 'Formulir evaluasi dibuat. Susun isiannya lalu terbitkan.');
     expect($form->description)->toBeNull()
         ->and($form->versions()->exists())->toBeFalse();
 });
@@ -311,7 +311,7 @@ it('renames a library form without publishing a version', function () {
     $this->actingAs($this->admin)
         ->put(route('admin.evaluation-forms.update', $form), ['title' => 'Lembar Proposal 2026', 'description' => 'Untuk skema DIPA'])
         ->assertSessionHasNoErrors()
-        ->assertSessionHas('success', 'Form evaluasi diperbarui.');
+        ->assertSessionHas('success', 'Formulir evaluasi diperbarui.');
 
     expect($form->fresh()?->title)->toBe('Lembar Proposal 2026')
         ->and($form->versions()->count())->toBe(1);
@@ -356,7 +356,7 @@ it('deletes an unattached form together with its draft', function () {
     $this->actingAs($this->admin)
         ->delete(route('admin.evaluation-forms.destroy', $form))
         ->assertRedirect(route('admin.evaluation-forms.index'))
-        ->assertSessionHas('success', 'Form evaluasi dihapus.');
+        ->assertSessionHas('success', 'Formulir evaluasi dihapus.');
 
     expect($form->fresh())->toBeNull()
         ->and(ConfigurationDraft::query()->count())->toBe(0);

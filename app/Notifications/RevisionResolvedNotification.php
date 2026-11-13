@@ -26,8 +26,8 @@ class RevisionResolvedNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Catatan review ditandai selesai')
-            ->line('Reviewer menandai salah satu catatan review atas pengajuan Anda selesai.');
+            ->subject('Catatan penilaian ditandai selesai')
+            ->line('Penilai menandai salah satu catatan penilaian atas pengajuan Anda selesai.');
     }
 
     /** @return array<string, int|string|null> */
@@ -35,8 +35,8 @@ class RevisionResolvedNotification extends Notification
     {
         return (new NotificationPayload(
             type: 'revision_resolved',
-            title: 'Catatan review ditandai selesai',
-            message: 'Reviewer menandai salah satu catatan review atas pengajuan Anda selesai.',
+            title: 'Catatan penilaian ditandai selesai',
+            message: 'Penilai menandai salah satu catatan penilaian atas pengajuan Anda selesai.',
             context: ['form_submission_id' => $this->submission->id],
         ))->toArray();
     }

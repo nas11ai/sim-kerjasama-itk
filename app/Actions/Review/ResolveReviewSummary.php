@@ -72,7 +72,7 @@ class ResolveReviewSummary
         }
 
         throw new AuthorizationException(
-            'Hanya reviewer pemilik catatan ini yang dapat menandainya selesai.'
+            'Hanya penilai pemilik catatan ini yang dapat menandainya selesai.'
         );
     }
 }

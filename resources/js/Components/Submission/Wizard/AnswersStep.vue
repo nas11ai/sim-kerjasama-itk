@@ -27,7 +27,7 @@ const requiredFiles = computed(() =>
 </script>
 
 <template>
-    <SectionCard :title="`Step ${step} · ${label}`">
+    <SectionCard :title="`Langkah ${step} · ${label}`">
         <WizardFieldList
             :fields="fields"
             :values="values"
@@ -36,12 +36,12 @@ const requiredFiles = computed(() =>
         />
         <!-- BR-FE-11 -->
         <p v-if="step === 2" class="text-xs text-muted-foreground">
-            Field bertanda wajib mengikuti konfigurasi Form saat pengajuan ini dibuat. Field yang
-            diwajibkan setelah tanggal tersebut tidak menghalangi submit.
+            Isian bertanda wajib mengikuti konfigurasi Formulir saat pengajuan ini dibuat. Isian
+            yang diwajibkan setelah tanggal tersebut tidak menghalangi pengiriman.
         </p>
         <!-- BR-SM-02 -->
         <AppBanner v-if="step === 6 && requiredFiles.length > 0" tone="info">
-            Wajib diunggah sebelum submit: {{ requiredFiles.join(', ') }}. Berkas lain bersifat
+            Wajib diunggah sebelum dikirim: {{ requiredFiles.join(', ') }}. Berkas lain bersifat
             opsional.
         </AppBanner>
     </SectionCard>

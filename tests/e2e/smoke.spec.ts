@@ -94,15 +94,15 @@ test.describe('alur kritis peneliti sampai keputusan', () => {
 
         // Langkah 7 — submit lewat dialog konfirmasi.
         await expect(page.getByText('Rp 1.500.000 dari Rp 75.000.000')).toBeVisible()
-        await page.getByRole('button', { name: 'Submit Pengajuan' }).click()
+        await page.getByRole('button', { name: 'Kirim Pengajuan' }).click()
         await page
             .getByRole('dialog', { name: 'Kirim pengajuan?' })
-            .getByRole('button', { name: 'Submit', exact: true })
+            .getByRole('button', { name: 'Kirim', exact: true })
             .click()
         await page.waitForURL(/\/user\/submissions\/\d+$/)
         const submissionUrl = page.url()
         const submissionId = submissionUrl.split('/').pop()
-        await expect(page.getByText('Menunggu Review').first()).toBeVisible()
+        await expect(page.getByText('Menunggu Penilaian').first()).toBeVisible()
         await logout(page)
 
         // Operator — dua reviewer sesuai minimum skema DIPA (BR-REV-01).
@@ -112,7 +112,7 @@ test.describe('alur kritis peneliti sampai keputusan', () => {
         const assign = page.getByRole('dialog')
         await assign.getByRole('button', { name: /Dr\. Sari Wijaya/ }).click()
         await assign.getByRole('button', { name: /Dr\. Andi Mappa/ }).click()
-        await expect(assign).toContainText('2 dari minimal 2 reviewer')
+        await expect(assign).toContainText('2 dari minimal 2 penilai')
         await assign.getByRole('button', { name: 'Tugaskan', exact: true }).click()
         await expect(assign).toBeHidden()
         await logout(page)
@@ -127,7 +127,7 @@ test.describe('alur kritis peneliti sampai keputusan', () => {
                 .click()
             await page.getByLabel('Catatan Kualitatif').fill('Metodologi kuat, layak didanai.')
             await page.getByRole('button', { name: /Submit Evaluasi/ }).click()
-            await page.getByRole('dialog').getByRole('button', { name: 'Submit Evaluasi' }).click()
+            await page.getByRole('dialog').getByRole('button', { name: 'Kirim Evaluasi' }).click()
             await expect(page.getByText('Penilaian sudah dikirim')).toBeVisible()
             await logout(page)
         }
@@ -161,10 +161,10 @@ test.describe('alur Operator S4', () => {
         const assign = page.getByRole('dialog')
         await assign.getByRole('button', { name: /Dr\. Sari Wijaya/ }).click()
         await assign.getByRole('button', { name: /Dr\. Andi Mappa/ }).click()
-        await expect(assign).toContainText('2 dari minimal 2 reviewer')
+        await expect(assign).toContainText('2 dari minimal 2 penilai')
         await assign.getByRole('button', { name: 'Tugaskan', exact: true }).click()
         await expect(assign).toBeHidden()
-        await expect(page.getByText('Sedang Direview').first()).toBeVisible()
+        await expect(page.getByText('Sedang Dinilai').first()).toBeVisible()
         await logout(page)
 
         await login(page, 'reviewer1@itk.ac.id')
@@ -176,7 +176,7 @@ test.describe('alur Operator S4', () => {
         // Penugasan Operator memakai auto_assign_forms, jadi form evaluasinya sudah dimulai.
         await page.getByLabel('Catatan Kualitatif').fill('Metodologi kuat, perjelas jadwal.')
         await page.getByRole('button', { name: /Submit Evaluasi/ }).click()
-        await page.getByRole('dialog').getByRole('button', { name: 'Submit Evaluasi' }).click()
+        await page.getByRole('dialog').getByRole('button', { name: 'Kirim Evaluasi' }).click()
         await expect(page.getByText('Penilaian sudah dikirim')).toBeVisible()
         await logout(page)
 

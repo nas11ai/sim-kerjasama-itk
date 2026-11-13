@@ -52,7 +52,7 @@ const main = computed({
 })
 
 const title = computed(() =>
-    props.scheme === null ? 'Buat Skema Baru' : `Edit Skema: ${props.scheme.name}`
+    props.scheme === null ? 'Buat Skema Baru' : `Ubah Skema: ${props.scheme.name}`
 )
 
 function save() {

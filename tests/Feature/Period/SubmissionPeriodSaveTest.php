@@ -20,7 +20,7 @@ beforeEach(function () {
     // OPERATOR-09-01 — pemegang periods.manage (§4.4 K1), bukan users.manage.
     $this->admin = User::factory()->create();
     $this->admin->assignRole('operator');
-    $this->phase = publishedPhase(['title' => 'Fase Satu', 'is_active' => true]);
+    $this->phase = publishedPhase(['title' => 'Tahap Satu', 'is_active' => true]);
 });
 
 function periodPayload(array $dates, array $overrides = []): array
@@ -190,7 +190,7 @@ it('stores the deadline type and cycle — BR-FE-25', function () {
         ->map(fn ($date) => [$date->type, $date->cycle, $date->label()])->all();
 
     expect($labels)->toBe([
-        [DeadlineType::Submit, null, 'Batas Submit'],
+        [DeadlineType::Submit, null, 'Batas Pengiriman'],
         [DeadlineType::Evaluation, null, 'Batas Evaluasi'],
         [DeadlineType::Submit, 1, 'Batas Laporan Monev I'],
     ]);

@@ -79,7 +79,7 @@ class SaveSubmissionDraft
 
         // Belum ada baris sama sekali — peneliti melewati langkah 1.
         if ($submission === null) {
-            throw new ConflictHttpException('Draft tidak ditemukan; mulai pengajuan dari langkah 1.');
+            throw new ConflictHttpException('Draf tidak ditemukan; mulai pengajuan dari langkah 1.');
         }
 
         // BR-SM-05 — isi pengajuan terkunci pada status terminal. Resolver

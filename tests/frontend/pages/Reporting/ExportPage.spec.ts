@@ -67,11 +67,11 @@ describe('ExportPage', () => {
 
         expect(text).toContain('Ekspor Data')
         expect(text).toContain(
-            'Ekspor diproses di latar belakang: Anda diberi tahu saat file siap diunduh.'
+            'Ekspor diproses di latar belakang: Anda diberi tahu saat berkas siap diunduh.'
         )
-        expect(text).toContain('Riwayat Export')
+        expect(text).toContain('Riwayat Ekspor')
         expect(text).toContain(
-            'Link unduhan berlaku 24 jam sejak file siap. Ekspor yang gagal dapat dijalankan ulang lewat tombol "Coba Lagi".'
+            'Tautan unduhan berlaku 24 jam sejak berkas siap. Ekspor yang gagal dapat dijalankan ulang lewat tombol "Coba Lagi".'
         )
     })
 

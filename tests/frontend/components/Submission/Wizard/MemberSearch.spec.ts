@@ -49,7 +49,7 @@ describe('MemberSearch', () => {
 
     it('[SM-MEMBER-01] kandidat reviewer nonaktif dengan alasan', () => {
         const reason =
-            'Dr. Rina sedang ditugaskan sebagai reviewer pengajuan ini, jadi ia tidak dapat ditambahkan sebagai anggota.'
+            'Dr. Rina sedang ditugaskan sebagai penilai pengajuan ini, jadi ia tidak dapat ditambahkan sebagai anggota.'
         const wrapper = mountSearch([
             { id: 9, name: 'Dr. Rina', nidn: null, blockedReason: reason },
         ])

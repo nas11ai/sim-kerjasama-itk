@@ -51,17 +51,17 @@ it('fails hard instead of guessing when a form maps to more than one phase detai
         'permission' => 'submissions.create',
         'organization_id' => $organization->id,
     ]);
-    $phaseType = PhaseType::create(['name' => 'Tipe Fase Uji Ambigu']);
+    $phaseType = PhaseType::create(['name' => 'Tipe Tahap Uji Ambigu']);
 
     // Dua FormPhaseDetail untuk form_access_control yang sama -> satu form_id
     // punya lebih dari satu kandidat form_phase_detail, jadi ambigu.
-    phaseStep(FormPhase::create(['title' => 'Fase Ambigu 1', 'is_active' => true]), [
+    phaseStep(FormPhase::create(['title' => 'Tahap Ambigu 1', 'is_active' => true]), [
         'form_access_control_id' => $accessControl->id,
         'phase_type_id' => $phaseType->id,
         'order' => 1,
         'deadline_type' => DeadlineType::Submit,
     ]);
-    phaseStep(FormPhase::create(['title' => 'Fase Ambigu 2', 'is_active' => true]), [
+    phaseStep(FormPhase::create(['title' => 'Tahap Ambigu 2', 'is_active' => true]), [
         'form_access_control_id' => $accessControl->id,
         'phase_type_id' => $phaseType->id,
         'order' => 2,

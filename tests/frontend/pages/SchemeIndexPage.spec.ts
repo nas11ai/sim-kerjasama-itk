@@ -118,7 +118,7 @@ describe('Scheme/IndexPage', () => {
         const wrapper = mountPage([schemeRow()])
 
         expect(wrapper.find('a[href="/admin.schemes.create"]').text()).toContain('Buat Skema Baru')
-        expect(wrapper.find('a[href="/admin.schemes.edit/4"]').text()).toContain('Edit')
+        expect(wrapper.find('a[href="/admin.schemes.edit/4"]').text()).toContain('Ubah')
     })
 
     it('[SCH-RULE-04] nonaktifkan dimatikan dan menyebut jumlah pengajuan aktif', () => {

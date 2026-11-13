@@ -113,14 +113,14 @@ describe('MonevManageShowPage', () => {
 
         expect(text).toContain('Aktivasi Siklus & Penugasan Penilai')
         expect(text).toContain('Smart Farming Hidroponik Kampus · Ir. Dewi Lestari')
-        expect(text).toContain('Penugasan reviewer monev dilakukan manual per siklus.')
+        expect(text).toContain('Penugasan penilai monev dilakukan manual per siklus.')
         expect(text).toContain(
-            'Mengaktifkan siklus memberi tahu peneliti dan reviewer yang ditugaskan pada siklus itu.'
+            'Mengaktifkan siklus memberi tahu peneliti dan penilai yang ditugaskan pada siklus itu.'
         )
         expect(text).toContain('Monev I · Siklus Aktif')
-        expect(text).toContain('Disubmit')
+        expect(text).toContain('Dikirim')
         expect(text).toContain('Dr. Rina Wijaya')
-        expect(text).toContain('Lihat Laporan Researcher')
+        expect(text).toContain('Lihat Laporan Peneliti')
     })
 
     it('[MON-REVIEW-02] siklus kedua tanpa reviewer menampilkan banner tanpa pewarisan', () => {
@@ -131,7 +131,7 @@ describe('MonevManageShowPage', () => {
         const text = mountPage([managed(), open]).text()
 
         expect(text).toContain(
-            'Siklus Monev II belum punya reviewer. Reviewer siklus sebelumnya tidak ikut otomatis.'
+            'Siklus Monev II belum punya penilai. Penilai siklus sebelumnya tidak ikut otomatis.'
         )
         expect(text).toContain('Belum ditugaskan')
         expect(text).toContain('Belum dimulai')

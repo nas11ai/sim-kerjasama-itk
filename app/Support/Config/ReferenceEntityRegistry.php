@@ -51,10 +51,10 @@ final class ReferenceEntityRegistry
             // dari keempatnya.
             new ReferenceEntity(
                 key: 'submission-types',
-                label: 'Tipe Submission',
+                label: 'Tipe Pengajuan',
                 model: SubmissionType::class,
                 usageRelation: 'schemes',
-                usedBy: 'Skema, Submission, Review, Monev',
+                usedBy: 'Skema, Pengajuan, Penilaian, Monev',
                 group: 'scheme',
                 // Tampil read-only: Admin yang tak menemukannya akan mengira
                 // ada layar lain.
@@ -95,7 +95,7 @@ final class ReferenceEntityRegistry
                 label: 'Tingkat Kesiapterapan Teknologi (TKT)',
                 model: TechnologyReadinessLevel::class,
                 usageRelation: 'schemes',
-                usedBy: 'Skema dan form pengajuan',
+                usedBy: 'Skema dan formulir pengajuan',
                 group: 'scheme',
                 // Tabelnya tidak punya `is_active`. Dinyatakan di sini alih-alih
                 // ditebak layar, supaya tombol Nonaktifkan tidak muncul lalu

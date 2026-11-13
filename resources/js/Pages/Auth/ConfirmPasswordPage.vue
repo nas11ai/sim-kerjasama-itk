@@ -14,15 +14,15 @@ const submit = () => form.post(route('password.confirm'), { onFinish: () => form
 </script>
 
 <template>
-    <Head title="Konfirmasi Password" />
+    <Head title="Konfirmasi Kata Sandi" />
     <AuthLayout>
         <AuthHeading
-            title="Konfirmasi Password"
-            subtitle="Area ini butuh konfirmasi password sebelum dilanjutkan."
+            title="Konfirmasi Kata Sandi"
+            subtitle="Area ini butuh konfirmasi kata sandi sebelum dilanjutkan."
         />
 
         <form class="space-y-4" @submit.prevent="submit">
-            <FormField id="password" label="Password" :error="form.errors.password" required>
+            <FormField id="password" label="Kata Sandi" :error="form.errors.password" required>
                 <Input
                     id="password"
                     v-model="form.password"

@@ -26,7 +26,7 @@ it('[IAM-SESSION-01] mengakhiri seluruh sesi tanpa menonaktifkan akun', function
 
     $this->actingAs($admin)->post(route('admin.users.sessions.end', $sari))
         ->assertRedirect()
-        ->assertSessionHas('success', 'Seluruh sesi user diakhiri.');
+        ->assertSessionHas('success', 'Seluruh sesi pengguna diakhiri.');
 
     expect(DB::table('sessions')->pluck('id')->all())->toBe(['admin-laptop'])
         ->and($sari->fresh()->is_active)->toBeTrue()

@@ -58,7 +58,7 @@ it('mengubah status lewat HTTP kembali dengan pesan', function () {
         ->from(route('admin.forms.index'))
         ->patch(route('admin.forms.active', $form), ['active' => false])
         ->assertRedirect(route('admin.forms.index'))
-        ->assertSessionHas('success', 'Form dinonaktifkan.');
+        ->assertSessionHas('success', 'Formulir dinonaktifkan.');
 
     expect($form->fresh()->is_active)->toBeFalse();
 });

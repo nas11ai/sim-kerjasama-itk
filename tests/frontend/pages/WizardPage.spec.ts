@@ -64,10 +64,10 @@ const editProps = (step: number, fields: WizardField[]): Partial<SubmissionWizar
     fields,
     submission: {
         id: 7,
-        title: 'Form Proposal',
-        status: { key: 'draft', label: 'Draft', variant: 'secondary' },
+        title: 'Formulir Proposal',
+        status: { key: 'draft', label: 'Draf', variant: 'secondary' },
         period: 'DIPA 2026',
-        form: 'Form Proposal',
+        form: 'Formulir Proposal',
         lastUpdatedAt: '2026-10-31T01:00:00.000000Z',
     },
     can: {
@@ -130,7 +130,7 @@ describe('WizardPage', () => {
             },
         })
 
-        expect(wrapper.text()).toContain('Step 4: Anggota Penelitian')
+        expect(wrapper.text()).toContain('Langkah 4: Anggota Penelitian')
 
         await wrapper.setProps({
             ...editProps(5, []),
@@ -145,7 +145,7 @@ describe('WizardPage', () => {
             },
         })
 
-        expect(wrapper.text()).toContain('Step 5: Rencana Anggaran')
+        expect(wrapper.text()).toContain('Langkah 5: Rencana Anggaran')
         expect(wrapper.text()).not.toContain('irisan berikutnya')
     })
 })

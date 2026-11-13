@@ -163,7 +163,7 @@ it('revalidates the draft at publish and keeps it when an attached evaluation fo
     $sheet->delete();
 
     $this->post(route('admin.phases.publish', $this->phase))
-        ->assertSessionHasErrors(['phase_details.0.evaluation_forms' => 'Form evaluasi yang terpasang di langkah ini sudah dihapus dari pustaka. Lepaskan lalu simpan draf.']);
+        ->assertSessionHasErrors(['phase_details.0.evaluation_forms' => 'Formulir evaluasi yang terpasang di langkah ini sudah dihapus dari pustaka. Lepaskan lalu simpan draf.']);
 
     expect($this->phase->versions()->count())->toBe(1)
         ->and(PhaseDraft::query()->where('draftable_id', $this->phase->id)->exists())->toBeTrue();
@@ -194,7 +194,7 @@ it('[FE-PHPUB-04] refuses to publish a step whose Form was never published and k
     ]))->assertSessionHasNoErrors();
 
     $this->post(route('admin.phases.publish', $this->phase))
-        ->assertSessionHasErrors(['phase_details' => 'Form "Pengajuan Baru" belum pernah diterbitkan.']);
+        ->assertSessionHasErrors(['phase_details' => 'Formulir "Pengajuan Baru" belum pernah diterbitkan.']);
 
     expect($this->phase->versions()->count())->toBe(1)
         ->and(PhaseDraft::query()->where('draftable_id', $this->phase->id)->exists())->toBeTrue();

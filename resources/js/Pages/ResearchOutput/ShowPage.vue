@@ -32,7 +32,7 @@ defineProps<ResearchOutputShowPageProps>()
             <template v-if="output.access.canWrite" #actions>
                 <Button variant="outline" as-child>
                     <Link :href="route('research-outputs.edit', output.id)">
-                        <SquarePen class="size-4" /> Edit
+                        <SquarePen class="size-4" /> Ubah
                     </Link>
                 </Button>
             </template>
@@ -48,7 +48,7 @@ defineProps<ResearchOutputShowPageProps>()
             <!-- BR-RO-06/07 -->
             <AppBanner tone="lock">
                 Di dalam tim penelitian, hanya ketua dan co-investigator yang dapat mengubah luaran
-                ini, anggota biasa dan reviewer membaca saja. Operator LPPM tetap dapat mengoreksi
+                ini, anggota biasa dan penilai membaca saja. Operator LPPM tetap dapat mengoreksi
                 datanya. Luaran dari pengajuan yang sudah ditarik tetap tersimpan sebagai arsip
                 baca-saja.
             </AppBanner>

@@ -138,7 +138,7 @@ class PublishPhaseVersion
         }
 
         throw ValidationException::withMessages([
-            'phase_details' => 'Form pengajuan tahap ini sudah dipakai angkatan berjalan, jadi tidak bisa diganti. Buat tahap baru untuk Form lain.',
+            'phase_details' => 'Formulir pengajuan tahap ini sudah dipakai angkatan berjalan, jadi tidak bisa diganti. Buat tahap baru untuk Formulir lain.',
         ]);
     }
 

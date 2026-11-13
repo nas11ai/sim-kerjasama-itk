@@ -104,7 +104,7 @@ describe('Announcement/FormPage', () => {
         await nextTick()
 
         expect(wrapper.text()).toContain('Operator LPPM')
-        expect(wrapper.text()).toContain('Kosongkan untuk semua pengguna login.')
+        expect(wrapper.text()).toContain('Kosongkan untuk semua pengguna yang sudah masuk.')
     })
 
     it('beralih ke publik mengosongkan target peran', async () => {

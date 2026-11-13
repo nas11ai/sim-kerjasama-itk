@@ -37,7 +37,7 @@ class ReviewEvaluationFormVersion extends Model
     protected static function booted(): void
     {
         static::updating(function (): void {
-            throw new LogicException('Versi form evaluasi yang terbit tidak dapat diubah.');
+            throw new LogicException('Versi formulir evaluasi yang terbit tidak dapat diubah.');
         });
     }
 

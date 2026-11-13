@@ -94,7 +94,7 @@ function deadlineSlot(int $i): array
  */
 function buildAccessibleFormPhaseDetail(User $user, Organization $organization, FormAccessControl $accessControl, FormPhase $formPhase): array
 {
-    $phaseType = PhaseType::create(['name' => 'Tipe Fase '.fake()->unique()->numerify('####-####')]);
+    $phaseType = PhaseType::create(['name' => 'Tipe Tahap '.fake()->unique()->numerify('####-####')]);
     $period = SubmissionPeriod::factory()->create();
     SubmissionDate::create([
         'type' => DeadlineType::Submit,
@@ -271,7 +271,7 @@ function wizardFixture(): array
         'organization_id' => $organization->id,
     ]);
 
-    $formPhase = FormPhase::create(['title' => 'Fase Uji', 'is_active' => true]);
+    $formPhase = FormPhase::create(['title' => 'Tahap Uji', 'is_active' => true]);
     $built = buildAccessibleFormPhaseDetail($user, $organization, $accessControl, $formPhase);
 
     return [
@@ -440,7 +440,7 @@ function monevFixture(bool $monev1NeedsReview = false, string $parentStatus = Ap
 {
     $phase = FormPhase::create(['title' => 'Siklus '.fake()->unique()->numerify('####'), 'is_active' => true]);
 
-    $pengajuan = monevDetail($phase, 1, 'Batas Submit');
+    $pengajuan = monevDetail($phase, 1, 'Batas Pengiriman');
     $monev1 = monevDetail($phase, 3, 'Batas Laporan Monev I', $monev1NeedsReview);
     $monev2 = monevDetail($phase, 5, 'Batas Laporan Monev II');
 
@@ -539,8 +539,8 @@ function phaseSharedByTwoPeriods(string $tag, bool $needsReview = false): array
         'organization_id' => Organization::create(['name' => "Organisasi {$tag}", 'type' => 'faculty'])->id,
     ]);
 
-    $phaseType = PhaseType::create(['name' => "Tipe Fase {$tag}"]);
-    $formPhase = FormPhase::create(['title' => "Fase {$tag}", 'is_active' => true]);
+    $phaseType = PhaseType::create(['name' => "Tipe Tahap {$tag}"]);
+    $formPhase = FormPhase::create(['title' => "Tahap {$tag}", 'is_active' => true]);
 
     $periodA = SubmissionPeriod::create(['name' => "Periode A {$tag}"]);
     $dueA = now()->addDays(5)->startOfSecond();
@@ -591,7 +591,7 @@ function phaseWithOwnEvaluationDeadline(string $tag): array
         'organization_id' => Organization::create(['name' => "Organisasi {$tag}", 'type' => 'faculty'])->id,
     ]);
 
-    $formPhase = FormPhase::create(['title' => "Fase {$tag}", 'is_active' => true]);
+    $formPhase = FormPhase::create(['title' => "Tahap {$tag}", 'is_active' => true]);
     $period = SubmissionPeriod::create(['name' => "Periode {$tag}"]);
 
     $dueSubmit = now()->addDays(3)->startOfSecond();
@@ -734,7 +734,7 @@ function reviewedDetailFixture(string $submit, string $evaluation, ?string $revi
         }
     }
     $detail = FormPhaseDetail::factory()->forPeriod($period)->create(['needs_review' => true]);
-    $form = evaluationFormOn($detail, [], title: 'Form Substansi');
+    $form = evaluationFormOn($detail, [], title: 'Formulir Substansi');
     $submission = FormSubmission::factory()->create([
         'form_phase_detail_id' => $detail->id,
         'submission_period_id' => $period->id,
@@ -894,7 +894,7 @@ function stepDate(FormPhaseDetail $step, ?SubmissionPeriod $period = null, ?Dead
  */
 function evaluationFormOn(FormPhaseDetail $detail, array $fields = [['type' => 'Text', 'label' => 'Catatan']], bool $required = true, bool $active = true, ?string $title = null): ReviewEvaluationForm
 {
-    $form = ReviewEvaluationForm::create(['title' => $title ?? 'Form Evaluasi '.fake()->unique()->numerify('####')]);
+    $form = ReviewEvaluationForm::create(['title' => $title ?? 'Formulir Evaluasi '.fake()->unique()->numerify('####')]);
     publishVersion($form, $fields);
     StepEvaluationForm::create([
         'form_phase_detail_id' => $detail->id,

@@ -152,7 +152,7 @@ final class CohortChecks implements ChangesNoState
             if ($step->needs_review && !isset($this->withRequiredForm[$step->id])) {
                 $stepLabel = $step->deadline_type->stepLabel($step->deadline_cycle);
                 $issues[] = new ReadinessIssueData(
-                    "Langkah {$step->order} ({$stepLabel}) direview, tapi belum punya Formulir Evaluasi wajib yang aktif.",
+                    "Langkah {$step->order} ({$stepLabel}) dinilai, tapi belum punya Formulir Evaluasi wajib yang aktif.",
                     $step->opensSubmission(),
                 );
             }

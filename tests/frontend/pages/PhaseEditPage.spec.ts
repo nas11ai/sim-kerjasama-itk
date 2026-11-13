@@ -60,7 +60,7 @@ import type { PhaseDetailEditData, PhaseEditData, PhaseEditPageProps } from '@/t
 const detail = (overrides: Partial<PhaseDetailEditData> = {}): PhaseDetailEditData => ({
     order: 1,
     formAccessControlId: 41,
-    formTitle: 'Form Proposal',
+    formTitle: 'Formulir Proposal',
     accessLabel: 'Pengaju · Fakultas Sains',
     phaseTypeId: 5,
     phaseTypeName: 'Isi Proposal',
@@ -103,9 +103,9 @@ const props = (
     accessOptions: [
         {
             value: '41',
-            label: 'Form Proposal · Pengaju · Fakultas Sains',
+            label: 'Formulir Proposal · Pengaju · Fakultas Sains',
             formId: 7,
-            formTitle: 'Form Proposal',
+            formTitle: 'Formulir Proposal',
         },
     ],
     phaseTypeOptions: [{ value: '5', label: 'Isi Proposal' }],
@@ -139,7 +139,7 @@ const openRow = async (wrapper: ReturnType<typeof mountPage>, index: number) => 
     await wrapper
         .findAll('li')
         [index].findAll('button')
-        .find((b) => b.text().trim() === 'Edit')
+        .find((b) => b.text().trim() === 'Ubah')
         ?.trigger('click')
     await flushPromises()
 }
@@ -182,10 +182,10 @@ describe('FormEngine/PhaseEditPage', () => {
     it('judul, lencana versi, dan back ke pustaka Fase', () => {
         const wrapper = page(props([detail()]))
 
-        expect(wrapper.find('h1').text()).toBe('Edit Phase: Tahap Proposal')
+        expect(wrapper.find('h1').text()).toBe('Ubah Tahap: Tahap Proposal')
         expect(wrapper.text()).toContain('Versi 1')
-        expect(wrapper.find('a[href="/admin.phases.index"]').text()).toContain('Fase')
-        expect(wrapper.findAll('li')[0].text()).toContain('Isi Proposal · Form Proposal')
+        expect(wrapper.find('a[href="/admin.phases.index"]').text()).toContain('Tahap')
+        expect(wrapper.findAll('li')[0].text()).toContain('Isi Proposal · Formulir Proposal')
         expect(wrapper.findAll('li')[0].text()).toContain('Akses: Pengaju · Fakultas Sains')
         expect(wrapper.findAll('li')[0].text()).toContain('Jenis: Pengajuan')
     })
@@ -219,7 +219,7 @@ describe('FormEngine/PhaseEditPage', () => {
     it('langkah yang direview memuat bagian pemasangan Formulir Evaluasi (BR-FE-30)', () => {
         const wrapper = page(props([detail({ needsReview: true })]))
 
-        expect(wrapper.text()).toContain('Form evaluasi untuk Isi Proposal · Form Proposal')
+        expect(wrapper.text()).toContain('Formulir evaluasi untuk Isi Proposal · Formulir Proposal')
         expect(wrapper.text()).toContain('Pasang Formulir Evaluasi')
     })
 
@@ -350,26 +350,26 @@ describe('FormEngine/PhaseEditPage', () => {
         )[0]
         expect(toggle?.hasAttribute('disabled')).toBe(true)
         expect(toggle?.getAttribute('aria-checked')).toBe('false')
-        expect(document.body.textContent).toContain('Detail Upload Luaran tidak direview.')
+        expect(document.body.textContent).toContain('Detail Unggah Luaran tidak dinilai.')
     })
 
     it('galat jenis langkah tampil di baris langkahnya', async () => {
         const wrapper = page(props([detail(), detail({ order: 2, deadlineCycle: 1 })]))
 
         forms[forms.length - 1].errors = {
-            'phase_details.1.deadline_cycle': 'Upload Luaran tidak bersiklus.',
+            'phase_details.1.deadline_cycle': 'Unggah Luaran tidak bersiklus.',
         }
         await nextTick()
 
         const rows = wrapper.findAll('ul.divide-y > li')
-        expect(rows[1].text()).toContain('Upload Luaran tidak bersiklus.')
+        expect(rows[1].text()).toContain('Unggah Luaran tidak bersiklus.')
         expect(rows[0].text()).not.toContain('tidak bersiklus')
     })
 
     it('[B5] dari pustaka bertapis: Kembali membawa Form tapisnya', () => {
         const wrapper = page({ ...props([detail()]), returnForm: 7 })
 
-        expect(wrapper.find('a[href="/admin.phases.index/7"]').text()).toContain('Fase')
+        expect(wrapper.find('a[href="/admin.phases.index/7"]').text()).toContain('Tahap')
     })
 
     describe('mode buat', () => {
@@ -390,7 +390,7 @@ describe('FormEngine/PhaseEditPage', () => {
 
             expect(wrapper.find('h1').text()).toBe('Buat Tahap Baru')
             expect(wrapper.findAll('ul.divide-y > li')).toHaveLength(1)
-            expect(wrapper.text()).toContain('Isi Proposal · Form Proposal')
+            expect(wrapper.text()).toContain('Isi Proposal · Formulir Proposal')
             expect(wrapper.text()).toContain('Baru')
             expect(wrapper.text()).not.toContain('Simpan draf')
         })
@@ -426,7 +426,7 @@ describe('FormEngine/PhaseEditPage', () => {
             const wrapper = page(creating([]))
 
             expect(wrapper.text()).toContain(
-                'Belum ada Form aktif yang punya aturan akses. Buat aturan akses di Pembuat Formulir lebih dulu.'
+                'Belum ada Formulir aktif yang punya aturan akses. Buat aturan akses di Pembuat Formulir lebih dulu.'
             )
             const banner = wrapper.findAll('a').find((a) => a.text() === 'Buka Pembuat Formulir')
             expect(banner?.attributes('href')).toBe('/admin.forms.index')

@@ -38,7 +38,7 @@ const showBanner = computed(() => props.general.hasDraft || props.general.publis
 const discardText = computed(() =>
     props.general.publishedAt === null
         ? 'Isi draf dihapus.'
-        : 'Isi draf dihapus; editor kembali ke field terbitan terakhir.'
+        : 'Isi draf dihapus; editor kembali ke isian terbitan terakhir.'
 )
 
 const formUrl = (name: string) => route(name, props.formId)
@@ -58,7 +58,7 @@ const saveDraft = () =>
         }}</AppBanner>
         <Tabs default-value="fields" class="space-y-4">
             <TabsList>
-                <TabsTrigger value="fields">Field</TabsTrigger>
+                <TabsTrigger value="fields">Isian</TabsTrigger>
                 <TabsTrigger value="preview">Pratinjau</TabsTrigger>
             </TabsList>
 
@@ -74,8 +74,8 @@ const saveDraft = () =>
                     :published="general.publishedFields"
                 />
                 <AppBanner tone="info">
-                    Perubahan field berlaku saat diterbitkan. Field yang dihapus diarsipkan, bukan
-                    dihilangkan permanen; draft berjalan tidak dipaksa mengisi field wajib baru.
+                    Perubahan isian berlaku saat diterbitkan. Isian yang dihapus diarsipkan, bukan
+                    dihilangkan permanen; draf berjalan tidak dipaksa mengisi isian wajib baru.
                 </AppBanner>
                 <DraftPublishBar
                     :has-draft="general.hasDraft"

@@ -18,7 +18,7 @@ enum SessionEndReason: string
     {
         return match ($this) {
             self::Deactivated => 'Akun Anda dinonaktifkan. Hubungi LPPM bila ini keliru.',
-            self::Ended => 'Sesi Anda diakhiri oleh admin. Silakan login lagi.',
+            self::Ended => 'Sesi Anda diakhiri oleh admin. Silakan masuk lagi.',
         };
     }
 }

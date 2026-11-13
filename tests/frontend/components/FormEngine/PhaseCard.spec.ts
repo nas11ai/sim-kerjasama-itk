@@ -108,7 +108,7 @@ describe('PhaseCard — Form pengajuan', () => {
     it('menyebut Form pengajuan tahap (BR-FE-28)', () => {
         const wrapper = mountCard({ phase: phase(), canLinkPeriod: false })
 
-        expect(wrapper.text()).toContain('Form pengajuan: Proposal Penelitian')
+        expect(wrapper.text()).toContain('Formulir pengajuan: Proposal Penelitian')
     })
 
     it('tanpa langkah Pengajuan tidak menyebut Form pengajuan', () => {
@@ -117,7 +117,7 @@ describe('PhaseCard — Form pengajuan', () => {
             canLinkPeriod: false,
         })
 
-        expect(wrapper.text()).not.toContain('Form pengajuan:')
+        expect(wrapper.text()).not.toContain('Formulir pengajuan:')
     })
 })
 
@@ -125,7 +125,7 @@ describe('PhaseCard — tautan Edit', () => {
     it('menaut ke editor tahap mandiri', () => {
         const wrapper = mountCard({ phase: phase(), canLinkPeriod: false })
 
-        expect(wrapper.find('a[href="/admin.phases.edit/7"]').text()).toContain('Edit')
+        expect(wrapper.find('a[href="/admin.phases.edit/7"]').text()).toContain('Ubah')
     })
 })
 

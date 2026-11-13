@@ -73,12 +73,12 @@ function formPublishAudit(Form $form, string $description): ?Activity
 
 it('creates a form with a draft and no published fields', function () {
     $this->actingAs($this->admin)->post(route('admin.forms.store'), [
-        'title' => 'Form Baru',
+        'title' => 'Formulir Baru',
         'form_type_id' => regularFormType()->id,
         ...draftFields([[null, 'Judul', true]]),
-    ])->assertSessionHas('success', 'Form dibuat. Susun field-nya lalu terbitkan.');
+    ])->assertSessionHas('success', 'Formulir dibuat. Susun isiannya lalu terbitkan.');
 
-    $form = Form::query()->where('title', 'Form Baru')->sole();
+    $form = Form::query()->where('title', 'Formulir Baru')->sole();
 
     expect($form->published_at)->toBeNull()
         ->and($form->formFields()->count())->toBe(0)
@@ -165,7 +165,7 @@ it('[FE-FORMPUB-03] a required field published later does not block a running dr
     $this->travel(1)->days();
 
     $this->actingAs($this->admin)->post(route('admin.forms.publish', $fx['form']), ['notify_affected' => false])
-        ->assertSessionHas('success', 'Form diterbitkan.');
+        ->assertSessionHas('success', 'Formulir diterbitkan.');
 
     $mitra = $fx['form']->formFields()->sole();
 
@@ -198,7 +198,7 @@ it('[FE-CHANGE-03] publishing with notify_affected notifies running draft owners
 
     $this->actingAs($this->admin)->put(route('admin.forms.draft.update', $fx['form']), draftFields([[null, 'Mitra', true]]));
     $this->actingAs($this->admin)->post(route('admin.forms.publish', $fx['form']), ['notify_affected' => true])
-        ->assertSessionHas('success', 'Form diterbitkan. 1 peneliti diberi tahu.');
+        ->assertSessionHas('success', 'Formulir diterbitkan. 1 peneliti diberi tahu.');
 
     Notification::assertSentTo($fx['user'], FormChangedNotification::class);
 });
@@ -257,12 +257,12 @@ it('still refuses a type change of an answered field at publish', function () {
 
 it('rejects a field id of another form at publish and leaves that form intact', function () {
     $form = Form::factory()->create();
-    $foreign = publishField(Form::factory()->create(), 'Milik Form Lain', 1);
+    $foreign = publishField(Form::factory()->create(), 'Milik Formulir Lain', 1);
 
     $this->actingAs($this->admin)->put(route('admin.forms.draft.update', $form), draftFields([[$foreign->id, 'Dibajak']]));
     $this->actingAs($this->admin)->post(route('admin.forms.publish', $form))->assertSessionHasErrors('fields.0.id');
 
-    expect($foreign->fresh()?->label)->toBe('Milik Form Lain');
+    expect($foreign->fresh()?->label)->toBe('Milik Formulir Lain');
 });
 
 it('rejects a trl_selector without a scheme_selector in the draft (BR-SCH-05)', function () {
@@ -283,7 +283,7 @@ it('saves General directly and ignores fields sent to update', function () {
         'title' => 'Judul Baru',
         'form_type_id' => $form->form_type_id,
         ...draftFields([]),
-    ])->assertRedirect(route('admin.forms.edit', $form))->assertSessionHas('success', 'Form diperbarui.');
+    ])->assertRedirect(route('admin.forms.edit', $form))->assertSessionHas('success', 'Formulir diperbarui.');
 
     expect($form->fresh()->title)->toBe('Judul Baru')
         ->and($form->formFields()->count())->toBe(1)
@@ -335,7 +335,7 @@ it('rejects a draft from a stale screen that keeps a field or option another pub
 
     $this->actingAs($this->admin)->put(route('admin.forms.draft.update', $form), $stale)
         ->assertSessionHasErrors([
-            'fields.0.id' => 'Field ini sudah dihapus oleh penerbitan lain. Muat ulang halaman lalu coba lagi.',
+            'fields.0.id' => 'Isian ini sudah dihapus oleh penerbitan lain. Muat ulang halaman lalu coba lagi.',
             'fields.0.options.0.id' => 'Opsi ini sudah dihapus oleh penerbitan lain. Muat ulang halaman lalu coba lagi.',
         ]);
 
@@ -353,7 +353,7 @@ it('counts and notifies the owner of a running monev report draft', function () 
     $this->get(route('admin.forms.edit', $form))
         ->assertInertia(fn (Assert $page) => $page->where('general.impact.draftOwners', 1));
     $this->post(route('admin.forms.publish', $form), ['notify_affected' => true])
-        ->assertSessionHas('success', 'Form diterbitkan. 1 peneliti diberi tahu.');
+        ->assertSessionHas('success', 'Formulir diterbitkan. 1 peneliti diberi tahu.');
 
     Notification::assertSentTo(User::query()->findOrFail($report->submitted_by), FormChangedNotification::class);
 });

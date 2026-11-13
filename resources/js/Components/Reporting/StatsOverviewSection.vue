@@ -29,7 +29,7 @@ const schemeYear = computed(() => ({
         <div class="grid gap-4 lg:grid-cols-2">
             <StatusBreakdownCard :rows="overview.byStatus" :all-href="allSubmissionsHref" />
             <ColumnChartCard
-                title="Submission per Skema per Tahun"
+                title="Pengajuan per Skema per Tahun"
                 subtitle="Tiga tahun terakhir; tidak mengikuti filter Tahun."
                 index="scheme"
                 index-label="Skema"
@@ -38,7 +38,7 @@ const schemeYear = computed(() => ({
             />
         </div>
         <div class="grid gap-4 lg:grid-cols-2">
-            <SectionCard title="Submission per Fakultas / Prodi">
+            <SectionCard title="Pengajuan per Fakultas / Prodi">
                 <Tabs default-value="faculty">
                     <TabsList>
                         <TabsTrigger value="faculty">Fakultas</TabsTrigger>

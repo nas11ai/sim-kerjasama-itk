@@ -34,13 +34,13 @@ const heading = computed(() => {
 const active = computed(() => props.cycle.reviewers.filter((r) => !r.replaced))
 const report = computed(() => {
     if (c.value.reportId === null) return 'Belum dimulai'
-    return c.value.submittedAt === null ? 'Draft' : `Disubmit ${formatDate(c.value.submittedAt)}`
+    return c.value.submittedAt === null ? 'Draf' : `Dikirim ${formatDate(c.value.submittedAt)}`
 })
 const info = computed(() => [
-    { label: 'Deadline', value: formatDate(c.value.deadline) },
-    { label: 'Laporan Researcher', value: report.value },
+    { label: 'Tenggat', value: formatDate(c.value.deadline) },
+    { label: 'Laporan Peneliti', value: report.value },
     {
-        label: 'Reviewer',
+        label: 'Penilai',
         value: active.value.length
             ? active.value.map((r) => r.name).join(', ')
             : 'Belum ditugaskan',
@@ -67,12 +67,12 @@ const openCycle = () =>
             <InfoGrid :items="info" />
             <!-- BR-MON-04 -->
             <AppBanner v-if="!first && cycle.canAssign && active.length === 0" tone="warning">
-                Siklus {{ c.name }} belum punya reviewer. Reviewer siklus sebelumnya tidak ikut
+                Siklus {{ c.name }} belum punya penilai. Penilai siklus sebelumnya tidak ikut
                 otomatis.
             </AppBanner>
             <div class="flex flex-wrap items-center gap-2">
                 <Button v-if="cycle.canAssign" @click="assigning = true">
-                    <Users class="size-4" /> Tugaskan Reviewer
+                    <Users class="size-4" /> Tugaskan Penilai
                 </Button>
                 <Button
                     v-if="showOpen"
@@ -84,7 +84,7 @@ const openCycle = () =>
                 </Button>
                 <Button v-if="c.reportId !== null" as-child variant="ghost">
                     <Link :href="route('monev.reports.show', c.reportId)">
-                        <FileText class="size-4" /> Lihat Laporan Researcher
+                        <FileText class="size-4" /> Lihat Laporan Peneliti
                     </Link>
                 </Button>
             </div>

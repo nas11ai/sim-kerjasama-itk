@@ -67,7 +67,7 @@ it('reviewer membuka Review/AssignmentIndexPage dengan penugasan perlu tindakan'
             ->has('needsAction', 1)
             ->where('needsAction.0.submissionId', $pending->form_submission_id)
             ->where('needsAction.0.state', 'evaluation_pending')
-            ->where('needsAction.0.stateLabel', 'Evaluasi Pending')
+            ->where('needsAction.0.stateLabel', 'Evaluasi Belum Selesai')
             ->where('needsAction.0.leadName', 'Dr. Andi Mappa')
             ->whereNot('needsAction.0.dueDate', null)
             ->where('done', []));

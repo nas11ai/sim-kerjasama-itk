@@ -38,7 +38,7 @@ class ExportFailedNotification extends Notification
     {
         return (new NotificationPayload(
             type: 'export_failed',
-            title: 'Export gagal, coba lagi',
+            title: 'Ekspor gagal, coba lagi',
             message: ExportType::label($this->job->type).' gagal setelah '.$this->job->attempts.' percobaan. '
                 .'Sistem tidak akan mengulang sendiri.',
             context: ['export_job_id' => $this->job->id],

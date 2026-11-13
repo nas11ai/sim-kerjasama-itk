@@ -44,7 +44,7 @@ export function usePhaseActions() {
 
     const deleteDescription = computed(
         () =>
-            `${target.value?.title ?? ''} beserta ${target.value?.detailCount ?? 0} detail dan form evaluasinya dihapus permanen.`
+            `${target.value?.title ?? ''} beserta ${target.value?.detailCount ?? 0} detail dan formulir evaluasinya dihapus permanen.`
     )
 
     const visit = (done: () => void) => ({

@@ -22,7 +22,7 @@ const { filters } = useFilters('admin.users.index', props.filters)
 const filtered = computed(() => Object.values(props.filters).some((value) => value !== ''))
 
 const selects = computed((): FilterSelectSpec<Exclude<keyof UserIndexFilters, 'search'>>[] => [
-    { key: 'role', label: 'Role', allLabel: 'Semua role', options: props.roleOptions },
+    { key: 'role', label: 'Peran', allLabel: 'Semua peran', options: props.roleOptions },
     { key: 'account', label: 'Status', allLabel: 'Semua status', options: props.accountOptions },
     {
         key: 'verification',
@@ -40,11 +40,11 @@ const selects = computed((): FilterSelectSpec<Exclude<keyof UserIndexFilters, 's
 </script>
 
 <template>
-    <Head title="Daftar User" />
+    <Head title="Daftar Pengguna" />
     <AppLayout>
         <PageHeader
-            title="Daftar User"
-            subtitle="Semua user sistem, kelola status, role, dan verifikasi."
+            title="Daftar Pengguna"
+            subtitle="Semua pengguna sistem, kelola status, peran, dan verifikasi."
         >
             <template #actions>
                 <Button v-if="can.manageInvitations" as-child variant="outline">
@@ -73,7 +73,7 @@ const selects = computed((): FilterSelectSpec<Exclude<keyof UserIndexFilters, 's
         <PaginationBar :page="users" />
         <div class="mt-4">
             <AppBanner tone="info">
-                User yang masih menjadi ketua pengajuan aktif tidak dapat dinonaktifkan sebelum
+                Pengguna yang masih menjadi ketua pengajuan aktif tidak dapat dinonaktifkan sebelum
                 kepemilikannya dialihkan.
             </AppBanner>
         </div>

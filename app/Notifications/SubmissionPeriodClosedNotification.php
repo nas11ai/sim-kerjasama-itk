@@ -30,7 +30,7 @@ class SubmissionPeriodClosedNotification extends Notification
         return (new MailMessage)
             ->subject("Periode {$this->period->name} telah ditutup")
             ->line("Periode pengajuan {$this->period->name} sudah ditutup.")
-            ->line('Draft Anda tetap tersimpan, tetapi tidak dapat disunting lagi.');
+            ->line('Draf Anda tetap tersimpan, tetapi tidak dapat disunting lagi.');
     }
 
     /** @return array<string, int|string|null> */
@@ -39,7 +39,7 @@ class SubmissionPeriodClosedNotification extends Notification
         return (new NotificationPayload(
             type: 'submission_period_closed',
             title: 'Periode pengajuan ditutup',
-            message: "Periode {$this->period->name} sudah ditutup. Draft Anda tetap tersimpan sebagai arsip.",
+            message: "Periode {$this->period->name} sudah ditutup. Draf Anda tetap tersimpan sebagai arsip.",
             context: ['submission_period_id' => $this->period->id],
         ))->toArray();
     }

@@ -66,7 +66,7 @@ describe('DeadlineList', () => {
 
     it('EmptyState saat kosong', () => {
         expect(mount(DeadlineList, { props: { deadlines: [] } }).text()).toContain(
-            'Tidak ada deadline mendekat'
+            'Tidak ada tenggat mendekat'
         )
     })
 })

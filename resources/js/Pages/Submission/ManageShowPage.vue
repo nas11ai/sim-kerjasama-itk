@@ -51,7 +51,7 @@ const sections = computed(() => [
     { value: 'members', label: 'Anggota' },
     { value: 'budget', label: 'Anggaran' },
     { value: 'files', label: 'Berkas' },
-    { value: 'review', label: `Review (${props.activeReviewerCount})` },
+    { value: 'review', label: `Penilaian (${props.activeReviewerCount})` },
     ...(props.outputs === null
         ? []
         : [{ value: 'outputs', label: `Luaran (${props.outputs.length})` }]),
@@ -113,7 +113,7 @@ const print = (document: FilterOption) =>
                 {{ warning }}
             </AppBanner>
             <AppBanner v-if="awaitingReviewers" tone="info">
-                Pengajuan menunggu penugasan reviewer.
+                Pengajuan menunggu penugasan penilai.
             </AppBanner>
             <!-- BR-SM-11 — WITHDRAWN final -->
             <AppBanner v-if="submission.status.key === 'withdrawn'" tone="lock">

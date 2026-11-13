@@ -45,7 +45,7 @@ const endSessions = () => {
 </script>
 
 <template>
-    <SectionCard title="Sesi Login">
+    <SectionCard title="Sesi Masuk">
         <p class="text-sm">{{ presence }}</p>
         <Button v-if="canEnd && user.status.active" variant="outline" @click="confirming = true"
             ><LogOut class="size-4" /> Akhiri Semua Sesi</Button
@@ -53,7 +53,7 @@ const endSessions = () => {
         <ConfirmDialog
             v-model:open="confirming"
             title="Akhiri semua sesi?"
-            :description="`${user.name} keluar dari semua perangkat dan perlu login lagi. Akunnya tetap aktif.`"
+            :description="`${user.name} keluar dari semua perangkat dan perlu masuk lagi. Akunnya tetap aktif.`"
             confirm-label="Akhiri Semua Sesi"
             :processing="processing"
             @confirm="endSessions"

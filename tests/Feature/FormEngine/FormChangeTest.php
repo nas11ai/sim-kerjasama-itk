@@ -168,7 +168,7 @@ it('[FE-CHANGE-03] menerbitkan dengan notify_affected mengirim notifikasi', func
     $this->actingAs($admin)
         ->post(route('admin.forms.publish', $fx['form']), ['notify_affected' => true])
         ->assertRedirect()
-        ->assertSessionHas('success', 'Form diterbitkan. 1 peneliti diberi tahu.');
+        ->assertSessionHas('success', 'Formulir diterbitkan. 1 peneliti diberi tahu.');
 
     Notification::assertSentTo($fx['user'], FormChangedNotification::class);
 });
@@ -185,7 +185,7 @@ it('[FE-CHANGE-03] tanpa centang, perubahan terbit tanpa notifikasi', function (
     $this->actingAs($admin)
         ->post(route('admin.forms.publish', $fx['form']), ['notify_affected' => false])
         ->assertRedirect()
-        ->assertSessionHas('success', 'Form diterbitkan.');
+        ->assertSessionHas('success', 'Formulir diterbitkan.');
 
     // Pengiriman ditawarkan, bukan otomatis — Admin yang memutuskan.
     Notification::assertNothingSent();

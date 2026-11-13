@@ -25,7 +25,7 @@ const submission: SubmissionDetail = {
     period: 'DIPA 2026',
     trl: null,
     leadName: 'Dr. Rina',
-    status: { key: 'draft', label: 'Draft', variant: 'secondary' },
+    status: { key: 'draft', label: 'Draf', variant: 'secondary' },
     submittedAt: null,
     isArchived: false,
     viewerRole: 'lead_researcher',
@@ -64,7 +64,7 @@ describe('SubmissionActions', () => {
     it('menautkan Edit Pengajuan ke editUrl saat can.update', () => {
         const link = mountActions().find('a')
 
-        expect(link.text()).toContain('Edit Pengajuan')
+        expect(link.text()).toContain('Ubah Pengajuan')
         expect(link.attributes('href')).toBe('/user/submission-period/1/form-phase/2')
     })
 
@@ -81,7 +81,7 @@ describe('SubmissionActions', () => {
         expect(wrapper.find('a').exists()).toBe(false)
         expect(wrapper.find('button').attributes('disabled')).toBeDefined()
         expect(wrapper.text()).toContain(
-            'Draft dari periode yang sudah ditutup, tidak dapat diedit lagi.'
+            'Draf dari periode yang sudah ditutup, tidak dapat diubah lagi.'
         )
     })
 

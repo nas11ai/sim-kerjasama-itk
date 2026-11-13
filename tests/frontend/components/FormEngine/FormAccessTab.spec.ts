@@ -63,7 +63,7 @@ const rules: FormAccessRuleData[] = [
 const mountTab = () =>
     mount(FormAccessTab, {
         props: {
-            form: { id: 7, title: 'Form Proposal', isActive: true },
+            form: { id: 7, title: 'Formulir Proposal', isActive: true },
             rules,
             permissionOptions: [
                 {

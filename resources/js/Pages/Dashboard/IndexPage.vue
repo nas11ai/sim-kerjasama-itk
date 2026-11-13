@@ -41,8 +41,9 @@ const actions = computed(() =>
                 </Link>
             </AppBanner>
             <AppBanner v-if="pending" tone="warning">
-                <strong>{{ pending.awaitingReviewer }} pengajuan</strong> butuh reviewer ·
-                <strong>{{ pending.awaitingVerification }} user</strong> menunggu verifikasi NIDN.
+                <strong>{{ pending.awaitingReviewer }} pengajuan</strong> butuh penilai ·
+                <strong>{{ pending.awaitingVerification }} pengguna</strong> menunggu verifikasi
+                NIDN.
             </AppBanner>
             <section
                 v-for="section in sections"

@@ -35,8 +35,8 @@ class ReviewerDashboardCards implements ChangesNoState
         $list = route('reviewer.assignments.index');
 
         return [
-            'section' => new DashboardSectionData('reviewer', 'Review', [
-                new KpiCardData('pending', 'Perlu Dievaluasi', strval(count($pending)), "{$urgent} mendekati deadline", $list),
+            'section' => new DashboardSectionData('reviewer', 'Penilaian', [
+                new KpiCardData('pending', 'Perlu Dievaluasi', strval(count($pending)), "{$urgent} mendekati tenggat", $list),
                 new KpiCardData('done', 'Evaluasi Selesai', strval(count($all) - count($pending)), 'Total', route('reviewer.history.index')),
                 $this->nearest($dated[0] ?? null, $deadlines[0] ?? null),
             ]),
@@ -68,7 +68,7 @@ class ReviewerDashboardCards implements ChangesNoState
     private function nearest(?AssignmentCardData $card, ?DeadlineData $deadline): KpiCardData
     {
         if ($card === null || $deadline === null) {
-            return new KpiCardData('nearest', 'Deadline Terdekat', '-', null, null);
+            return new KpiCardData('nearest', 'Tenggat Terdekat', '-', null, null);
         }
 
         $value = match (true) {
@@ -77,6 +77,6 @@ class ReviewerDashboardCards implements ChangesNoState
             default => "{$deadline->daysLeft} hari",
         };
 
-        return new KpiCardData('nearest', 'Deadline Terdekat', $value, $card->title, $deadline->href);
+        return new KpiCardData('nearest', 'Tenggat Terdekat', $value, $card->title, $deadline->href);
     }
 }

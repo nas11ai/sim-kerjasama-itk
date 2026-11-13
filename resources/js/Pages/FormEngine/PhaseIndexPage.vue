@@ -37,9 +37,9 @@ const emptyTitle = computed(() =>
 </script>
 
 <template>
-    <Head title="Fase" />
+    <Head title="Tahap" />
     <AppLayout>
-        <PageHeader title="Fase" subtitle="Pustaka tahap yang bisa dipakai banyak periode.">
+        <PageHeader title="Tahap" subtitle="Pustaka tahap yang bisa dipakai banyak periode.">
             <template #actions>
                 <Button as-child>
                     <Link

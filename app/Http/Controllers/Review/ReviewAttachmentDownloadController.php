@@ -24,14 +24,14 @@ class ReviewAttachmentDownloadController extends Controller
         $path = $request->query('path');
 
         // `?path[]=x` menghasilkan array; itu bukan berkas yang dikenal, bukan galat server.
-        abort_unless(is_string($path), 404, 'File tidak ditemukan');
+        abort_unless(is_string($path), 404, 'Berkas tidak ditemukan');
 
         $submission = ReviewAttachmentSubmission::run($path);
 
-        abort_if($submission === null, 404, 'File tidak ditemukan');
+        abort_if($submission === null, 404, 'Berkas tidak ditemukan');
         abort_unless($submission->isAccessibleBy($user), 403);
         // Setelah otorisasi, supaya 404 tidak bisa dipakai menebak berkas yang ada.
-        abort_unless(Storage::disk(PrivateUploadDisk::NAME)->exists($path), 404, 'File tidak ditemukan');
+        abort_unless(Storage::disk(PrivateUploadDisk::NAME)->exists($path), 404, 'Berkas tidak ditemukan');
 
         return response()->download(Storage::disk(PrivateUploadDisk::NAME)->path($path));
     }

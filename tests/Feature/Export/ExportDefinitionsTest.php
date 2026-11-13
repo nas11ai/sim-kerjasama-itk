@@ -64,7 +64,7 @@ function biocharSubmission(): FormSubmission
 it('kolom tiap jenis ekspor mengikuti W154', function (string $type, array $headings) {
     expect(ExportType::definition($type)->headings())->toBe($headings);
 })->with([
-    'Rekap Submission' => [ExportType::SUBMISSIONS, ['ID', 'Judul', 'Status', 'Skema', 'Ketua', 'Tanggal Submit', 'Total Anggaran']],
+    'Rekap Pengajuan' => [ExportType::SUBMISSIONS, ['ID', 'Judul', 'Status', 'Skema', 'Ketua', 'Tanggal Kirim', 'Total Anggaran']],
     'Detail Anggaran' => [ExportType::BUDGET, ['ID Pengajuan', 'Judul', 'Komponen', 'Item', 'Volume', 'Satuan', 'Harga Satuan', 'Total']],
     'Daftar Luaran' => [ExportType::RESEARCH_OUTPUTS, ['ID Pengajuan', 'Judul Pengajuan', 'Tipe Luaran', 'Judul Luaran', 'Dibuat']],
     'Rekap Monev' => [ExportType::MONEV, ['ID Pengajuan', 'Judul', 'Siklus', 'Status Siklus']],
@@ -73,7 +73,7 @@ it('kolom tiap jenis ekspor mengikuti W154', function (string $type, array $head
 
 it('label kelima jenis ekspor mengikuti tabel DDD', function () {
     expect(array_map(ExportType::label(...), ExportType::all()))
-        ->toBe(['Rekap Submission', 'Detail Anggaran', 'Daftar Luaran', 'Rekap Monev', 'Log Audit']);
+        ->toBe(['Rekap Pengajuan', 'Detail Anggaran', 'Daftar Luaran', 'Rekap Monev', 'Log Audit']);
 });
 
 it('baris Rekap Submission', function () {
@@ -155,7 +155,7 @@ it('membaca kalender periode semua induk Rekap Monev sekali, bukan per induk', f
 
 it('menghitung siklus ekspor rekap dari langkah, bukan tanggal', function () {
     // BR-FE-07 (ADR 0019) — langkah menyebut jenis + siklus; tak ada lagi tanggal yang dirujuk.
-    $phase = FormPhase::create(['title' => 'Fase Rekap', 'is_active' => true]);
+    $phase = FormPhase::create(['title' => 'Tahap Rekap', 'is_active' => true]);
     $pengajuan = scheduleStep($phase, order: 1);
     scheduleStep($phase, cycle: 1, needsReview: false, order: 3);
     scheduleStep($phase, cycle: 2, needsReview: false, order: 5);
@@ -178,7 +178,7 @@ it('baris Log Audit', function () {
     $rows = ExportType::definition(ExportType::AUDIT_LOG)->rows(definitionsOperator(), new ExportFilters(yearFrom: 2026, yearTo: 2026));
 
     // Terbaru dulu; label subjek dan pelaku sama dengan layar Log Audit (W155).
-    expect($rows[0])->toBe(['2026-03-01 09:15:00', 'Submission · Biochar Kaltim', 'Ekspor diminta', 'Budi', null])
+    expect($rows[0])->toBe(['2026-03-01 09:15:00', 'Pengajuan · Biochar Kaltim', 'Ekspor diminta', 'Budi', null])
         ->and(array_column($rows, 2))->toBe(['Ekspor diminta', 'Pengajuan disubmit']);
 });
 

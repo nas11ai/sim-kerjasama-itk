@@ -35,8 +35,8 @@ class ReviewEvaluationForm extends Model
     protected static function booted(): void
     {
         static::deleting(function (ReviewEvaluationForm $form): void {
-            ReferenceGuard::assertUnreferenced('Form evaluasi', [
-                'penugasan reviewer' => $form->reviewerFormAssignments()->count(),
+            ReferenceGuard::assertUnreferenced('Formulir evaluasi', [
+                'penugasan penilai' => $form->reviewerFormAssignments()->count(),
                 'pemasangan di langkah' => $form->stepEvaluationForms()->count(),
             ]);
         });

@@ -18,7 +18,7 @@ import type { FollowUpList } from '@/types/reporting'
 const list = (overrides: Partial<FollowUpList> = {}): FollowUpList => ({
     key: 'awaitingReviewer',
     title: 'Menunggu Penugasan Penilai',
-    hint: 'Tugaskan reviewer dari detail pengajuan.',
+    hint: 'Tugaskan penilai dari detail pengajuan.',
     count: 7,
     items: [
         {
@@ -40,11 +40,11 @@ describe('FollowUpListCard', () => {
         const item = wrapper.find('a[href="/admin/submissions/12"]')
 
         expect(wrapper.text()).toContain('Menunggu Penugasan Penilai')
-        expect(wrapper.text()).toContain('Tugaskan reviewer dari detail pengajuan.')
+        expect(wrapper.text()).toContain('Tugaskan penilai dari detail pengajuan.')
         expect(wrapper.text()).toContain('7')
         expect(item.text()).toContain('Sensor Banjir Balikpapan')
         expect(item.text()).toContain('Dr. Budi')
-        expect(item.text()).toContain('12 hari sejak submit')
+        expect(item.text()).toContain('12 hari sejak dikirim')
         expect(wrapper.find('a[href="/admin/submissions?status=submitted"]').exists()).toBe(true)
     })
 

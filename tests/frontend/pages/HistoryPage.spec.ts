@@ -92,6 +92,6 @@ describe('HistoryPage', () => {
     })
 
     it('tanpa riwayat menampilkan keadaan kosong', () => {
-        expect(mountPage([]).text()).toContain('Belum ada riwayat review')
+        expect(mountPage([]).text()).toContain('Belum ada riwayat penilaian')
     })
 })

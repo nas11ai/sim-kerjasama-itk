@@ -101,6 +101,6 @@ describe('RevisionPage', () => {
     })
 
     it('ulir kosong menampilkan keadaan kosong', () => {
-        expect(mountPage().text()).toContain('Belum ada catatan reviewer')
+        expect(mountPage().text()).toContain('Belum ada catatan penilai')
     })
 })

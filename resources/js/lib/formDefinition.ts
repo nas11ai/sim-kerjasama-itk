@@ -50,31 +50,31 @@ export function toEditableFields(fields: FormFieldEditData[]): EditableField[] {
 export function formPublishImpactText(impact: FormPublishImpact): string {
     const sentences = [
         impact.newRequired > 0
-            ? `${impact.newRequired} field baru wajib, berlaku untuk pengajuan yang dibuat sesudah ini.`
+            ? `${impact.newRequired} isian baru wajib, berlaku untuk pengajuan yang dibuat sesudah ini.`
             : null,
         impact.draftOwners > 0
             ? `${impact.draftOwners} peneliti dengan draf berjalan tidak terpengaruh.`
             : null,
         ...impact.relabelled.map(
             (row) =>
-                `Label "${row.label}" diubah pada field yang sudah dijawab ${row.answered} pengajuan.`
+                `Label "${row.label}" diubah pada isian yang sudah dijawab ${row.answered} pengajuan.`
         ),
         impact.removed > 0
-            ? `${impact.removed} field dihapus, jawaban lamanya tetap tersimpan.`
+            ? `${impact.removed} isian dihapus, jawaban lamanya tetap tersimpan.`
             : null,
     ].filter((sentence): sentence is string => sentence !== null)
-    return sentences.length === 0 ? 'Terbitkan perubahan Form ini?' : sentences.join(' ')
+    return sentences.length === 0 ? 'Terbitkan perubahan Formulir ini?' : sentences.join(' ')
 }
 
 // BR-FE-34 — banner editor Form selama ada draf, atau selama Form belum pernah terbit.
 export const formDraftBannerText = (publishedAt: string | null) =>
     publishedAt === null
-        ? 'Draf belum diterbitkan. Form ini belum bisa dipakai tahap.'
-        : 'Draf belum diterbitkan. Peneliti masih melihat field terbitan terakhir.'
+        ? 'Draf belum diterbitkan. Formulir ini belum bisa dipakai tahap.'
+        : 'Draf belum diterbitkan. Peneliti masih melihat isian terbitan terakhir.'
 
 // G3-W9 (spec §4.6) — label field atau opsi terjawab yang berbeda dari terbitan: peringatan, bukan blokir.
 export const RELABEL_WARNING =
-    'Hanya untuk memperbaiki ketikan. Kalau pertanyaannya berbeda, tambahkan field baru, jawaban lama tetap tercatat di field lama.'
+    'Hanya untuk memperbaiki ketikan. Kalau pertanyaannya berbeda, tambahkan isian baru, jawaban lama tetap tercatat di isian lama.'
 
 export function relabelsAnsweredField(
     field: EditableField,

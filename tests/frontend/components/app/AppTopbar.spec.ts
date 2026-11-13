@@ -54,7 +54,7 @@ describe('AppTopbar', () => {
         mountTopbar()
         const button = wrapper
             .findAll('button')
-            .find((b) => b.text().includes('Cari halaman, pengajuan, user...'))
+            .find((b) => b.text().includes('Cari halaman, pengajuan, pengguna...'))
 
         expect(palette().props('open')).toBe(false)
         await button?.trigger('click')

@@ -41,7 +41,7 @@ const processing = ref(false)
 const refusals = ref<string[]>([])
 
 const confirmText = (row: CohortEvaluationVersion) =>
-    `Terapkan ${row.latestLabel} ke angkatan ini? ${row.responseCount} penilaian akan dibuka ulang dan reviewer-nya diberi tahu.`
+    `Terapkan ${row.latestLabel} ke angkatan ini? ${row.responseCount} penilaian akan dibuka ulang dan penilainya diberi tahu.`
 
 const apply = () => {
     const pinId = target.value?.pinId
@@ -152,7 +152,7 @@ const apply = () => {
         @confirm="apply"
     >
         <AppBanner v-if="target !== null && target.pastDeadline.length > 0" tone="warning">
-            {{ target.pastDeadline.length }} pengajuan sudah lewat Batas Evaluasi. Reviewer-nya baru
+            {{ target.pastDeadline.length }} pengajuan sudah lewat Batas Evaluasi. Penilainya baru
             bisa mengisi ulang setelah diberi perpanjangan di halaman pengajuan:
             <PastDeadlineLinks :submissions="target.pastDeadline" />
         </AppBanner>

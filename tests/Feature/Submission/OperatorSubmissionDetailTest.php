@@ -60,7 +60,7 @@ function sentFor(string $status, ?FormPhaseDetail $detail = null): FormSubmissio
     ]);
 }
 
-function seatReviewer(FormSubmission $submission, string $status = 'active', string $name = 'Reviewer Uji'): SubmissionReviewer
+function seatReviewer(FormSubmission $submission, string $status = 'active', string $name = 'Penilai Uji'): SubmissionReviewer
 {
     $user = User::factory()->create(['name' => $name]);
 
@@ -162,7 +162,7 @@ it('[REV-OUTCOME-12] putaran berjalan menahan Setujui dan Tolak di halaman kelol
             ->where('operatorCan.approve', false)
             ->where('operatorCan.reject', false)
             ->where('decisionReadiness.ready', false)
-            ->where('decisionReadiness.blockers', ['1 dari 1 reviewer belum menyelesaikan putaran.'])
+            ->where('decisionReadiness.blockers', ['1 dari 1 penilai belum menyelesaikan putaran.'])
             ->where('decisionReadiness.round.kind', 'assessment')
             ->where('decisionReadiness.round.finished', 0)
             ->where('decisionReadiness.round.total', 1));
@@ -218,20 +218,20 @@ it('[REV-OUTCOME-10] fase butuh review tanpa reviewer', function () {
             ->where('activeReviewerCount', 0)
             ->where('submission.status.key', 'submitted')
             ->where('decisionReadiness.ready', false)
-            ->where('decisionReadiness.blockers', ['Belum ada reviewer.']));
+            ->where('decisionReadiness.blockers', ['Belum ada penilai.']));
 });
 
 it('[REV-REASSIGN-01] reviewer yang digantikan tetap terdaftar', function () {
     $submission = sentFor(UnderReview::class);
-    seatReviewer($submission, 'replaced', 'Reviewer Lama');
-    seatReviewer($submission, 'active', 'Reviewer Pengganti');
+    seatReviewer($submission, 'replaced', 'Penilai Lama');
+    seatReviewer($submission, 'active', 'Penilai Pengganti');
 
     showOperatorPage(detailOperator(), $submission)
         ->assertInertia(fn (Assert $page) => $page
             ->has('reviewers', 2)
-            ->where('reviewers.0.name', 'Reviewer Pengganti')
+            ->where('reviewers.0.name', 'Penilai Pengganti')
             ->where('reviewers.0.replaced', false)
-            ->where('reviewers.1.name', 'Reviewer Lama')
+            ->where('reviewers.1.name', 'Penilai Lama')
             ->where('reviewers.1.replaced', true)
             ->where('reviewers.1.evaluationLabel', 'Selesai')
             ->where('activeReviewerCount', 1));
@@ -239,14 +239,14 @@ it('[REV-REASSIGN-01] reviewer yang digantikan tetap terdaftar', function () {
 
 it('[REV-REASSIGN-02] evaluasi reviewer yang digantikan tetap terbaca', function () {
     $submission = sentFor(UnderReview::class);
-    submittedSheet(seatReviewer($submission, 'replaced', 'Reviewer Lama'));
-    submittedSheet(seatReviewer($submission, 'active', 'Reviewer Pengganti'));
+    submittedSheet(seatReviewer($submission, 'replaced', 'Penilai Lama'));
+    submittedSheet(seatReviewer($submission, 'active', 'Penilai Pengganti'));
 
     showOperatorPage(detailOperator(), $submission)
         ->assertInertia(fn (Assert $page) => $page
             ->has('evaluationSheets', 2)
             ->where('evaluationSheets', fn ($sheets) => collect($sheets)->contains(
-                fn ($sheet) => $sheet['reviewer'] === 'Reviewer Lama' && $sheet['replaced'] === true,
+                fn ($sheet) => $sheet['reviewer'] === 'Penilai Lama' && $sheet['replaced'] === true,
             )));
 });
 
@@ -273,25 +273,25 @@ it('operatorCan mengikuti reviewers.assign', function () {
 it('target perpanjangan menyebut fase dan reviewer yang evaluasinya lewat tenggat', function () {
     $detail = FormPhaseDetail::factory()->create();
     $submission = sentFor(UnderReview::class, $detail);
-    $late = seatReviewer($submission, 'active', 'Reviewer Telat');
+    $late = seatReviewer($submission, 'active', 'Penilai Telat');
     $form = evaluationFormOn($detail, [], title: 'Substansi');
     ReviewerFormAssignment::create([
         'submission_reviewer_id' => $late->id, 'review_evaluation_form_id' => $form->id,
         'is_required' => true, 'assigned_at' => now()->subWeek(), 'due_date' => now()->subDay(), 'is_active' => true,
     ]);
-    seatReviewer($submission, 'active', 'Reviewer Tepat');
+    seatReviewer($submission, 'active', 'Penilai Tepat');
     $detail->load('formPhase');
 
     showOperatorPage(detailOperator(), $submission)
         ->assertInertia(fn (Assert $page) => $page
             ->where('overrideTarget.phaseLabel', $detail->formPhase->title.' · '.stepDate($detail)->label())
-            ->where('overrideTarget.affectedReviewers', ['Reviewer Telat']));
+            ->where('overrideTarget.affectedReviewers', ['Penilai Telat']));
 });
 
 it('[FE-WINDOW-07] reviewer terdampak hanya untuk override langkah pengajuan ini, bukan fase lain', function () {
     $detail = FormPhaseDetail::factory()->create();
     $submission = sentFor(UnderReview::class, $detail);
-    $late = seatReviewer($submission, 'active', 'Reviewer Telat');
+    $late = seatReviewer($submission, 'active', 'Penilai Telat');
     $form = evaluationFormOn($detail, [], title: 'Substansi');
     ReviewerFormAssignment::create([
         'submission_reviewer_id' => $late->id, 'review_evaluation_form_id' => $form->id,
@@ -300,7 +300,7 @@ it('[FE-WINDOW-07] reviewer terdampak hanya untuk override langkah pengajuan ini
     $monev = FormPhaseDetail::factory()->create(['form_phase_id' => $detail->form_phase_id, 'deadline_cycle' => 1]);
 
     expect(OperatorSubmissionDetail::overrideTargetFor($submission, $monev)->affectedReviewers)->toBe([])
-        ->and(OperatorSubmissionDetail::overrideTargetFor($submission, $detail)->affectedReviewers)->toBe(['Reviewer Telat']);
+        ->and(OperatorSubmissionDetail::overrideTargetFor($submission, $detail)->affectedReviewers)->toBe(['Penilai Telat']);
 });
 
 // ---------- W144: tab Luaran ----------

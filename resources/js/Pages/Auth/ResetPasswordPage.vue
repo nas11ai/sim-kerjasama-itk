@@ -26,18 +26,18 @@ const submit = () =>
 </script>
 
 <template>
-    <Head title="Reset Password" />
+    <Head title="Atur Ulang Kata Sandi" />
     <AuthLayout>
-        <AuthHeading title="Reset Password">
-            Buat password baru untuk akun <strong>{{ email ?? '-' }}</strong>
+        <AuthHeading title="Atur Ulang Kata Sandi">
+            Buat kata sandi baru untuk akun <strong>{{ email ?? '-' }}</strong>
         </AuthHeading>
 
         <form class="space-y-4" @submit.prevent="submit">
             <PasswordPairFields
                 v-model:password="form.password"
                 v-model:confirmation="form.password_confirmation"
-                label="Password Baru"
-                confirmation-label="Konfirmasi Password Baru"
+                label="Kata Sandi Baru"
+                confirmation-label="Konfirmasi Kata Sandi Baru"
                 hint="Minimal 8 karakter"
                 :error="form.errors.password"
             />
@@ -47,12 +47,12 @@ const submit = () =>
 
             <Button type="submit" class="w-full" :disabled="form.processing">
                 <Check />
-                Simpan Password Baru
+                Simpan Kata Sandi Baru
             </Button>
         </form>
 
         <p class="mt-6 text-center text-sm">
-            <Link :href="route('login')" class="underline">Kembali ke Login</Link>
+            <Link :href="route('login')" class="underline">Kembali ke halaman Masuk</Link>
         </p>
     </AuthLayout>
 </template>

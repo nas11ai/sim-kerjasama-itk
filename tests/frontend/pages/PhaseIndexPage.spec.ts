@@ -51,7 +51,7 @@ const phaseCard = (overrides: Partial<PhaseCardData> = {}): PhaseCardData => ({
     submissionCount: 0,
     linkablePeriods: [{ value: '9', label: '2026 Gelombang 2' }],
     deadlineGaps: [],
-    submissionFormTitle: 'Form Proposal Penelitian',
+    submissionFormTitle: 'Formulir Proposal Penelitian',
     versionLabel: 'Versi 1',
     hasDraft: false,
     ...overrides,
@@ -70,7 +70,7 @@ const props = (overrides: Partial<PhaseIndexPageProps> = {}): PhaseIndexPageProp
             detailCount: 1,
             periodNames: [],
             submissionCount: 4,
-            submissionFormTitle: 'Form Pengmas',
+            submissionFormTitle: 'Formulir Pengmas',
         }),
     ],
     ...overrides,
@@ -112,7 +112,7 @@ describe('FormEngine/PhaseIndexPage', () => {
     it('judul, subjudul, dan aksi header menaut ke layar buat', () => {
         const wrapper = mountPage(props())
 
-        expect(wrapper.find('h1').text()).toBe('Fase')
+        expect(wrapper.find('h1').text()).toBe('Tahap')
         expect(wrapper.text()).toContain('Pustaka tahap yang bisa dipakai banyak periode.')
         expect(wrapper.find('a[href="/admin.phases.create"]').text()).toContain('Buat Tahap Baru')
     })
@@ -121,15 +121,15 @@ describe('FormEngine/PhaseIndexPage', () => {
         const wrapper = mountPage(props())
         const cards = wrapper.findAll('article')
 
-        expect(cards[0].text()).toContain('Form pengajuan: Form Proposal Penelitian')
-        expect(cards[1].text()).toContain('Form pengajuan: Form Pengmas')
+        expect(cards[0].text()).toContain('Formulir pengajuan: Formulir Proposal Penelitian')
+        expect(cards[1].text()).toContain('Formulir pengajuan: Formulir Pengmas')
         expect(wrapper.text()).toContain('2 tahapan · Periode: Penelitian DIPA 2026')
         expect(wrapper.text()).toContain('1 tahapan · Belum terhubung')
         expect(statusBadge(wrapper, 0)).toBeUndefined()
         expect(statusBadge(wrapper, 1)).toBeDefined()
         expect(cards[1].text()).toContain('Aktifkan')
         expect(cards[0].text()).toContain('Hubungkan ke Periode')
-        expect(wrapper.find('a[href="/admin.phases.edit/1"]').text()).toContain('Edit')
+        expect(wrapper.find('a[href="/admin.phases.edit/1"]').text()).toContain('Ubah')
     })
 
     // BR-FE-33 — tahap tanpa versi belum bisa dipakai periode.
@@ -172,7 +172,7 @@ describe('FormEngine/PhaseIndexPage', () => {
             props({ filterForm: { id: 7, title: 'Laporan Monev', isActive: true } })
         )
 
-        expect(wrapper.find('a[href="/admin.phases.edit/1/7"]').text()).toContain('Edit')
+        expect(wrapper.find('a[href="/admin.phases.edit/1/7"]').text()).toContain('Ubah')
     })
 
     it('tapis Form: Buat Tahap Baru membawa Form itu sebagai akses bawaan', () => {
@@ -222,7 +222,7 @@ describe('FormEngine/PhaseIndexPage', () => {
 
         expect(document.body.textContent).toContain('Hapus tahap?')
         expect(document.body.textContent).toContain(
-            'Pengajuan Proposal beserta 2 detail dan form evaluasinya dihapus permanen.'
+            'Pengajuan Proposal beserta 2 detail dan formulir evaluasinya dihapus permanen.'
         )
         bodyButton('Hapus Tahap')?.click()
         await flushPromises()

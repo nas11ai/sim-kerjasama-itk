@@ -55,7 +55,8 @@ const tabs = [
 
         <!-- BR-FE-08 — peneliti melihat perpanjangan, alasannya hanya untuk Operator/Admin -->
         <AppBanner v-if="activeOverride" tone="info" class="mb-4">
-            Akses fase ini diperpanjang Operator sampai {{ formatDate(activeOverride.expires_at) }}.
+            Akses tahap ini diperpanjang Operator sampai
+            {{ formatDate(activeOverride.expires_at) }}.
         </AppBanner>
 
         <DecisionSection v-if="decision" :decision="decision" class="mb-6" />

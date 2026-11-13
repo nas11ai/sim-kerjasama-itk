@@ -31,7 +31,7 @@ class FollowUpLists implements ChangesNoState
 
     /** @var array<string, array{class-string<SubmissionStatus>, string, string}> kunci → state, judul, hint */
     private const LISTS = [
-        'awaitingReviewer' => [Submitted::class, 'Menunggu Penugasan Penilai', 'Tugaskan reviewer dari detail pengajuan.'],
+        'awaitingReviewer' => [Submitted::class, 'Menunggu Penugasan Penilai', 'Tugaskan penilai dari detail pengajuan.'],
         'awaitingRevision' => [NeedsRevision::class, 'Menunggu Perbaikan Peneliti', 'Peneliti sedang memperbaiki; perpanjang batas bila diminta.'],
         self::WITHOUT_OUTPUT => [Approved::class, 'Disetujui tanpa Luaran', 'Ingatkan tim untuk mendaftarkan luaran.'],
     ];

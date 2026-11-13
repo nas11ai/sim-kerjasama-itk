@@ -65,7 +65,7 @@ const limits: { key: TextKey; id: string; label: string }[] = [
             </FormField>
             <FormField
                 id="scheme-submission-type"
-                label="Tipe Submission"
+                label="Tipe Pengajuan"
                 :error="errors.submission_type_id"
             >
                 <OptionSelect

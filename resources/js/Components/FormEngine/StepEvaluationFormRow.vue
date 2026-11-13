@@ -20,13 +20,13 @@ const toggle = (key: 'isRequired' | 'isActive') =>
         <div class="min-w-0 space-y-1">
             <div class="flex flex-wrap items-center gap-2">
                 <p class="text-sm font-medium">
-                    {{ step.title || 'Form evaluasi sudah dihapus dari pustaka' }}
+                    {{ step.title || 'Formulir evaluasi sudah dihapus dari pustaka' }}
                 </p>
                 <Badge v-if="step.versionLabel" variant="outline">{{ step.versionLabel }}</Badge>
                 <Badge v-if="!step.isActive" variant="outline">Nonaktif</Badge>
             </div>
             <p class="text-xs text-muted-foreground">
-                {{ step.isRequired ? 'Wajib diisi reviewer' : 'Tidak wajib' }}
+                {{ step.isRequired ? 'Wajib diisi penilai' : 'Tidak wajib' }}
             </p>
         </div>
         <div class="flex flex-wrap justify-end gap-2">

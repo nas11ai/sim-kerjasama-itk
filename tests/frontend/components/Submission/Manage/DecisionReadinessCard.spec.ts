@@ -20,17 +20,17 @@ describe('DecisionReadinessCard', () => {
                 readiness: readiness({
                     openThreadCount: 1,
                     blockers: [
-                        '2 dari 3 reviewer belum menyelesaikan putaran.',
-                        '1 catatan reviewer masih terbuka.',
+                        '2 dari 3 penilai belum menyelesaikan putaran.',
+                        '1 catatan penilai masih terbuka.',
                     ],
                 }),
             },
         }).text()
 
-        expect(text).toContain('Putaran 2: 1 dari 3 reviewer selesai')
+        expect(text).toContain('Putaran 2: 1 dari 3 penilai selesai')
         expect(text).toContain('1 catatan terbuka')
-        expect(text).toContain('2 dari 3 reviewer belum menyelesaikan putaran.')
-        expect(text).toContain('1 catatan reviewer masih terbuka.')
+        expect(text).toContain('2 dari 3 penilai belum menyelesaikan putaran.')
+        expect(text).toContain('1 catatan penilai masih terbuka.')
     })
 
     it('pengajuan siap tanpa catatan menyatakan siap disetujui atau ditolak', () => {
@@ -46,6 +46,6 @@ describe('DecisionReadinessCard', () => {
             props: { readiness: readiness({ ready: true, approvable: true, round: null }) },
         }).text()
 
-        expect(text).toContain('Tanpa putaran review.')
+        expect(text).toContain('Tanpa putaran penilaian.')
     })
 })

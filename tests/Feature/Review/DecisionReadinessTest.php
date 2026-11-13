@@ -64,8 +64,8 @@ it('kemajuan putaran dan penahan disebut berurutan', function () {
         ->and($readiness->approvable)->toBeFalse()
         ->and($readiness->openThreadCount)->toBe(1)
         ->and($readiness->blockers)->toBe([
-            '1 dari 2 reviewer belum menyelesaikan putaran.',
-            '1 catatan reviewer masih terbuka.',
+            '1 dari 2 penilai belum menyelesaikan putaran.',
+            '1 catatan penilai masih terbuka.',
         ])
         ->and($readiness->round?->kind)->toBe('assessment')
         ->and($readiness->round?->number)->toBe(1)

@@ -6,12 +6,12 @@ import type { ReviewerScore, ReviewerScores } from '@/types/submission-page'
 
 const held: ReviewerScores = {
     visible: false,
-    reason: 'Hasil review terbuka setelah keputusan akhir atas pengajuan ini diambil.',
+    reason: 'Hasil penilaian terbuka setelah keputusan akhir atas pengajuan ini diambil.',
     scores: [],
 }
 
 const first: ReviewerScore = {
-    reviewer: 'Reviewer 1',
+    reviewer: 'Penilai 1',
     reviewer_type: 'internal',
     submitted_at: '2026-03-01T08:00:00',
     replaced: false,
@@ -26,7 +26,7 @@ const opened: ReviewerScores = {
     scores: [
         first,
         {
-            reviewer: 'Reviewer 2',
+            reviewer: 'Penilai 2',
             reviewer_type: 'external',
             submitted_at: '2026-03-02T08:00:00',
             replaced: true,
@@ -42,23 +42,23 @@ describe('ScoreSection', () => {
         const text = mount(ScoreSection, { props: { scores: held } }).text()
 
         expect(text).toContain(held.reason)
-        expect(text).not.toContain('Hasil Evaluasi Reviewer')
+        expect(text).not.toContain('Hasil Evaluasi Penilai')
     })
 
     it('[REV-VIS-05] menampilkan skor per reviewer', () => {
         const text = mount(ScoreSection, { props: { scores: opened } }).text()
 
-        expect(text).toContain('Hasil Evaluasi Reviewer')
-        expect(text).toContain('Reviewer 1')
+        expect(text).toContain('Hasil Evaluasi Penilai')
+        expect(text).toContain('Penilai 1')
         expect(text).toContain('62')
-        expect(text).toContain('Reviewer 2')
+        expect(text).toContain('Penilai 2')
         expect(text).toContain('58')
     })
 
     it('menyatakan belum ada evaluasi bila skor terbuka tapi kosong', () => {
         const text = mount(ScoreSection, { props: { scores: { ...opened, scores: [] } } }).text()
 
-        expect(text).toContain('Belum ada evaluasi yang disubmit.')
+        expect(text).toContain('Belum ada evaluasi yang dikirim.')
     })
 
     it('[REV-REASSIGN-02] lembar reviewer yang digantikan berlabel', () => {

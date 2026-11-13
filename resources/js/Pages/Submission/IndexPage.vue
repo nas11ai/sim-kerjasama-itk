@@ -4,21 +4,36 @@ import { Head, Link } from '@inertiajs/vue3'
 import { Plus } from 'lucide-vue-next'
 import { computed } from 'vue'
 
-import FilterSelect from '@/Components/app/FilterSelect.vue'
+import FilterToolbar from '@/Components/app/FilterToolbar.vue'
 import PageHeader from '@/Components/app/PageHeader.vue'
 import PaginationBar from '@/Components/app/PaginationBar.vue'
 import SubmissionTable from '@/Components/Submission/SubmissionTable.vue'
 import { Button } from '@/Components/ui/button'
-import { Input } from '@/Components/ui/input'
 import { useFilters } from '@/composables/useFilters'
 import AppLayout from '@/Layouts/AppLayout.vue'
-import type { SubmissionIndexPageProps } from '@/types/submission-page'
+import type {
+    FilterSelectSpec,
+    SubmissionIndexFilters,
+    SubmissionIndexPageProps,
+} from '@/types/submission-page'
 
 const props = defineProps<SubmissionIndexPageProps>()
 
 const { filters } = useFilters('user.submissions.index', props.filters)
 
 const filtered = computed(() => Object.values(props.filters).some((value) => value !== ''))
+
+const selects = computed(
+    (): FilterSelectSpec<Exclude<keyof SubmissionIndexFilters, 'search'>>[] => [
+        { key: 'status', label: 'Status', allLabel: 'Semua status', options: props.statusOptions },
+        {
+            key: 'period',
+            label: 'Periode',
+            allLabel: 'Semua periode',
+            options: props.periodOptions,
+        },
+    ]
+)
 </script>
 
 <template>
@@ -36,27 +51,14 @@ const filtered = computed(() => Object.values(props.filters).some((value) => val
                 </Button>
             </template>
         </PageHeader>
-        <div class="mb-4 flex flex-col gap-2 sm:flex-row">
-            <Input
-                v-model="filters.search"
-                type="search"
-                placeholder="Cari judul pengajuan..."
-                aria-label="Cari judul pengajuan"
-                class="sm:max-w-xs"
-            />
-            <FilterSelect
-                v-model="filters.status"
-                :options="statusOptions"
-                all-label="Semua status"
-                label="Status"
-            />
-            <FilterSelect
-                v-model="filters.period"
-                :options="periodOptions"
-                all-label="Semua periode"
-                label="Periode"
-            />
-        </div>
+        <FilterToolbar
+            v-model:search="filters.search"
+            :selects="selects"
+            :values="filters"
+            search-placeholder="Cari judul pengajuan..."
+            search-label="Cari judul pengajuan"
+            @select="(key, value) => (filters[key] = value)"
+        />
         <SubmissionTable :rows="submissions.data" :filtered="filtered" />
         <PaginationBar :page="submissions" />
     </AppLayout>

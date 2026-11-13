@@ -29,7 +29,7 @@ const invitations = computed(() => props.unit.census.pendingInvitations)
 const deactivateText = computed(() =>
     [
         `Unit ini akan dinonaktifkan, bukan dihapus. ${props.unit.census.subtreeProfiles} profil dan seluruh riwayat pengajuannya tetap terbaca.`,
-        'Unit beserta turunannya berhenti ditawarkan dan memutus rantai akses Form bagi unit di bawahnya.',
+        'Unit beserta turunannya berhenti ditawarkan dan memutus rantai akses Formulir bagi unit di bawahnya.',
         invitations.value > 0 ? `${invitations.value} undangan registrasi ikut tidak berlaku.` : '',
     ]
         .filter((part) => part !== '')
@@ -46,7 +46,7 @@ const deleteText = computed(() =>
 const reactivateText = computed(() => {
     const revived = props.unit.revivableInvitations
     const base =
-        'Unit ini kembali ditawarkan dan rantai akses Form-nya tersambung lagi. Unit turunannya tetap nonaktif; aktifkan satu per satu bila perlu.'
+        'Unit ini kembali ditawarkan dan rantai akses Formulirnya tersambung lagi. Unit turunannya tetap nonaktif; aktifkan satu per satu bila perlu.'
     return revived > 0
         ? `${base} ${revived} undangan registrasi yang belum kedaluwarsa berlaku lagi.`
         : base

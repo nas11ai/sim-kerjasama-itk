@@ -22,7 +22,7 @@ const action = computed(() => {
         return { label: 'Mulai Evaluasi', href: route('reviewer.assignments.evaluation', id) }
     }
 
-    const label = props.card.state === 'discussion_open' ? 'Buka Diskusi' : 'Lihat Summary'
+    const label = props.card.state === 'discussion_open' ? 'Buka Diskusi' : 'Lihat Ringkasan'
     return { label, href: route('reviewer.assignments.summary', id) }
 })
 </script>
@@ -34,7 +34,7 @@ const action = computed(() => {
                 <p class="font-semibold">{{ card.title }}</p>
                 <p class="text-sm text-muted-foreground">{{ subtitle }}</p>
                 <p v-if="card.dueDate" class="mt-0.5 text-xs text-muted-foreground">
-                    Deadline evaluasi: {{ formatDate(card.dueDate) }}
+                    Tenggat evaluasi: {{ formatDate(card.dueDate) }}
                 </p>
             </div>
             <div class="flex items-center gap-2">

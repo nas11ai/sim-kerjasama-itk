@@ -14,7 +14,7 @@ final class ManagedReviewerData extends Data
     public const EVALUATION_LABELS = [
         'pending' => 'Evaluasi berjalan',
         'completed' => 'Selesai',
-        'not_required' => 'Tanpa form evaluasi',
+        'not_required' => 'Tanpa formulir evaluasi',
     ];
 
     public function __construct(
@@ -33,7 +33,7 @@ final class ManagedReviewerData extends Data
 
         return new self(
             reviewerId: $seat->reviewer_id,
-            name: $user->name ?? 'Reviewer',
+            name: $user->name ?? 'Penilai',
             nidn: $user?->userProfile?->nidn,
             type: $seat->reviewer->reviewer_type,
             replaced: $seat->status === 'replaced',

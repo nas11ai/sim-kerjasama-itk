@@ -31,8 +31,8 @@ const finish = () => {
 
 <template>
     <SectionCard
-        title="Putaran Review"
-        description="Hasil review dihitung setelah semua peserta putaran menekan Selesai."
+        title="Putaran Penilaian"
+        description="Hasil penilaian dihitung setelah semua peserta putaran menekan Selesai."
     >
         <template v-if="round !== null">
             <p class="text-sm">{{ progress }}</p>
@@ -50,12 +50,12 @@ const finish = () => {
             <AppBanner v-else-if="round.reason" tone="info">{{ round.reason }}</AppBanner>
         </template>
         <p v-else class="text-sm text-muted-foreground">
-            Tidak ada putaran review yang sedang berjalan.
+            Tidak ada putaran penilaian yang sedang berjalan.
         </p>
         <!-- BR-REV-07, BR-REV-14 — tidak ada kombinasi skor yang menolak otomatis -->
         <AppBanner tone="lock">
-            Penolakan tidak tersedia di layar reviewer. Hanya Operator yang dapat menolak, lewat
-            aksi tertulis.
+            Penolakan tidak tersedia di layar penilai. Hanya Operator yang dapat menolak, lewat aksi
+            tertulis.
         </AppBanner>
     </SectionCard>
     <ConfirmDialog

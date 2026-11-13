@@ -33,7 +33,7 @@ function formEditActor(string $role = 'admin'): User
 function formEditPayload(int $typeId, array $overrides = []): array
 {
     return [
-        'title' => 'Form Proposal Penelitian',
+        'title' => 'Formulir Proposal Penelitian',
         'description' => null,
         'form_type_id' => $typeId,
         'is_active' => true,
@@ -157,7 +157,7 @@ it('store mengarah ke halaman sunting form baru', function () {
     $this->actingAs(formEditActor())
         ->post(route('admin.forms.store'), formEditPayload($this->regularType->id))
         ->assertRedirect(route('admin.forms.edit', Form::query()->sole()))
-        ->assertSessionHas('success', 'Form dibuat. Susun field-nya lalu terbitkan.');
+        ->assertSessionHas('success', 'Formulir dibuat. Susun isiannya lalu terbitkan.');
 });
 
 it('update tanpa continue tetap di editor', function () {
@@ -168,7 +168,7 @@ it('update tanpa continue tetap di editor', function () {
         ->from(route('admin.forms.edit', $form))
         ->put(route('admin.forms.update', $form), formEditPayload($this->regularType->id))
         ->assertRedirect(route('admin.forms.edit', $form))
-        ->assertSessionHas('success', 'Form diperbarui.');
+        ->assertSessionHas('success', 'Formulir diperbarui.');
 
     // W86 — "Lanjut" menyimpan lalu membuka tab Access Control.
     $this->actingAs($actor)

@@ -80,8 +80,8 @@ const props = (value: SchemeEditData | null): SchemeFormPageProps => ({
             { value: 'hki', label: 'HKI' },
         ],
         integerRules: [
-            { value: 'min_reviewer_count', label: 'Minimal Reviewer' },
-            { value: 'max_reviewer_workload', label: 'Beban Maks. Reviewer' },
+            { value: 'min_reviewer_count', label: 'Minimal Penilai' },
+            { value: 'max_reviewer_workload', label: 'Beban Maks. Penilai' },
             { value: 'max_student_members', label: 'Anggota Mahasiswa Maks.' },
         ],
     },
@@ -117,7 +117,7 @@ describe('Scheme/FormPage', () => {
     it('judul mengikuti mode buat dan sunting', () => {
         expect(mountPage(null).text()).toContain('Buat Skema Baru')
         const edit = mountPage(scheme()).text()
-        expect(edit).toContain('Edit Skema: Penelitian DIPA')
+        expect(edit).toContain('Ubah Skema: Penelitian DIPA')
         expect(edit).toContain(
             'Atur ketentuan skema: batasan utama, aturan tambahan, dan TKT yang diizinkan.'
         )

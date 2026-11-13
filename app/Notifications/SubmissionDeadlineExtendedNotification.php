@@ -29,7 +29,7 @@ class SubmissionDeadlineExtendedNotification extends Notification
         return (new MailMessage)
             ->subject('Batas waktu pengajuan diperpanjang')
             ->line('Batas waktu pada periode "'.$this->period->name.'" diperpanjang.')
-            ->line('Draft Anda masih dapat dilanjutkan.');
+            ->line('Draf Anda masih dapat dilanjutkan.');
     }
 
     /** @return array<string, int|string|null> */
@@ -38,7 +38,7 @@ class SubmissionDeadlineExtendedNotification extends Notification
         return (new NotificationPayload(
             type: 'submission_deadline_extended',
             title: 'Batas waktu diperpanjang',
-            message: 'Batas waktu pada periode "'.$this->period->name.'" diperpanjang. Draft Anda masih dapat dilanjutkan.',
+            message: 'Batas waktu pada periode "'.$this->period->name.'" diperpanjang. Draf Anda masih dapat dilanjutkan.',
             context: ['submission_period_id' => $this->period->id],
         ))->toArray();
     }

@@ -58,7 +58,7 @@ class OutputRows implements ChangesNoState
         $parts = self::requiredValues($output, $type);
 
         if ($fileCount > 0) {
-            $parts[] = "{$fileCount} file lampiran";
+            $parts[] = "{$fileCount} berkas lampiran";
         }
 
         return new OutputRowData(

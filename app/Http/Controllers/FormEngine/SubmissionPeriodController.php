@@ -89,6 +89,6 @@ class SubmissionPeriodController extends Controller
 
         return back()->with('success', $notified > 0
             ? "Periode ditutup. {$notified} peneliti diberi tahu."
-            : 'Periode ditutup. Tidak ada draft berjalan.');
+            : 'Periode ditutup. Tidak ada draf berjalan.');
     }
 }

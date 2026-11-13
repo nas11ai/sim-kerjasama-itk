@@ -24,10 +24,10 @@ const summary = computed(() => [
     { label: 'Ketua', value: props.submission.leadName },
     { label: 'Status Saat Ini', value: props.submission.status.label },
     {
-        label: 'Putaran Review',
+        label: 'Putaran Penilaian',
         value:
             props.readiness.round === null
-                ? 'Tanpa putaran review.'
+                ? 'Tanpa putaran penilaian.'
                 : roundProgressLabel(props.readiness.round),
     },
 ])

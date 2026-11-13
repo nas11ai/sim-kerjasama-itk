@@ -16,7 +16,7 @@ const emit = defineEmits<{ deactivate: [] }>()
         @deactivate="emit('deactivate')"
     >
         <!-- BR-FE-20 -->
-        Tahap ini dirujuk {{ phase?.submissionCount ?? 0 }} pengajuan, termasuk draft dan yang sudah
+        Tahap ini dirujuk {{ phase?.submissionCount ?? 0 }} pengajuan, termasuk draf dan yang sudah
         selesai. Tahap yang pernah dipakai dinonaktifkan, bukan dihapus.
     </DeleteBlockedDialog>
 </template>

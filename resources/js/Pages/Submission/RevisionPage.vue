@@ -61,17 +61,17 @@ const resubmit = () => {
 
         <div class="grid gap-6 lg:grid-cols-2">
             <section class="flex min-w-0 flex-col gap-4">
-                <h2 class="text-lg font-semibold">Catatan Reviewer</h2>
+                <h2 class="text-lg font-semibold">Catatan Penilai</h2>
                 <ReviewThreadCard
                     v-for="thread in threads"
                     :key="thread.id"
                     :thread="thread"
                     :can-reply="can.discussReview"
                 />
-                <EmptyState v-if="threads.length === 0" title="Belum ada catatan reviewer" />
+                <EmptyState v-if="threads.length === 0" title="Belum ada catatan penilai" />
             </section>
             <section class="flex min-w-0 flex-col gap-4">
-                <h2 class="text-lg font-semibold">Edit Pengajuan</h2>
+                <h2 class="text-lg font-semibold">Ubah Pengajuan</h2>
                 <RevisionEditPanel
                     :submission-id="submission.id"
                     :missing-fields="missingFields"
@@ -83,7 +83,7 @@ const resubmit = () => {
         <ConfirmDialog
             v-model:open="confirming"
             title="Kirim ulang revisi?"
-            description="Pengajuan kembali ke antrean review dan tidak dapat diubah selama direview."
+            description="Pengajuan kembali ke antrean penilaian dan tidak dapat diubah selama dinilai."
             confirm-label="Kirim Ulang"
             :processing="sending"
             @confirm="resubmit"

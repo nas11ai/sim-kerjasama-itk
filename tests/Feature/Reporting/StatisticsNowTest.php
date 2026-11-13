@@ -57,7 +57,7 @@ it('tahap berjalan menghitung umur terlama sejak submit pertama', function () {
     expect($stages->keys()->all())->toBe(['submitted', 'under_review', 'needs_revision', 'resubmitted'])
         ->and($stages['submitted']->count)->toBe(2)
         ->and($stages['submitted']->oldestAgeDays)->toBe(12)
-        ->and($stages['submitted']->label)->toBe('Menunggu Review')
+        ->and($stages['submitted']->label)->toBe('Menunggu Penilaian')
         ->and($stages['submitted']->href)->toBe(route('admin.submissions.index', ['status' => 'submitted']))
         ->and($stages['under_review']->count)->toBe(0)
         ->and($stages['under_review']->oldestAgeDays)->toBeNull();
@@ -144,9 +144,9 @@ it('cakupan reviewer menghitung reviewer aktif per pengajuan berjalan', function
     nowSeat($approved, $reviewers[0]);
 
     expect(nowCounts(ReviewerCoverage::run(nowFilters())))->toBe([
-        'Tanpa reviewer' => 1,
-        '1 reviewer' => 1,
-        '2 reviewer' => 0,
-        '3+ reviewer' => 1,
+        'Tanpa penilai' => 1,
+        '1 penilai' => 1,
+        '2 penilai' => 0,
+        '3+ penilai' => 1,
     ]);
 });

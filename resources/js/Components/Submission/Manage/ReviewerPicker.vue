@@ -25,10 +25,10 @@ const typeLabel = (type: string) => (type === 'external' ? 'Eksternal' : 'Intern
         <Input
             v-model="search"
             type="search"
-            placeholder="Cari nama / NIDN reviewer..."
-            aria-label="Cari reviewer"
+            placeholder="Cari nama / NIDN penilai..."
+            aria-label="Cari penilai"
         />
-        <EmptyState v-if="candidates.length === 0" title="Tidak ada reviewer yang cocok." />
+        <EmptyState v-if="candidates.length === 0" title="Tidak ada penilai yang cocok." />
         <ul
             v-else
             class="flex max-h-72 flex-col gap-2 overflow-y-auto"
@@ -47,12 +47,12 @@ const typeLabel = (type: string) => (type === 'external' ? 'Eksternal' : 'Intern
                         <span class="block font-medium">{{ candidate.name }}</span>
                         <span class="block text-xs text-muted-foreground">
                             NIDN {{ candidate.nidn ?? '-' }} · {{ typeLabel(candidate.type) }} ·
-                            Workload: {{ candidate.activeLoad }} aktif
+                            Beban: {{ candidate.activeLoad }} aktif
                         </span>
                     </span>
                     <span class="flex shrink-0 items-center gap-2">
                         <Badge v-if="suggested?.includes(candidate.reviewerId)" variant="secondary">
-                            Reviewer pengajuan awal
+                            Penilai pengajuan awal
                         </Badge>
                         <Badge v-if="candidate.blockedReason" variant="outline">
                             {{ candidate.blockedReason }}

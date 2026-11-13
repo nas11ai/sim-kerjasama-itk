@@ -29,7 +29,7 @@ final class ReviewerRoundData extends Data
         $kind = $participant?->effectiveKind() ?? $round->kind;
         $finished = $participant?->finished_at !== null;
         $reason = match (true) {
-            $participant === null => 'Anda bukan peserta putaran review ini.',
+            $participant === null => 'Anda bukan peserta putaran penilaian ini.',
             $finished => 'Anda sudah menyelesaikan putaran ini.',
             $kind === ReviewRoundKind::Assessment && !$seat->hasSettledEvaluation() => 'Kirim lembar penilaian lebih dulu.',
             default => null,

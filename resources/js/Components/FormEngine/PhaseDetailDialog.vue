@@ -58,8 +58,8 @@ const stepKind = computed({
 const isOutput = computed(() => draft.value.deadlineType === 'output')
 const reviewLocked = computed(() => evaluated.value > 0 || isOutput.value)
 const reviewHint = computed(() => {
-    if (evaluated.value > 0) return `Detail ini punya ${evaluated.value} form evaluasi aktif.`
-    return isOutput.value ? 'Detail Upload Luaran tidak direview.' : undefined
+    if (evaluated.value > 0) return `Detail ini punya ${evaluated.value} formulir evaluasi aktif.`
+    return isOutput.value ? 'Detail Unggah Luaran tidak dinilai.' : undefined
 })
 
 const save = () => {
@@ -71,7 +71,7 @@ const save = () => {
 <template>
     <ActionDialog
         v-model:open="open"
-        :title="adding ? 'Tambah Langkah' : 'Edit Langkah'"
+        :title="adding ? 'Tambah Langkah' : 'Ubah Langkah'"
         submit-label="Simpan Langkah"
         @submit="save"
     >
@@ -118,7 +118,7 @@ const save = () => {
                     :disabled="reviewLocked"
                     :aria-describedby="reviewHint ? 'detail-review-hint' : undefined"
                 />
-                <Label for="detail-review" class="font-normal">Perlu Review</Label>
+                <Label for="detail-review" class="font-normal">Perlu Penilaian</Label>
             </div>
             <!-- W97 -->
             <p v-if="reviewHint" id="detail-review-hint" class="text-xs text-muted-foreground">

@@ -63,7 +63,7 @@ const send = () =>
 <template>
     <ActionDialog
         v-model:open="open"
-        :title="lockedUser ? 'Tunjuk sebagai Reviewer' : 'Tambah Reviewer'"
+        :title="lockedUser ? 'Tunjuk sebagai Penilai' : 'Tambah Penilai'"
         :description="chosenName ?? undefined"
         submit-label="Simpan"
         :processing="form.processing"
@@ -71,7 +71,7 @@ const send = () =>
         @submit="send"
     >
         <template v-if="!lockedUser">
-            <FormField id="appoint-search" label="Cari user" :error="form.errors.user_id">
+            <FormField id="appoint-search" label="Cari pengguna" :error="form.errors.user_id">
                 <Input
                     id="appoint-search"
                     v-model="search"
@@ -101,8 +101,8 @@ const send = () =>
             <template v-if="noMatch">
                 <EmptyState
                     :icon="CircleAlert"
-                    title="Tidak ada user dengan nama itu"
-                    description="Reviewer dipilih dari user yang sudah terdaftar. Untuk pakar dari luar ITK, terbitkan undangan registrasi lebih dulu."
+                    title="Tidak ada pengguna dengan nama itu"
+                    description="Penilai dipilih dari pengguna yang sudah terdaftar. Untuk pakar dari luar ITK, terbitkan undangan registrasi lebih dulu."
                 />
                 <Button v-if="canManageInvitations" as-child variant="outline">
                     <Link :href="route('admin.invitations.index')"
@@ -111,7 +111,7 @@ const send = () =>
                 </Button>
             </template>
             <AppBanner v-if="picked?.currentReviewer" tone="info">
-                {{ picked.name }} sudah menjadi reviewer. Menyimpan akan memperbarui tipe dan masa
+                {{ picked.name }} sudah menjadi penilai. Menyimpan akan memperbarui tipe dan masa
                 tugasnya, bukan menambah entri baru.
             </AppBanner>
         </template>

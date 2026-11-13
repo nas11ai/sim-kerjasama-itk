@@ -70,7 +70,7 @@ class SubmittedEvaluationSheets implements ChangesNoState
     private function score(SubmissionReviewer $assignment, ReviewFormResponse $response): array
     {
         return [
-            'reviewer' => $assignment->reviewer->user->name ?? 'Reviewer',
+            'reviewer' => $assignment->reviewer->user->name ?? 'Penilai',
             'reviewer_type' => $assignment->reviewer->reviewer_type,
             'submitted_at' => $response->submitted_at?->toDateTimeString(),
             'replaced' => $assignment->status === 'replaced',

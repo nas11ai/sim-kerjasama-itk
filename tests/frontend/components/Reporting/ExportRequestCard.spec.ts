@@ -32,7 +32,7 @@ import ExportRequestCard from '@/Components/Reporting/ExportRequestCard.vue'
 import type { ExportTypeOption } from '@/types/reporting'
 
 const types: ExportTypeOption[] = [
-    { value: 'submissions', label: 'Rekap Submission', filterKeys: ['year', 'scheme', 'status'] },
+    { value: 'submissions', label: 'Rekap Pengajuan', filterKeys: ['year', 'scheme', 'status'] },
     { value: 'audit-log', label: 'Log Audit', filterKeys: ['year'] },
 ]
 const route = (name: string) =>
@@ -61,12 +61,12 @@ const labels = (wrapper: ReturnType<typeof mountCard>) =>
 describe('ExportRequestCard', () => {
     it('field Skema dan Status hanya untuk jenis yang menerimanya', () => {
         expect(labels(mountCard(null))).toEqual(
-            expect.arrayContaining(['Jenis Export *', 'Skema', 'Status'])
+            expect.arrayContaining(['Jenis Ekspor *', 'Skema', 'Status'])
         )
 
         const audit = labels(mountCard('audit-log'))
 
-        expect(audit).toEqual(expect.arrayContaining(['Jenis Export *']))
+        expect(audit).toEqual(expect.arrayContaining(['Jenis Ekspor *']))
         expect(audit).not.toContain('Skema')
         expect(audit).not.toContain('Status')
     })

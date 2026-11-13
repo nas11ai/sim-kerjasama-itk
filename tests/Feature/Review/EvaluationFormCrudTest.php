@@ -91,7 +91,7 @@ it('refuses to publish a draft without fields, keeping the draft and the answers
     SaveEvaluationFormDraft::run($form, new EvaluationDraftInput([]), $this->admin);
 
     $this->actingAs($this->admin)->post(route('admin.evaluation-forms.publish', $form))
-        ->assertSessionHasErrors(['fields' => 'Form evaluasi butuh minimal satu field.']);
+        ->assertSessionHasErrors(['fields' => 'Formulir evaluasi butuh minimal satu isian.']);
 
     expect(ReviewFormFieldResponse::query()->whereKey($answer->id)->exists())->toBeTrue()
         ->and($form->versions()->count())->toBe(1)
@@ -149,7 +149,7 @@ it('deletes an unattached evaluation form with its versions and fields, audited'
 
     $this->actingAs($this->admin)->delete(route('admin.evaluation-forms.destroy', $form))
         ->assertRedirect(route('admin.evaluation-forms.index'))
-        ->assertSessionHas('success', 'Form evaluasi dihapus.');
+        ->assertSessionHas('success', 'Formulir evaluasi dihapus.');
 
     expect(ReviewEvaluationForm::query()->whereKey($form->id)->exists())->toBeFalse()
         ->and(ReviewFormField::query()->whereKey($field->id)->exists())->toBeFalse()

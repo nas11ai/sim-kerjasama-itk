@@ -63,7 +63,7 @@ final class ConflictOfInterestGuard
         }
 
         throw ValidationException::withMessages([
-            'user_id' => 'Orang ini sudah punya peran pada pengajuan tersebut, jadi tidak dapat ditugaskan sebagai reviewer maupun ditambahkan sebagai anggota.',
+            'user_id' => 'Orang ini sudah punya peran pada pengajuan tersebut, jadi tidak dapat ditugaskan sebagai penilai maupun ditambahkan sebagai anggota.',
         ]);
     }
 }

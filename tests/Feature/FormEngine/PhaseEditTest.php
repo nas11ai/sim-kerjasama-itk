@@ -118,7 +118,7 @@ it('wewenang: peneliti 403', function () {
 
 it('menampilkan semua detail tahap, termasuk langkah monev Form lain', function () {
     $first = phaseEditDetail($this->form);
-    $other = Form::factory()->create(['title' => 'Form Laporan Lain']);
+    $other = Form::factory()->create(['title' => 'Formulir Laporan Lain']);
     // BR-FE-28 — Form lain di tahap ini hanya sebagai Laporan Monev, bukan Pengajuan kedua.
     $second = phaseEditDetail($other, $first->formPhase, ['order' => 2, 'deadline_cycle' => 1]);
     FormSubmission::factory()->count(2)->create(['form_phase_detail_id' => $second->id]);
@@ -127,7 +127,7 @@ it('menampilkan semua detail tahap, termasuk langkah monev Form lain', function 
         ->get(route('admin.phases.edit', $first->formPhase))
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->has('phase.steps', 2)
-            ->where('phase.steps.1.formTitle', 'Form Laporan Lain')
+            ->where('phase.steps.1.formTitle', 'Formulir Laporan Lain')
             ->where('phase.steps.1.deadlineLabel', 'Laporan Monev I')
             ->where('accessOptions', fn ($options) => collect($options)->contains('formId', $other->id)));
 });
@@ -160,7 +160,7 @@ it('needs_review tidak bisa dimatikan selama ada form evaluasi aktif', function 
         route('admin.phases.draft.update', $detail->formPhase),
         phaseEditPayload([phaseEditRow($detail, ['needs_review' => false, 'evaluation_forms' => phaseEditAttachments($detail)])]),
     )->assertSessionHasErrors([
-        'phase_details.0.needs_review' => 'Detail ini punya 1 form evaluasi aktif, jadi tetap harus direview.',
+        'phase_details.0.needs_review' => 'Detail ini punya 1 formulir evaluasi aktif, jadi tetap harus dinilai.',
     ]);
 
     expect($detail->fresh()?->needs_review)->toBeTrue()

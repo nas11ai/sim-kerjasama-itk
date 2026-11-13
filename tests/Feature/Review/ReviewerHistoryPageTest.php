@@ -106,7 +106,7 @@ it('[MON-REVIEW-04] siklus monev berbeda tampil sebagai dua baris', function () 
 });
 
 it('riwayat reviewer lain tidak terdaftar', function () {
-    historyPageAssignment(historyPageReviewer(), 'Milik Reviewer Lain');
+    historyPageAssignment(historyPageReviewer(), 'Milik Penilai Lain');
 
     $this->actingAs($this->user)
         ->get(route('reviewer.history.index'))

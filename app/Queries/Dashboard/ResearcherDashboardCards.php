@@ -31,7 +31,7 @@ class ResearcherDashboardCards implements ChangesNoState
         $underReview = $this->mine($user)->whereState('status', UnderReview::class)->count();
 
         return new DashboardSectionData('researcher', 'Pengajuan Saya', [
-            new KpiCardData('active', 'Submission Aktif', strval($this->mine($user)->active()->count()), "{$underReview} dalam review", $list),
+            new KpiCardData('active', 'Pengajuan Aktif', strval($this->mine($user)->active()->count()), "{$underReview} dalam penilaian", $list),
             new KpiCardData('revision', 'Dalam Revisi', strval($this->inState($user, NeedsRevision::class)), 'Butuh respon', $list),
             new KpiCardData('approved', 'Disetujui', strval($this->inState($user, Approved::class)), 'Total selesai', $list),
             new KpiCardData('notifications', 'Notifikasi', strval(UnreadNotificationCount::run($user)), 'Belum dibaca', route('notifications.index')),

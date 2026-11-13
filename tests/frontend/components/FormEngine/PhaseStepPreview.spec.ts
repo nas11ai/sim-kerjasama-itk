@@ -6,7 +6,7 @@ import type { PreviewStep } from '@/lib/phaseDefinition'
 
 const step = (overrides: Partial<PreviewStep> = {}): PreviewStep => ({
     key: 'step-0',
-    title: 'Isi Proposal: Form Proposal',
+    title: 'Isi Proposal: Formulir Proposal',
     access: 'Pengaju · Fakultas Sains',
     deadlineLabel: 'Pengajuan',
     needsReview: true,
@@ -38,7 +38,7 @@ describe('FormEngine/PhaseStepPreview', () => {
                     step(),
                     step({
                         key: 'step-1',
-                        title: 'Laporan: Form Monev',
+                        title: 'Laporan: Formulir Monev',
                         deadlineLabel: 'Laporan Monev I',
                         needsReview: false,
                     }),
@@ -49,12 +49,12 @@ describe('FormEngine/PhaseStepPreview', () => {
 
         expect(items).toHaveLength(2)
         expect(items[0].text()).toContain('Langkah 1')
-        expect(items[0].text()).toContain('Perlu Review')
+        expect(items[0].text()).toContain('Perlu Penilaian')
         expect(items[0].text()).toContain('Lembar Substansi · Versi 2 · wajib')
         expect(items[0].text()).not.toContain('Lembar Lama')
         expect(items[1].text()).toContain('Langkah 2')
         expect(items[1].text()).toContain('Laporan Monev I')
-        expect(items[1].text()).toContain('Tanpa Review')
+        expect(items[1].text()).toContain('Tanpa Penilaian')
         expect(wrapper.find('button').exists()).toBe(false)
     })
 

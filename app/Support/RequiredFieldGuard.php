@@ -72,6 +72,6 @@ final class RequiredFieldGuard
 
     public static function message(FormField $field): string
     {
-        return "Field '{$field->label}' wajib diisi sebelum submit.";
+        return "Isian '{$field->label}' wajib diisi sebelum dikirim.";
     }
 }

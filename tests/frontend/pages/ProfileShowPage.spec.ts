@@ -66,7 +66,7 @@ describe('Profile/ShowPage', () => {
         expect(text).toContain('Kelola data profil dan keamanan akun Anda.')
         expect(text).toContain('Foto Profil')
         expect(text).toContain('Data Profil')
-        expect(text).toContain('Ganti Password')
+        expect(text).toContain('Ganti Kata Sandi')
     })
 
     it('email dan NIDN read-only dengan hint', () => {
@@ -86,7 +86,7 @@ describe('Profile/ShowPage', () => {
         expect(wrapper.find('#profile-phone').exists()).toBe(false)
         expect(wrapper.find('#profile-expertise').exists()).toBe(false)
         expect(wrapper.text()).not.toContain('Ganti Foto')
-        expect(wrapper.text()).toContain('Ganti Password')
+        expect(wrapper.text()).toContain('Ganti Kata Sandi')
     })
 
     it('Simpan Perubahan mengirim PATCH ke profile.update', async () => {
@@ -100,7 +100,7 @@ describe('Profile/ShowPage', () => {
     it('Ubah Password mengirim PUT ke password.update', async () => {
         const wrapper = mountPage()
 
-        await wrapper.find('form[aria-label="Ganti Password"]').trigger('submit')
+        await wrapper.find('form[aria-label="Ganti Kata Sandi"]').trigger('submit')
 
         expect(submit).toHaveBeenCalledWith('put', '/password.update')
     })

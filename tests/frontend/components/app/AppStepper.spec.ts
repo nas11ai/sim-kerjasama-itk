@@ -5,13 +5,13 @@ import AppStepper from '@/Components/app/AppStepper.vue'
 import type { WizardStep } from '@/types/submission-wizard'
 
 const labels = [
-    'Pilih Form & Periode',
+    'Pilih Formulir & Periode',
     'Informasi Dasar',
     'Skema, TKT & Target Luaran',
     'Anggota Penelitian',
     'Rencana Anggaran',
-    'Upload Berkas',
-    'Review & Submit',
+    'Unggah Berkas',
+    'Periksa & Kirim',
 ]
 
 const reason = 'Pilih skema di langkah 3 lebih dulu, batas anggaran berasal dari skema.'

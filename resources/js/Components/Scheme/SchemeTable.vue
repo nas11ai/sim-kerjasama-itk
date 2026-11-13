@@ -49,7 +49,7 @@ const columns = [
                 <div class="flex justify-end gap-2">
                     <Button as-child size="sm" variant="outline">
                         <Link :href="route('admin.schemes.edit', row.id)"
-                            ><Pencil class="size-4" />Edit</Link
+                            ><Pencil class="size-4" />Ubah</Link
                         >
                     </Button>
                     <Button

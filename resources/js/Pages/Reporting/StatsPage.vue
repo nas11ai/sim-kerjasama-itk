@@ -17,10 +17,10 @@ defineProps<StatsPageProps>()
 </script>
 
 <template>
-    <Head title="Dashboard Statistik" />
+    <Head title="Beranda Statistik" />
     <AppLayout>
         <PageHeader
-            title="Dashboard Statistik"
+            title="Beranda Statistik"
             subtitle="Statistik ditampilkan langsung dari data terkini dan bersifat hanya-baca."
         >
             <template #actions>

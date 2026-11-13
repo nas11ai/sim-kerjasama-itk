@@ -41,7 +41,7 @@ class EvaluationFormController extends Controller
         $form = CreateEvaluationForm::run($request->toInput(), $this->actor($request));
 
         return redirect()->route('admin.evaluation-forms.edit', $form)
-            ->with('success', 'Form evaluasi dibuat. Susun field-nya lalu terbitkan.');
+            ->with('success', 'Formulir evaluasi dibuat. Susun isiannya lalu terbitkan.');
     }
 
     public function edit(ReviewEvaluationForm $reviewEvaluationForm): Response
@@ -56,7 +56,7 @@ class EvaluationFormController extends Controller
     {
         UpdateEvaluationForm::run($reviewEvaluationForm, $request->toInput(), $this->actor($request));
 
-        return back()->with('success', 'Form evaluasi diperbarui.');
+        return back()->with('success', 'Formulir evaluasi diperbarui.');
     }
 
     // BR-FE-22 — penolakan form yang pernah ditugaskan atau masih terpasang datang dari penjaga model.
@@ -64,6 +64,6 @@ class EvaluationFormController extends Controller
     {
         DeleteEvaluationForm::run($reviewEvaluationForm, $this->actor($request));
 
-        return redirect()->route('admin.evaluation-forms.index')->with('success', 'Form evaluasi dihapus.');
+        return redirect()->route('admin.evaluation-forms.index')->with('success', 'Formulir evaluasi dihapus.');
     }
 }

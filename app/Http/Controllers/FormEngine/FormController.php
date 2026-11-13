@@ -53,7 +53,7 @@ class FormController extends Controller
 
         // W86 — Form baru langsung dibuka di halaman suntingnya. BR-FE-34 — field-nya masih draf.
         return redirect()->route('admin.forms.edit', $form)
-            ->with('success', 'Form dibuat. Susun field-nya lalu terbitkan.');
+            ->with('success', 'Formulir dibuat. Susun isiannya lalu terbitkan.');
     }
 
     public function edit(Form $form): Response
@@ -69,7 +69,7 @@ class FormController extends Controller
         // W86 — "Lanjut" menyimpan lalu membuka tab Access Control Form ini.
         $redirect = $request->boolean('continue') ? redirect()->route('admin.forms.access.index', $form) : back();
 
-        return $redirect->with('success', 'Form diperbarui.');
+        return $redirect->with('success', 'Formulir diperbarui.');
     }
 
     public function setActive(FormActiveRequest $request, Form $form): RedirectResponse
@@ -78,7 +78,7 @@ class FormController extends Controller
 
         SetFormActive::run($form, $active, $this->actor($request));
 
-        return back()->with('success', $active ? 'Form diaktifkan.' : 'Form dinonaktifkan.');
+        return back()->with('success', $active ? 'Formulir diaktifkan.' : 'Formulir dinonaktifkan.');
     }
 
     // BR-FE-19 — penjaga rujukan berjalan di Form::booted(); penolakannya sampai apa adanya.
@@ -86,7 +86,7 @@ class FormController extends Controller
     {
         DeleteForm::run($form, $this->actor($request));
 
-        return redirect()->route('admin.forms.index')->with('success', 'Form dihapus.');
+        return redirect()->route('admin.forms.index')->with('success', 'Formulir dihapus.');
     }
 
     private function general(?Form $form): Response

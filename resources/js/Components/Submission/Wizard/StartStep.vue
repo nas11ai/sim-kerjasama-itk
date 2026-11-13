@@ -61,16 +61,16 @@ const start = () => {
 </script>
 
 <template>
-    <SectionCard title="Step 1: Pilih Form & Periode">
+    <SectionCard title="Langkah 1: Pilih Formulir & Periode">
         <template v-if="submission">
             <InfoGrid
                 :items="[
                     { label: 'Periode Pengajuan', value: submission.period ?? '-' },
-                    { label: 'Form Pengajuan', value: submission.form },
+                    { label: 'Formulir Pengajuan', value: submission.form },
                 ]"
             />
             <p class="text-sm text-muted-foreground">
-                Form dan periode tidak dapat diganti setelah draft dibuat.
+                Formulir dan periode tidak dapat diganti setelah draf dibuat.
             </p>
         </template>
         <EmptyState
@@ -83,9 +83,9 @@ const start = () => {
             </FormField>
             <FormField
                 id="start-form"
-                label="Form Pengajuan"
+                label="Formulir Pengajuan"
                 required
-                hint="Hanya form yang dapat Anda akses sesuai organisasi Anda"
+                hint="Hanya formulir yang dapat Anda akses sesuai organisasi Anda"
             >
                 <OptionSelect
                     id="start-form"
@@ -111,7 +111,7 @@ const start = () => {
             </AppBanner>
             <div class="flex justify-end">
                 <Button v-if="draftHref" as-child variant="outline">
-                    <Link :href="draftHref"> Lanjutkan draft <ArrowRight class="size-4" /> </Link>
+                    <Link :href="draftHref"> Lanjutkan draf <ArrowRight class="size-4" /> </Link>
                 </Button>
                 <Button
                     v-else
@@ -125,8 +125,8 @@ const start = () => {
         </template>
         <!-- BR-SM-10 -->
         <AppBanner tone="info">
-            Jika periode ditutup saat Anda masih mengisi, draft tetap tersimpan namun tidak dapat
-            disubmit.
+            Jika periode ditutup saat Anda masih mengisi, draf tetap tersimpan namun tidak dapat
+            dikirim.
         </AppBanner>
     </SectionCard>
 </template>

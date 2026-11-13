@@ -35,7 +35,7 @@ it('mengambil tenggat dari kalender periode pengajuan pada langkah pemilik form 
 });
 
 it('tidak memakai ulang Batas Submit milik peneliti', function () {
-    $fx = phaseWithOwnEvaluationDeadline('Uji Bukan Batas Submit');
+    $fx = phaseWithOwnEvaluationDeadline('Uji Bukan Batas Pengiriman');
 
     expect(EvaluationDueDate::run(dueDateSubmission($fx))->format('Y-m-d H:i:s'))
         ->not->toBe($fx['dueSubmit']->format('Y-m-d H:i:s'));

@@ -16,7 +16,7 @@ use App\Notifications\SubmissionReadyForDecisionNotification;
 use App\Support\Notification\NotificationChannels;
 use App\Support\Notification\NotificationEventCatalog;
 
-dataset('review decision notifications', [
+dataset('penilaian decision notifications', [
     'SubmissionReadyForDecision' => [SubmissionReadyForDecisionNotification::class, [NotificationChannels::IN_APP]],
     'RevisionRequested' => [RevisionRequestedNotification::class, [NotificationChannels::IN_APP, NotificationChannels::EMAIL]],
     'RecheckRequested' => [RecheckRequestedNotification::class, [NotificationChannels::IN_APP, NotificationChannels::EMAIL]],
@@ -29,7 +29,7 @@ it('mendeklarasikan kanal kelima event keputusan review', function (string $clas
 
     expect(NotificationEventCatalog::defaults()[$type])->toBe($channels)
         ->and(NotificationChannels::for($type))->toBe(NotificationEventCatalog::defaults()[$type]);
-})->with('review decision notifications');
+})->with('penilaian decision notifications');
 
 it('payload membawa form_submission_id', function (string $class) {
     $submission = FormSubmission::factory()->create();
@@ -38,7 +38,7 @@ it('payload membawa form_submission_id', function (string $class) {
 
     expect($payload['form_submission_id'])->toBe($submission->id)
         ->and($payload['title'])->not->toBe('');
-})->with('review decision notifications');
+})->with('penilaian decision notifications');
 
 it('notifikasi penolakan menyertakan alasannya', function () {
     $submission = FormSubmission::factory()->create(['rejection_reason' => 'Anggaran tidak wajar.']);

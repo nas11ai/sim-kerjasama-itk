@@ -63,7 +63,7 @@ test('[IAM-SESSION-01] tab user yang sesinya diakhiri langsung ke login', async 
 
     await andi.waitForURL(/\/login\?sesi=diakhiri/, { timeout: 10_000 })
     await expect(andi.getByTestId('session-notice')).toHaveText(
-        'Sesi Anda diakhiri oleh admin. Silakan login lagi.'
+        'Sesi Anda diakhiri oleh admin. Silakan masuk lagi.'
     )
 })
 

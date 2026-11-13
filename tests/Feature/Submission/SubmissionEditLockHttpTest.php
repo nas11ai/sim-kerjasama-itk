@@ -22,7 +22,7 @@ it('[SM-STATE-04] isi pengajuan terkunci pada status terminal', function (string
         'permission' => 'submissions.create',
         'organization_id' => $organization->id,
     ]);
-    $formPhase = FormPhase::create(['title' => 'Fase Uji', 'is_active' => true]);
+    $formPhase = FormPhase::create(['title' => 'Tahap Uji', 'is_active' => true]);
     $built = buildAccessibleFormPhaseDetail($user, $organization, $accessControl, $formPhase);
 
     // Baris submission dibuat langsung dengan status terminal. Status di sini

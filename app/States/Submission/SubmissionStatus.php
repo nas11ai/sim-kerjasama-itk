@@ -41,14 +41,14 @@ abstract class SubmissionStatus extends State
     public static function options(): array
     {
         return [
-            Draft::class => 'Draft',
-            Submitted::class => 'Submitted',
-            UnderReview::class => 'Under Review',
-            NeedsRevision::class => 'Needs Revision',
-            Resubmitted::class => 'Resubmitted',
-            Approved::class => 'Approved',
-            Rejected::class => 'Rejected',
-            Withdrawn::class => 'Withdrawn',
+            Draft::class => 'Draf',
+            Submitted::class => 'Menunggu Penilaian',
+            UnderReview::class => 'Sedang Dinilai',
+            NeedsRevision::class => 'Perlu Revisi',
+            Resubmitted::class => 'Diajukan Ulang',
+            Approved::class => 'Disetujui',
+            Rejected::class => 'Ditolak',
+            Withdrawn::class => 'Ditarik Kembali',
         ];
     }
 }

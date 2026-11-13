@@ -44,7 +44,7 @@ function adminPenghapus(): User
 function fasePenghapusan(): FormPhase
 {
     return FormPhase::create([
-        'title' => 'Fase '.fake()->unique()->numerify('####'),
+        'title' => 'Tahap '.fake()->unique()->numerify('####'),
         'is_active' => true,
     ]);
 }

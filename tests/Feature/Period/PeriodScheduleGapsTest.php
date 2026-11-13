@@ -22,7 +22,7 @@ use App\Models\User;
 use App\Queries\Form\PhaseLibrary;
 use Illuminate\Support\Carbon;
 
-function gapPhase(string $title = 'Fase Celah'): FormPhase
+function gapPhase(string $title = 'Tahap Celah'): FormPhase
 {
     return FormPhase::create(['title' => $title, 'is_active' => true]);
 }
@@ -60,7 +60,7 @@ it('tidak menghapus tanggal yang dibutuhkan fase tertaut', function () {
 /** Penugasan form evaluasi langkah `$step` pada pengajuan baru di `$period`, ber-due_date `$due`. */
 function gapAssignment(FormPhaseDetail $step, SubmissionPeriod $period, Carbon $due): ReviewerFormAssignment
 {
-    $form = $step->stepEvaluationForms()->first()->reviewEvaluationForm ?? evaluationFormOn($step, [], title: 'Form Substansi');
+    $form = $step->stepEvaluationForms()->first()->reviewEvaluationForm ?? evaluationFormOn($step, [], title: 'Formulir Substansi');
     $seat = SubmissionReviewer::create([
         'form_submission_id' => scheduledSubmission($step, $period)->id,
         'reviewer_id' => Reviewer::factory()->create()->id,

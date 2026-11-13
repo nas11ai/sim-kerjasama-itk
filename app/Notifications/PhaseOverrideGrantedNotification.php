@@ -34,7 +34,7 @@ class PhaseOverrideGrantedNotification extends Notification
     {
         return (new MailMessage)
             ->subject('Perpanjangan akses diberikan')
-            ->line('Operator LPPM membuka kembali akses Anda ke sebuah fase pengajuan.')
+            ->line('Operator LPPM membuka kembali akses Anda ke sebuah tahap pengajuan.')
             // FormSubmission tidak punya kolom judul — itu milik Form. Kode lama
             // pakai `$submission->title`, yang selalu null, jadi baris ini selalu
             // "Pengajuan #id", tak menolong peneliti berpengajuan majemuk.

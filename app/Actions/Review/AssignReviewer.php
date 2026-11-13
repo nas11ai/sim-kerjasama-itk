@@ -39,7 +39,7 @@ class AssignReviewer
 
         if (!$candidate instanceof User) {
             throw new RuntimeException(
-                "Reviewer {$reviewer->id} tidak tertaut ke User, penugasan dibatalkan."
+                "Penilai {$reviewer->id} tidak tertaut ke Pengguna, penugasan dibatalkan."
             );
         }
 
@@ -89,7 +89,7 @@ class AssignReviewer
         }
 
         throw ValidationException::withMessages([
-            'reviewer_id' => 'Akun reviewer ini nonaktif, jadi tidak dapat ditugaskan.',
+            'reviewer_id' => 'Akun penilai ini nonaktif, jadi tidak dapat ditugaskan.',
         ]);
     }
 
@@ -101,7 +101,7 @@ class AssignReviewer
         }
 
         throw ValidationException::withMessages([
-            'reviewer_id' => 'Reviewer ini berada di luar masa tugasnya, jadi tidak dapat ditugaskan.',
+            'reviewer_id' => 'Penilai ini berada di luar masa tugasnya, jadi tidak dapat ditugaskan.',
         ]);
     }
 
@@ -117,7 +117,7 @@ class AssignReviewer
         }
 
         throw ValidationException::withMessages([
-            'reviewer_id' => 'Reviewer ini sudah ditugaskan pada siklus review ini.',
+            'reviewer_id' => 'Penilai ini sudah ditugaskan pada siklus penilaian ini.',
         ]);
     }
 
@@ -140,7 +140,7 @@ class AssignReviewer
 
         if (!$status instanceof SubmissionStatus) {
             throw new RuntimeException(
-                "FormSubmission {$submission->id} tidak punya status, penugasan reviewer tidak bisa memindahkannya."
+                "FormSubmission {$submission->id} tidak punya status, penugasan penilai tidak bisa memindahkannya."
             );
         }
 

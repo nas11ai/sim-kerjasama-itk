@@ -92,10 +92,10 @@ it('[FE-WINDOW-09] menolak Upload Luaran bersiklus atau direview', function () {
     $submission = stepKindRow($this->detail);
 
     storeStepKinds([$submission, stepKindRow($this->monev, ['deadline_type' => 'output', 'deadline_cycle' => 1])])
-        ->assertSessionHasErrors(['phase_details.1.deadline_cycle' => 'Upload Luaran tidak bersiklus.']);
+        ->assertSessionHasErrors(['phase_details.1.deadline_cycle' => 'Unggah Luaran tidak bersiklus.']);
 
     storeStepKinds([$submission, stepKindRow($this->monev, ['deadline_type' => 'output', 'needs_review' => true])])
-        ->assertSessionHasErrors(['phase_details.1.needs_review' => 'Detail Upload Luaran tidak direview.']);
+        ->assertSessionHasErrors(['phase_details.1.needs_review' => 'Detail Unggah Luaran tidak dinilai.']);
 
     expect(FormPhase::query()->where('title', 'Tahap Jenis')->exists())->toBeFalse();
 

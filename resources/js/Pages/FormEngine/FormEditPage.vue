@@ -14,12 +14,12 @@ import type { FormEditPageProps } from '@/types/form-engine'
 const props = defineProps<FormEditPageProps>()
 
 const title = computed(() =>
-    props.form === null ? 'Buat Form Baru' : `Edit Form: ${props.form.title}`
+    props.form === null ? 'Buat Formulir Baru' : `Ubah Formulir: ${props.form.title}`
 )
 
 const subtitles = {
-    general: 'General & Fields',
-    access: 'Access Control',
+    general: 'Umum & Isian',
+    access: 'Kontrol Akses',
 }
 const subtitle = computed(() => subtitles[props.tab])
 // Penyempitan union per tab: template tidak menyempitkan props yang dipisah satu per satu.

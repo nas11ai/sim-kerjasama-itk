@@ -45,7 +45,7 @@ const send = () => form.post(target(), { preserveScroll: true, onSuccess: close,
 <template>
     <ActionDialog
         v-model:open="open"
-        title="Tugaskan Reviewer Monev"
+        title="Tugaskan Penilai Monev"
         submit-label="Tugaskan"
         :processing="form.processing"
         :submit-disabled="form.reviewer_id === null"
@@ -60,7 +60,7 @@ const send = () => form.post(target(), { preserveScroll: true, onSuccess: close,
             @toggle="(id) => (form.reviewer_id = id)"
         />
         <p class="text-xs text-muted-foreground">
-            Reviewer pengajuan awal yang masih aktif disarankan lebih dulu.
+            Penilai pengajuan awal yang masih aktif disarankan lebih dulu.
         </p>
         <AppBanner v-for="message in errors" :key="message" tone="denial">{{ message }}</AppBanner>
     </ActionDialog>

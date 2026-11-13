@@ -31,7 +31,7 @@ const columns = [
         </template>
         <template #cell-assignedAt="{ row }">{{ formatDate(row.assignedAt) }}</template>
         <template #empty>
-            <EmptyState :icon="ClipboardCheck" title="Belum pernah ditugaskan sebagai reviewer." />
+            <EmptyState :icon="ClipboardCheck" title="Belum pernah ditugaskan sebagai penilai." />
         </template>
     </DataTable>
 </template>

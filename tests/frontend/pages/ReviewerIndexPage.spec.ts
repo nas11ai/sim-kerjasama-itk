@@ -136,9 +136,9 @@ describe('ReviewerIndexPage', () => {
         const wrapper = mountPage()
         const text = wrapper.text()
 
-        expect(wrapper.find('h1').text()).toBe('Manajemen Reviewer')
-        expect(text).toContain('Semua reviewer beserta periode aktif dan beban tugasnya.')
-        expect(buttons(wrapper, 'Tambah Reviewer')).toHaveLength(1)
+        expect(wrapper.find('h1').text()).toBe('Manajemen Penilai')
+        expect(text).toContain('Semua penilai beserta periode aktif dan beban tugasnya.')
+        expect(buttons(wrapper, 'Tambah Penilai')).toHaveLength(1)
         for (const label of ['Nama', 'Tipe', 'Periode Aktif', 'Beban Tugas', 'Status']) {
             expect(text).toContain(label)
         }
@@ -156,7 +156,7 @@ describe('ReviewerIndexPage', () => {
             ),
         })
 
-        expect(buttons(wrapper, 'Edit Periode')).toHaveLength(2)
+        expect(buttons(wrapper, 'Ubah Periode')).toHaveLength(2)
         expect(buttons(wrapper, 'Perpanjang')).toHaveLength(1)
         expect(wrapper.findAll('a').filter((a) => a.text().includes('Riwayat'))).toHaveLength(3)
     })
@@ -183,13 +183,13 @@ describe('ReviewerIndexPage', () => {
         const wrapper = mountPage({ reviewers: rows(withStanding('account_inactive')) })
 
         expect(wrapper.text()).toContain('Akun Nonaktif')
-        expect(buttons(wrapper, 'Edit Periode')).toHaveLength(0)
+        expect(buttons(wrapper, 'Ubah Periode')).toHaveLength(0)
         expect(buttons(wrapper, 'Perpanjang')).toHaveLength(0)
     })
 
     it('[IAM-REVIEWER-03] pencarian tanpa hasil menampilkan EmptyState "Tidak ada user dengan nama itu" dan "Buat Undangan Registrasi" bila can.manageInvitations', async () => {
         const wrapper = mountPage({ appointmentCandidates: [] })
-        await buttons(wrapper, 'Tambah Reviewer')[0]?.trigger('click')
+        await buttons(wrapper, 'Tambah Penilai')[0]?.trigger('click')
         await nextTick()
 
         const search = document.body.querySelector<HTMLInputElement>('input#appoint-search')
@@ -198,7 +198,7 @@ describe('ReviewerIndexPage', () => {
         search.dispatchEvent(new Event('input'))
         await nextTick()
 
-        expect(body()).toContain('Tidak ada user dengan nama itu')
+        expect(body()).toContain('Tidak ada pengguna dengan nama itu')
         const invite = Array.from(document.body.querySelectorAll('a')).find((a) =>
             a.textContent?.includes('Buat Undangan Registrasi')
         )
@@ -207,7 +207,7 @@ describe('ReviewerIndexPage', () => {
         wrapper.unmount()
         document.body.innerHTML = ''
         const denied = mountPage({ appointmentCandidates: [], can: { manageInvitations: false } })
-        await buttons(denied, 'Tambah Reviewer')[0]?.trigger('click')
+        await buttons(denied, 'Tambah Penilai')[0]?.trigger('click')
         await nextTick()
         const input = document.body.querySelector<HTMLInputElement>('input#appoint-search')
         if (!input) throw new Error('kolom cari kandidat tidak ada')
@@ -231,7 +231,7 @@ describe('ReviewerIndexPage', () => {
                 }),
             ],
         })
-        await buttons(wrapper, 'Tambah Reviewer')[0]?.trigger('click')
+        await buttons(wrapper, 'Tambah Penilai')[0]?.trigger('click')
         await nextTick()
 
         const pick = Array.from(document.body.querySelectorAll('button')).find((b) =>
@@ -241,9 +241,9 @@ describe('ReviewerIndexPage', () => {
         await nextTick()
 
         expect(body()).toContain(
-            'Dr. Rina Wijaya sudah menjadi reviewer. Menyimpan akan memperbarui tipe dan masa tugasnya, bukan menambah entri baru.'
+            'Dr. Rina Wijaya sudah menjadi penilai. Menyimpan akan memperbarui tipe dan masa tugasnya, bukan menambah entri baru.'
         )
-        dialog(wrapper, 'Tambah Reviewer')?.vm.$emit('submit')
+        dialog(wrapper, 'Tambah Penilai')?.vm.$emit('submit')
         expect(post).toHaveBeenCalledWith(
             '/admin.reviewers.store',
             expect.objectContaining({ preserveScroll: true })
@@ -252,11 +252,11 @@ describe('ReviewerIndexPage', () => {
 
     it('[IAM-REVIEWER-05] mengubah tipe internal → eksternal memunculkan banner pencabutan skor', async () => {
         const wrapper = mountPage()
-        await buttons(wrapper, 'Edit Periode')[0]?.trigger('click')
+        await buttons(wrapper, 'Ubah Periode')[0]?.trigger('click')
         await nextTick()
 
         const banner =
-            'Mengubah tipe menjadi Eksternal akan mencabut kemampuan melihat skor reviewer lain. Evaluasi yang sudah ditulis tidak berubah.'
+            'Mengubah tipe menjadi Eksternal akan mencabut kemampuan melihat skor penilai lain. Evaluasi yang sudah ditulis tidak berubah.'
         expect(body()).not.toContain(banner)
 
         const typeSelect = wrapper
@@ -270,7 +270,7 @@ describe('ReviewerIndexPage', () => {
 
     it('banner bawah tabel frame tampil', () => {
         expect(mountPage().text()).toContain(
-            'Menambah reviewer memilih user yang sudah terdaftar, tidak ada jalur registrasi mandiri untuk reviewer. Reviewer eksternal harus diundang lebih dulu lewat Undangan Registrasi.'
+            'Menambah penilai memilih pengguna yang sudah terdaftar, tidak ada jalur registrasi mandiri untuk penilai. Penilai eksternal harus diundang lebih dulu lewat Undangan Registrasi.'
         )
     })
 })

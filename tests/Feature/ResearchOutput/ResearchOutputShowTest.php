@@ -88,7 +88,7 @@ it('[RO-OUTPUT-19] reviewer membaca detail tanpa tombol Edit', function () {
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->where('output.access.canWrite', false)
-            ->where('output.access.blockedReason', 'Reviewer dapat membaca luaran, tapi tidak mengubahnya.'));
+            ->where('output.access.blockedReason', 'Penilai dapat membaca luaran, tapi tidak mengubahnya.'));
 });
 
 it('orang asing 403', function () {

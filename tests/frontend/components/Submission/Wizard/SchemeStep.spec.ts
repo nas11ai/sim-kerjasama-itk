@@ -51,7 +51,7 @@ describe('SchemeStep', () => {
 
     it('[SM-WIZARD-09] form tanpa skema memberi tahu batas anggaran tidak berlaku', () => {
         expect(mountScheme([]).text()).toContain(
-            'Form ini tidak memakai skema, batas anggaran tidak berlaku.'
+            'Formulir ini tidak memakai skema, batas anggaran tidak berlaku.'
         )
     })
 })

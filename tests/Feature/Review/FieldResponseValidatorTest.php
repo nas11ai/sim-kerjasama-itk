@@ -8,7 +8,7 @@ it('menuntut field wajib yang kosong', function () {
     $response = evaluationFieldResponse('text', null, true);
 
     expect(FieldResponseValidator::errorsFor($response->fresh()))
-        ->toBe(["Field 'Uji' is required"]);
+        ->toBe(["Isian 'Uji' wajib diisi."]);
 });
 
 it('mendiamkan field tidak wajib yang kosong', function () {
@@ -23,24 +23,24 @@ it('tidak menerapkan aturan tipe pada nilai kosong', function () {
 
 it('menolak email yang bukan email', function () {
     expect(FieldResponseValidator::errorsFor(evaluationFieldResponse('email', 'bukan-email')))
-        ->toBe(["Field 'Uji' must be a valid email address"]);
+        ->toBe(["Isian 'Uji' harus berupa alamat email yang valid."]);
 });
 
 it('menolak angka yang bukan angka', function () {
     expect(FieldResponseValidator::errorsFor(evaluationFieldResponse('number', 'dua')))
-        ->toBe(["Field 'Uji' must be a number"]);
+        ->toBe(["Isian 'Uji' harus berupa angka."]);
 });
 
 it('menolak URL yang bukan URL', function () {
     expect(FieldResponseValidator::errorsFor(evaluationFieldResponse('url', 'bukan url')))
-        ->toBe(["Field 'Uji' must be a valid URL"]);
+        ->toBe(["Isian 'Uji' harus berupa URL yang valid."]);
 });
 
 it('menerapkan aturan panjang kustom', function () {
     $response = evaluationFieldResponse('text', 'ab', validationRules: ['min_length' => 5]);
 
     expect(FieldResponseValidator::errorsFor($response->fresh()))
-        ->toBe(["Field 'Uji' must be at least 5 characters"]);
+        ->toBe(["Isian 'Uji' minimal 5 karakter."]);
 });
 
 it('menghitung panjang dalam karakter, bukan byte', function () {

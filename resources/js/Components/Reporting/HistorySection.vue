@@ -27,8 +27,8 @@ const outputs = computed(() => chart(props.history.outputs))
     <div class="flex flex-col gap-4">
         <div class="grid gap-4 lg:grid-cols-2">
             <ColumnChartCard
-                :title="`Pengajuan Disubmit per ${submitted.per}`"
-                subtitle="Menurut tanggal submit pertama."
+                :title="`Pengajuan Dikirim per ${submitted.per}`"
+                subtitle="Menurut tanggal pengiriman pertama."
                 index="period"
                 :index-label="submitted.per"
                 :categories="[SERIES]"

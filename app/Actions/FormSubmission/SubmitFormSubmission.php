@@ -92,7 +92,7 @@ class SubmitFormSubmission
         // hanya tertulis di satu tempat.
         if (!$user->can('submit', $submission)) {
             throw new AuthorizationException(
-                'Hanya lead researcher yang bisa submit pengajuan ini.'
+                'Hanya ketua peneliti yang bisa mengirim pengajuan ini.'
             );
         }
 
@@ -100,7 +100,7 @@ class SubmitFormSubmission
 
         if (!$status instanceof SubmissionStatus) {
             throw new RuntimeException(
-                "FormSubmission {$submission->id} tidak punya status, tidak bisa disubmit."
+                "FormSubmission {$submission->id} tidak punya status, tidak bisa dikirim."
             );
         }
 

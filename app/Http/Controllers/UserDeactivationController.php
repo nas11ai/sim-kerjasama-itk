@@ -19,6 +19,6 @@ class UserDeactivationController extends Controller
         // Wewenang dijaga route: UserPolicy::deactivate (users.manage, bukan diri sendiri, bukan Super Admin).
         DeactivateUser::run($user);
 
-        return back()->with('success', 'User dinonaktifkan.');
+        return back()->with('success', 'Pengguna dinonaktifkan.');
     }
 }

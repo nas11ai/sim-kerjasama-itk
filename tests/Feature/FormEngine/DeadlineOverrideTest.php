@@ -24,7 +24,7 @@ function grantDeadlineOverride(FormSubmission $submission, FormPhaseDetail $deta
         'form_submission_id' => $submission->id,
         'form_phase_detail_id' => $detail->id,
         'granted_by' => User::factory()->create()->id,
-        'reason' => 'Reviewer sakit.',
+        'reason' => 'Penilai sakit.',
         'expires_at' => Carbon::parse('2026-03-31 23:59:59'),
         'is_active' => true,
     ]);
@@ -73,16 +73,16 @@ it('[FE-OVERRIDE-14] hanya pemegang submissions.view-all yang bisa membuat overr
         'peneliti pemilik' => $fx['submission']->submittedBy,
         'reviewer' => $fx['reviewer'],
         'pemegang periods.manage saja' => User::factory()->create()->givePermissionTo(Permission::findOrCreate('periods.manage', 'web')),
-        'pemegang submissions.view-all' => User::factory()->create()->givePermissionTo(Permission::findOrCreate('submissions.view-all', 'web')),
+        'pemegang pengajuan.view-all' => User::factory()->create()->givePermissionTo(Permission::findOrCreate('submissions.view-all', 'web')),
     };
 
     $response = $this->actingAs($user)->post(route('admin.submissions.overrides.store', $fx['submission']), [
         'form_phase_detail_id' => $fx['detail']->id,
-        'reason' => 'Reviewer sakit.',
+        'reason' => 'Penilai sakit.',
         'expires_at' => '2026-03-31 23:59:59',
     ]);
 
-    if ($actor === 'pemegang submissions.view-all') {
+    if ($actor === 'pemegang pengajuan.view-all') {
         $response->assertRedirect()->assertSessionHasNoErrors();
         expect(FormSubmissionOverride::query()->count())->toBe(1);
 
@@ -91,4 +91,4 @@ it('[FE-OVERRIDE-14] hanya pemegang submissions.view-all yang bisa membuat overr
 
     $response->assertForbidden();
     expect(FormSubmissionOverride::query()->count())->toBe(0);
-})->with(['peneliti pemilik', 'reviewer', 'pemegang periods.manage saja', 'pemegang submissions.view-all']);
+})->with(['peneliti pemilik', 'reviewer', 'pemegang periods.manage saja', 'pemegang pengajuan.view-all']);

@@ -34,7 +34,7 @@ class StepEvaluationForm extends Model
     protected static function booted(): void
     {
         static::updating(function (): void {
-            throw new LogicException('Pemasangan form evaluasi di versi struktur yang terbit tidak dapat diubah.');
+            throw new LogicException('Pemasangan formulir evaluasi di versi struktur yang terbit tidak dapat diubah.');
         });
     }
 
