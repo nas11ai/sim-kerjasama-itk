@@ -11,6 +11,8 @@ final class OrganizationTypeCatalog
     public const LABELS = [
         'institution' => 'Institusi',
         'faculty' => 'Fakultas',
+        // Pemilik 2026-11-13 — jurusan mengelompokkan prodi di bawah fakultas.
+        'department' => 'Jurusan',
         'study_program' => 'Program Studi',
         'unit' => 'Unit Kerja',
     ];

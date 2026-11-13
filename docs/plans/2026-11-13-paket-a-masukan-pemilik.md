@@ -132,9 +132,9 @@ tests `tests/Feature/FormEngine/FormAccessGrantTest.php`, `tests/frontend/compon
 `app/Queries/Submission/ResearcherStudyProgram.php`, `resources/js/Components/Auth/OrganizationSelect.vue` (label grup),
 tests registrasi, statistik, seeder.
 
-- [ ] Seeder: Institusi → Fakultas → Jurusan → Prodi persis daftar pemilik (6 jurusan, 33 prodi). Kode jurusan:
+- [ ] Seeder: Institusi → Fakultas → Jurusan → Prodi persis daftar pemilik (6 jurusan, 26 prodi). Kode jurusan:
   JSAD, JTEIB, JTK, JTSP, JTI, JRI. Prodi yang sudah ada dipindah induknya (upsert `parent_id`), tidak diduplikasi.
-- [ ] Test seeder: setiap prodi berinduk `department`, setiap jurusan berinduk `faculty`; jumlah 3/6/33.
+- [ ] Test seeder: setiap prodi berinduk `department`, setiap jurusan berinduk `faculty`; jumlah 3/6/26.
 - [ ] RegistrableStudyPrograms: prodi aktif dikelompokkan per **induk langsung** (fakultas atau jurusan) yang aktif
   dan seluruh leluhurnya aktif; nama grup jurusan = "Jurusan X — Fakultas Y". Test: prodi di bawah jurusan muncul
   (Review Focus 1); jurusan nonaktif → prodinya tidak ditawarkan.

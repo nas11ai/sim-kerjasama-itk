@@ -104,7 +104,7 @@ it('kontrak struktur organisasi', function () {
                 ->where('canDelete', true)
                 ->where('canReactivate', false)
                 ->where('revivableInvitations', 0))
-            ->has('typeOptions', 4)
+            ->has('typeOptions', 5)
             ->has('parentOptions', 2));
 });
 

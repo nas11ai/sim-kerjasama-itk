@@ -7,7 +7,8 @@ use App\Models\User;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * Program studi peneliti beserta nama fakultasnya, untuk kepala layar peneliti.
+ * Program studi peneliti beserta nama fakultasnya, untuk kepala layar peneliti. Fakultas = leluhur
+ * bertipe fakultas, karena Jurusan bisa berada di antaranya.
  *
  * @phpstan-type StudyProgram array{id: int, name: string, faculty: array{name: string}}
  *
@@ -29,7 +30,7 @@ class ResearcherStudyProgram implements ChangesNoState
         return [
             'id' => $organization->id,
             'name' => $organization->name,
-            'faculty' => ['name' => $organization->parent->name ?? ''],
+            'faculty' => ['name' => $organization->facultyAncestor()->name ?? ''],
         ];
     }
 }

@@ -55,6 +55,18 @@ class Organization extends Model
         return $this->belongsTo(Organization::class, 'parent_id');
     }
 
+    /** Fakultas tempat unit ini bernaung (dirinya bila ia fakultas); null di luar fakultas. Jurusan bisa di antaranya. */
+    public function facultyAncestor(): ?Organization
+    {
+        $unit = $this;
+
+        while ($unit !== null && $unit->type !== 'faculty') {
+            $unit = $unit->parent;
+        }
+
+        return $unit;
+    }
+
     /**
      * @return list<int>
      */
