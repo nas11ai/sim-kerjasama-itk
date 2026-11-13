@@ -10,6 +10,7 @@ import EmptyState from '@/Components/app/EmptyState.vue'
 import FormField from '@/Components/app/FormField.vue'
 import OptionSelect from '@/Components/app/OptionSelect.vue'
 import SectionCard from '@/Components/app/SectionCard.vue'
+import PermissionHint from '@/Components/Identity/PermissionHint.vue'
 import { Button } from '@/Components/ui/button'
 import type { FormAccessRuleData, FormHeaderData } from '@/types/form-engine'
 import type { FilterOption } from '@/types/submission-page'
@@ -22,7 +23,7 @@ const props = defineProps<{
 }>()
 
 const columns = [
-    { key: 'permission', label: 'Permission' },
+    { key: 'permission', label: 'Hak Akses' },
     { key: 'organization', label: 'Organisasi Diizinkan' },
     { key: 'action', label: '' },
 ]
@@ -37,6 +38,10 @@ const add = () =>
         preserveScroll: true,
         onSuccess: () => grant.reset('organization_id'),
     })
+
+const pickedDescription = computed(
+    () => props.permissionOptions.find((option) => option.value === grant.permission)?.description
+)
 
 // `duplicate` bukan kolom isian (BR-FE-02), jadi dibaca dari seluruh galat.
 const duplicate = computed(
@@ -83,7 +88,7 @@ const remove = () => {
                 <div class="grid gap-4 sm:grid-cols-2">
                     <FormField
                         id="access-permission"
-                        label="Permission"
+                        label="Hak Akses"
                         required
                         :error="grant.errors.permission"
                     >
@@ -92,6 +97,9 @@ const remove = () => {
                             v-model="grant.permission"
                             :options="permissionOptions"
                         />
+                        <p v-if="pickedDescription" class="text-xs text-muted-foreground">
+                            {{ pickedDescription }}
+                        </p>
                     </FormField>
                     <FormField
                         id="access-organization"
@@ -118,8 +126,11 @@ const remove = () => {
         <AppBanner v-if="removeError" tone="denial">{{ removeError }}</AppBanner>
         <DataTable :rows="rules" :columns="columns">
             <template #cell-permission="{ row }">
-                <span class="font-medium">{{ row.permissionLabel }}</span>
-                <code class="block text-xs text-muted-foreground">{{ row.permission }}</code>
+                <PermissionHint
+                    :label="row.permissionLabel"
+                    :description="row.permissionDescription"
+                    :code="row.permission"
+                />
             </template>
             <template #cell-organization="{ row }">{{ row.organizationLabel }}</template>
             <template #cell-action="{ row }">

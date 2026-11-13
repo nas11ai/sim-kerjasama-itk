@@ -55,10 +55,16 @@ it('kontrak tab access control', function () {
                 'id' => $rule->id,
                 'permission' => 'submissions.create',
                 'permissionLabel' => 'Membuat pengajuan',
+                'permissionDescription' => 'Membuat dan mengirim pengajuan baru.',
+                'organizationId' => $program->id,
                 'organizationLabel' => 'Prodi Akses',
                 'phaseCount' => 0,
             ])
-            ->where('permissionOptions.0', ['value' => 'submissions.create', 'label' => 'Membuat pengajuan'])
+            ->where('permissionOptions.0', [
+                'value' => 'submissions.create',
+                'label' => 'Membuat pengajuan',
+                'description' => 'Membuat dan mengirim pengajuan baru.',
+            ])
             ->has('permissionOptions', count(FormAccessControl::ALLOWED_PERMISSIONS))
             ->where('organizationOptions', [
                 ['value' => (string) $this->faculty->id, 'label' => 'Fakultas Akses — beserta unit di bawahnya'],

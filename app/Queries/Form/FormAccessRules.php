@@ -57,6 +57,8 @@ class FormAccessRules implements ChangesNoState
                 id: $rule->id,
                 permission: $rule->permission,
                 permissionLabel: PermissionCatalog::label($rule->permission),
+                permissionDescription: PermissionCatalog::description($rule->permission),
+                organizationId: $rule->organization_id,
                 organizationLabel: OrganizationOptions::label(
                     $rule->organization->name ?? '',
                     in_array($rule->organization_id, $withChildren, true),

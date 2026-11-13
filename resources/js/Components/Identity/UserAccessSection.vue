@@ -5,6 +5,7 @@ import { ref } from 'vue'
 
 import OptionSelect from '@/Components/app/OptionSelect.vue'
 import SectionCard from '@/Components/app/SectionCard.vue'
+import PermissionHint from '@/Components/Identity/PermissionHint.vue'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import type { UserAccessData } from '@/types/identity'
@@ -57,7 +58,11 @@ const revoke = (permission: string) => {
                     :key="permission.value"
                     class="flex items-center justify-between gap-2"
                 >
-                    <span class="font-medium">{{ permission.label }}</span>
+                    <PermissionHint
+                        :label="permission.label"
+                        :description="permission.description"
+                        :code="permission.value"
+                    />
                     <Button
                         v-if="canManage"
                         variant="ghost"
@@ -85,9 +90,13 @@ const revoke = (permission: string) => {
         </div>
         <div>
             <h3 class="mb-2 text-xs text-muted-foreground">Hak Akses Efektif</h3>
-            <ul class="list-inside list-disc text-sm">
+            <ul class="flex flex-col gap-1 text-sm">
                 <li v-for="permission in access.effectivePermissions" :key="permission.value">
-                    {{ permission.label }}
+                    <PermissionHint
+                        :label="permission.label"
+                        :description="permission.description"
+                        :code="permission.value"
+                    />
                 </li>
             </ul>
         </div>

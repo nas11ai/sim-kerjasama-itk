@@ -62,12 +62,17 @@ export interface UserDetailData {
 }
 
 // Sumber: UserAccessData. `effectivePermissions` = gabungan role + langsung (IAM-PERM-03).
+// Sumber: PermissionCatalog::options — `description` dibaca tooltip hak akses (K5, 2026-11-13).
+export interface PermissionOption extends Option {
+    description: string
+}
+
 export interface UserAccessData {
     roles: Option[]
-    directPermissions: Option[]
-    effectivePermissions: Option[]
+    directPermissions: PermissionOption[]
+    effectivePermissions: PermissionOption[]
     assignableRoles: Option[]
-    grantablePermissions: Option[]
+    grantablePermissions: PermissionOption[]
 }
 
 export interface UserSummaryData {

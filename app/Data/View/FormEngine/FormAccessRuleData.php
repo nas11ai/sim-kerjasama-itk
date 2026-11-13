@@ -11,6 +11,8 @@ final class FormAccessRuleData extends Data
         public int $id,
         public string $permission,
         public string $permissionLabel,
+        public string $permissionDescription,
+        public int $organizationId,
         public string $organizationLabel,
         public int $phaseCount,
     ) {}

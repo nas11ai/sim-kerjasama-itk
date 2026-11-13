@@ -1,3 +1,4 @@
+import type { PermissionOption } from '@/types/identity'
 import type { Paginated } from '@/types/pagination'
 import type { FilterOption } from '@/types/submission-page'
 import type { WizardFieldType } from '@/types/submission-wizard'
@@ -199,6 +200,8 @@ export interface FormAccessRuleData {
     id: number
     permission: string
     permissionLabel: string
+    permissionDescription: string
+    organizationId: number
     organizationLabel: string
     phaseCount: number
 }
@@ -217,7 +220,7 @@ export interface FormEditAccessProps {
     tab: 'access'
     form: FormHeaderData
     rules: FormAccessRuleData[]
-    permissionOptions: FilterOption[]
+    permissionOptions: PermissionOption[]
     organizationOptions: FilterOption[]
 }
 

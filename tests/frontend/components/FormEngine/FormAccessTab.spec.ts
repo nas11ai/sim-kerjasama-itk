@@ -44,6 +44,8 @@ const rules: FormAccessRuleData[] = [
         id: 1,
         permission: 'submissions.create',
         permissionLabel: 'Membuat pengajuan',
+        permissionDescription: 'Membuat dan mengirim pengajuan baru.',
+        organizationId: 5,
         organizationLabel: 'FTI — beserta unit di bawahnya',
         phaseCount: 0,
     },
@@ -51,6 +53,8 @@ const rules: FormAccessRuleData[] = [
         id: 2,
         permission: 'submissions.view-own',
         permissionLabel: 'Melihat pengajuan sendiri',
+        permissionDescription: 'Melihat pengajuan yang dibuat sendiri.',
+        organizationId: 9,
         organizationLabel: 'Pusat Studi Energi',
         phaseCount: 2,
     },
@@ -61,7 +65,13 @@ const mountTab = () =>
         props: {
             form: { id: 7, title: 'Form Proposal', isActive: true },
             rules,
-            permissionOptions: [{ value: 'submissions.create', label: 'Membuat pengajuan' }],
+            permissionOptions: [
+                {
+                    value: 'submissions.create',
+                    label: 'Membuat pengajuan',
+                    description: 'Membuat dan mengirim pengajuan baru.',
+                },
+            ],
             organizationOptions: [{ value: '5', label: 'FTI — beserta unit di bawahnya' }],
         },
         attachTo: document.body,
@@ -79,6 +89,16 @@ beforeEach(() => {
 })
 
 describe('FormEngine/FormAccessTab', () => {
+    it('[K5] hak akses tampil berlabel; kodenya hanya di tooltip', () => {
+        const wrapper = mountTab()
+
+        expect(wrapper.text()).toContain('Membuat pengajuan')
+        expect(wrapper.find('code').exists()).toBe(false)
+        expect(wrapper.find('[aria-label="Penjelasan: Membuat pengajuan"]').exists()).toBe(true)
+        // Penjelasan permission terpilih tampil di bawah pilihan.
+        expect(wrapper.text()).toContain('Membuat dan mengirim pengajuan baru.')
+    })
+
     it('hapus disabled bagi aturan yang dipakai tahap terbit', () => {
         const wrapper = mountTab()
         const buttons = buttonByText(wrapper, 'Hapus')

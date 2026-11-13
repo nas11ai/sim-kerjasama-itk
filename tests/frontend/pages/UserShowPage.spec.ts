@@ -69,13 +69,33 @@ const props = (overrides: Partial<UserShowPageProps> = {}): UserShowPageProps =>
     },
     access: {
         roles: [{ value: 'researcher', label: 'Peneliti' }],
-        directPermissions: [{ value: 'reporting.export', label: 'Mengekspor laporan' }],
+        directPermissions: [
+            {
+                value: 'reporting.export',
+                label: 'Mengekspor laporan',
+                description: 'Mengunduh laporan.',
+            },
+        ],
         effectivePermissions: [
-            { value: 'submissions.create', label: 'Membuat pengajuan' },
-            { value: 'reporting.export', label: 'Mengekspor laporan' },
+            {
+                value: 'submissions.create',
+                label: 'Membuat pengajuan',
+                description: 'Membuat pengajuan baru.',
+            },
+            {
+                value: 'reporting.export',
+                label: 'Mengekspor laporan',
+                description: 'Mengunduh laporan.',
+            },
         ],
         assignableRoles: [{ value: 'operator', label: 'Operator' }],
-        grantablePermissions: [{ value: 'users.verify', label: 'Memverifikasi NIDN' }],
+        grantablePermissions: [
+            {
+                value: 'users.verify',
+                label: 'Memverifikasi NIDN',
+                description: 'Memverifikasi NIDN.',
+            },
+        ],
     },
     summary: {
         activeLeadSubmissions: 0,
@@ -282,7 +302,11 @@ describe('UserShowPage', () => {
         const select = wrapper.findComponent(OptionSelect)
 
         expect(select.props('options')).toEqual([
-            { value: 'users.verify', label: 'Memverifikasi NIDN' },
+            {
+                value: 'users.verify',
+                label: 'Memverifikasi NIDN',
+                description: 'Memverifikasi NIDN.',
+            },
         ])
         select.vm.$emit('update:modelValue', 'users.verify')
         await nextTick()

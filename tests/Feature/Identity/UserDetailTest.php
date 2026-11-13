@@ -79,8 +79,8 @@ it('hak akses efektif gabungan, grantable tanpa yang sudah langsung', function (
 
     $this->actingAs(detailViewer('users.manage'))->get(route('admin.users.show', $target))
         ->assertInertia(fn (Assert $page) => $page
-            ->where('access.directPermissions', [['value' => 'reporting.export', 'label' => 'Mengekspor laporan']])
-            ->where('access.effectivePermissions', [['value' => 'reporting.export', 'label' => 'Mengekspor laporan']])
+            ->where('access.directPermissions', [['value' => 'reporting.export', 'label' => 'Mengekspor laporan', 'description' => 'Mengunduh data pengajuan dan laporan sebagai berkas.']])
+            ->where('access.effectivePermissions', [['value' => 'reporting.export', 'label' => 'Mengekspor laporan', 'description' => 'Mengunduh data pengajuan dan laporan sebagai berkas.']])
             ->where('access.grantablePermissions', fn ($options) => !collect($options)->contains('value', 'reporting.export')
                 && collect($options)->contains('value', 'users.verify')));
 });

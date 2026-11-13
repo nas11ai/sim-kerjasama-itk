@@ -13,15 +13,16 @@ use Spatie\LaravelData\Data;
  * terpisah: yang bisa dicabut di layar hanya yang langsung (IAM-PERM-04).
  *
  * @phpstan-type Option array{value: string, label: string}
+ * @phpstan-type PermissionOption array{value: string, label: string, description: string}
  */
 final class UserAccessData extends Data
 {
     /**
      * @param  list<Option>  $roles
-     * @param  list<Option>  $directPermissions
-     * @param  list<Option>  $effectivePermissions
+     * @param  list<PermissionOption>  $directPermissions
+     * @param  list<PermissionOption>  $effectivePermissions
      * @param  list<Option>  $assignableRoles
-     * @param  list<Option>  $grantablePermissions
+     * @param  list<PermissionOption>  $grantablePermissions
      */
     public function __construct(
         public array $roles,
