@@ -9,6 +9,8 @@ use App\Models\UserProfile;
 use Database\Seeders\Qa\QaAccounts;
 use Database\Seeders\Qa\QaCatalog;
 use Database\Seeders\Qa\QaClock;
+use Database\Seeders\Qa\QaScenarios;
+use Database\Seeders\Qa\QaSubmissionFlow;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use RuntimeException;
@@ -42,6 +44,11 @@ class QaDataSeeder extends Seeder
         $admin = QaClock::at(Carbon::create(now()->year - 1, 1, 5, 8), fn (): User => $this->admin());
         $catalog = QaCatalog::build($admin);
         $sets = array_map(QaAccounts::build(...), range(1, self::SETS));
+        $flow = new QaSubmissionFlow($catalog);
+
+        foreach ($sets as $set) {
+            QaScenarios::build($set, $flow);
+        }
     }
 
     private function guard(): void
