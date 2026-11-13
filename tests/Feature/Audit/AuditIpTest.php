@@ -6,13 +6,11 @@
 // dibawa Context tersembunyi, jadi job yang di-dispatch dari request ikut mencatat IP peminta.
 
 use App\Actions\FormSubmission\StartSubmission;
-use App\Events\Identity\UserSessionActive;
 use App\Models\AuditEntry;
 use App\Models\FormSubmission;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Context;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 
 it('[RPT-AUDIT-08] entri audit mencatat alamat IP pelaku', function () {
@@ -33,8 +31,6 @@ it('IP peminta terbawa ke queued job', function () {
     // Dengan `sync` (bawaan phpunit.xml) Context tak pernah melewati payload, jadi test ini
     // memakai antrean database dan worker sungguhan.
     config(['queue.default' => 'database']);
-    // RT1 — request ini juga mengantrekan session.active; `--once` harus mengambil job audit.
-    Event::fake([UserSessionActive::class]);
     $operator = verifiedResearcher();
     $submission = FormSubmission::factory()->create(['submitted_by' => $operator->id]);
 
@@ -52,7 +48,10 @@ it('IP peminta terbawa ke queued job', function () {
     expect(AuditEntry::query()->auditOnly()->count())->toBe(0);
 
     Context::flush();
-    Artisan::call('queue:work', ['connection' => 'database', '--once' => true]);
+    // RT1 — request ini juga mengantrekan session.active, jadi antrean dikuras, bukan `--once`.
+    // `--memory` dinaikkan: di suite penuh proses test melewati 128 MB bawaan, dan worker
+    // berhenti sesudah job pertama.
+    Artisan::call('queue:work', ['connection' => 'database', '--stop-when-empty' => true, '--memory' => 4096]);
 
     expect(AuditEntry::query()->auditOnly()->sole()->ip_address)->toBe('10.10.2.14');
 });

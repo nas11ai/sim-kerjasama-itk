@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Events\Identity\UserSessionActive;
+use App\Jobs\PushSessionActivity;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Closure;
@@ -25,7 +25,7 @@ class BroadcastSessionActivity
 
         // BR-IAM-21 — setiap request adalah aktivitas sesi; throttle membuat badge basi ≤ 1 menit.
         if ($user instanceof User && $user->is_active && Cache::add("session-activity:{$user->id}", true, self::THROTTLE_SECONDS)) {
-            UserSessionActive::dispatch($user->id, CarbonImmutable::now());
+            PushSessionActivity::dispatch($user->id, CarbonImmutable::now());
         }
 
         return $next($request);
