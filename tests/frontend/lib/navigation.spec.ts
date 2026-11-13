@@ -1,11 +1,9 @@
-import { Megaphone } from 'lucide-vue-next'
 import { describe, expect, it } from 'vitest'
 
 import {
     isNavItemActive,
     navGroups,
     navItemCount,
-    searchNavItems,
     visibleNavGroups,
     type VisibleNavGroup,
 } from '@/lib/navigation'
@@ -350,45 +348,5 @@ describe('audit log (W155)', () => {
         const item = navGroups.flatMap((g) => g.items).find((i) => i.label === 'Audit Log')
 
         expect(item?.routeName).toBe('reporting.audit.index')
-    })
-})
-
-describe('searchNavItems', () => {
-    const item = (label: string, routeName: string) => ({
-        label,
-        icon: Megaphone,
-        routeName,
-        anyPermission: [],
-    })
-    const groups: VisibleNavGroup[] = [
-        {
-            label: null,
-            items: [item('Dashboard', 'dashboard'), item('Pengumuman', 'user.announcements.index')],
-        },
-        { label: 'Pengajuan', items: [item('Daftar Pengajuan', 'user.submissions.index')] },
-        {
-            label: 'Manajemen',
-            items: [
-                item('Kelola Pengumuman', 'admin.announcements.index'),
-                item('Pengumuman (salinan)', 'user.announcements.index'),
-            ],
-        },
-    ]
-
-    it('mencocokkan bagian label tanpa peka huruf, tanpa duplikat route', () => {
-        expect(searchNavItems(groups, 'PENG').map((i) => i.label)).toEqual([
-            'Pengumuman',
-            'Daftar Pengajuan',
-            'Kelola Pengumuman',
-        ])
-    })
-
-    it('istilah kosong mengembalikan semua item', () => {
-        expect(searchNavItems(groups, '  ').map((i) => i.routeName)).toEqual([
-            'dashboard',
-            'user.announcements.index',
-            'user.submissions.index',
-            'admin.announcements.index',
-        ])
     })
 })

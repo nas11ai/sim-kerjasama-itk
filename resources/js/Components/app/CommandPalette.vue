@@ -13,14 +13,15 @@ import { computed, useTemplateRef, watch } from 'vue'
 
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/Components/ui/dialog'
 import { useGlobalSearch } from '@/composables/useGlobalSearch'
-import { navGroups, searchNavItems, visibleNavGroups, type VisibleNavItem } from '@/lib/navigation'
+import { navGroups, visibleNavGroups } from '@/lib/navigation'
+import { paletteEntries, searchPalette, type PaletteEntry } from '@/lib/paletteEntries'
 import type { PageProps } from '@/types'
 import type { GlobalSearchResult } from '@/types/search'
 
 /**
  * K2 — command palette topbar (topbar.md). Dibangun dari Listbox reka-ui, bukan UiCommand:
  * UiCommand menyaring item di klien dan akan menyembunyikan hasil server yang cocok lewat
- * nama ketua atau NIDN. Navigasi disaring di klien, grup lain dari `GET /cari`.
+ * nama ketua atau NIDN. Halaman dan fitur disaring di klien (K10), grup lain dari `GET /cari`.
  */
 const open = defineModel<boolean>('open', { required: true })
 
@@ -31,15 +32,15 @@ const listbox = useTemplateRef<{ highlightFirstItem: () => void }>('listbox')
 
 const SERVER_GROUPS: { key: keyof GlobalSearchResult; label: string; icon: LucideIcon }[] = [
     { key: 'submissions', label: 'Pengajuan', icon: FileText },
-    { key: 'users', label: 'User', icon: User },
-    { key: 'reviewers', label: 'Reviewer', icon: Users },
+    { key: 'users', label: 'Pengguna', icon: User },
+    { key: 'reviewers', label: 'Penilai', icon: Users },
 ]
 
 const ITEM_CLASS =
     'relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-highlighted:bg-accent data-highlighted:text-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0'
 const GROUP_LABEL_CLASS = 'text-muted-foreground px-2 py-1.5 text-xs font-medium'
 
-const navItems = computed(() => {
+const entries = computed(() => {
     // navigation null hanya untuk tamu; palette hanya ada di layout aplikasi.
     const flags = page.props.navigation ?? {
         hasOutputSubmission: false,
@@ -47,10 +48,23 @@ const navItems = computed(() => {
         unreadAnnouncements: 0,
         unreadNotifications: 0,
     }
-    const groups = visibleNavGroups(navGroups, page.props.auth.user?.permissions ?? [], flags)
+    const permissions = page.props.auth.user?.permissions ?? []
+    const groups = visibleNavGroups(navGroups, permissions, flags)
 
-    return searchNavItems(groups, term.value)
+    return searchPalette(paletteEntries(groups, permissions, flags), term.value)
 })
+
+const LOCAL_GROUPS = [
+    { kind: 'page', label: 'Halaman' },
+    { kind: 'feature', label: 'Fitur' },
+] as const
+
+const localGroups = computed(() =>
+    LOCAL_GROUPS.map((group) => ({
+        ...group,
+        entries: entries.value.filter((entry) => entry.kind === group.kind),
+    })).filter((group) => group.entries.length > 0)
+)
 
 const serverGroups = computed(() =>
     SERVER_GROUPS.map((group) => ({ ...group, hits: results.value[group.key] })).filter(
@@ -60,10 +74,10 @@ const serverGroups = computed(() =>
 
 // WCAG 4.1.3 — satu live region yang selalu ada, supaya perubahan pesannya terbaca.
 const statusMessage = computed(() => {
-    if (tooShort.value) return 'Ketik minimal 2 huruf untuk mencari pengajuan dan user.'
+    if (tooShort.value) return 'Ketik minimal 2 huruf untuk mencari pengajuan dan pengguna.'
     if (loading.value) return 'Mencari…'
     if (failed.value) return 'Pencarian gagal. Coba lagi.'
-    if (navItems.value.length === 0 && serverGroups.value.length === 0) return 'Tidak ada hasil.'
+    if (entries.value.length === 0 && serverGroups.value.length === 0) return 'Tidak ada hasil.'
 
     return ''
 })
@@ -80,9 +94,12 @@ function go(url: string) {
     router.visit(url)
 }
 
-function goToNav(item: VisibleNavItem) {
-    go(route(item.routeName))
+function goToEntry(entry: PaletteEntry) {
+    go(route(entry.routeName, entry.routeParams))
 }
+
+const entryKey = (entry: PaletteEntry) =>
+    `${entry.kind}:${entry.routeName}:${JSON.stringify(entry.routeParams ?? {})}:${entry.label}`
 </script>
 
 <template>
@@ -90,8 +107,8 @@ function goToNav(item: VisibleNavItem) {
         <DialogContent class="max-w-[calc(100%-2rem)] gap-0 overflow-hidden p-0 sm:max-w-lg">
             <DialogTitle class="sr-only">Pencarian</DialogTitle>
             <DialogDescription class="sr-only">
-                Cari halaman, pengajuan, user, dan reviewer. Panah atas dan bawah untuk memilih,
-                Enter untuk membuka.
+                Cari halaman, fitur, pengajuan, pengguna, dan penilai. Panah atas dan bawah untuk
+                memilih, Enter untuk membuka.
             </DialogDescription>
 
             <ListboxRoot ref="listbox" class="flex min-w-0 flex-col">
@@ -100,8 +117,8 @@ function goToNav(item: VisibleNavItem) {
                     <ListboxFilter
                         v-model="term"
                         auto-focus
-                        aria-label="Cari halaman, pengajuan, user"
-                        placeholder="Cari halaman, pengajuan, user..."
+                        aria-label="Cari halaman, fitur, pengajuan, pengguna"
+                        placeholder="Cari halaman, fitur, pengajuan, pengguna..."
                         class="placeholder:text-muted-foreground flex h-11 w-full border-0 bg-transparent px-0 py-3 text-sm outline-hidden focus:ring-0"
                     />
                 </div>
@@ -109,19 +126,25 @@ function goToNav(item: VisibleNavItem) {
                 <ListboxContent
                     class="max-h-[min(60vh,360px)] overflow-x-hidden overflow-y-auto p-1"
                 >
-                    <ListboxGroup v-if="navItems.length > 0">
+                    <ListboxGroup v-for="group in localGroups" :key="group.kind">
                         <ListboxGroupLabel :class="GROUP_LABEL_CLASS" data-palette-group-label>
-                            Navigasi
+                            {{ group.label }}
                         </ListboxGroupLabel>
                         <ListboxItem
-                            v-for="item in navItems"
-                            :key="item.routeName"
-                            :value="`nav:${item.routeName}`"
+                            v-for="entry in group.entries"
+                            :key="entryKey(entry)"
+                            :value="entryKey(entry)"
                             :class="ITEM_CLASS"
-                            @select="goToNav(item)"
+                            @select="goToEntry(entry)"
                         >
-                            <component :is="item.icon" />
-                            <span class="truncate">{{ item.label }}</span>
+                            <component :is="entry.icon" />
+                            <span class="min-w-0 flex-1 truncate">{{ entry.label }}</span>
+                            <span
+                                v-if="entry.location"
+                                class="text-muted-foreground shrink-0 text-xs"
+                                data-palette-location
+                                >{{ entry.location }}</span
+                            >
                         </ListboxItem>
                     </ListboxGroup>
 

@@ -35,7 +35,8 @@ vi.mock('@inertiajs/vue3', () => ({
 
 const { default: CommandPalette } = await import('@/Components/app/CommandPalette.vue')
 
-const route = (name: string) => `/${name}`
+const route = (name: string, params?: Record<string, string>) =>
+    params === undefined ? `/${name}` : `/${name}/${Object.values(params).join('/')}`
 
 let wrapper: ReturnType<typeof mount>
 
@@ -87,15 +88,15 @@ afterEach(() => {
 })
 
 describe('CommandPalette', () => {
-    it('tanpa istilah: grup Navigasi berisi item yang lolos izin dan petunjuk 2 huruf', async () => {
+    it('tanpa istilah: grup Halaman berisi item yang lolos izin dan petunjuk 2 huruf', async () => {
         await openPalette()
 
-        expect(groupLabels()).toEqual(['Navigasi'])
+        expect(groupLabels()).toEqual(['Halaman'])
         expect(option('Dashboard')).toBeDefined()
         expect(option('Daftar Pengajuan')).toBeDefined()
         expect(option('Semua Pengajuan')).toBeUndefined()
         expect(status()?.textContent).toContain(
-            'Ketik minimal 2 huruf untuk mencari pengajuan dan user.'
+            'Ketik minimal 2 huruf untuk mencari pengajuan dan pengguna.'
         )
     })
 
@@ -109,7 +110,7 @@ describe('CommandPalette', () => {
         }
         await nextTick()
 
-        expect(groupLabels()).toEqual(['Pengajuan', 'User'])
+        expect(groupLabels()).toEqual(['Pengajuan', 'Pengguna'])
         expect(option('Penelitian Dasar')?.textContent).toContain('Menunggu Review · Dr. Rina')
         expect(option('Dr. Budi Santoso')?.textContent).toContain('NIDN 0012345678')
     })
@@ -134,7 +135,7 @@ describe('CommandPalette', () => {
         await nextTick()
         expect(status()).toBe(region)
         expect(region?.textContent).toContain('Pencarian gagal. Coba lagi.')
-        expect(groupLabels()).toEqual(['Navigasi'])
+        expect(groupLabels()).toEqual(['Halaman'])
         expect(option('Dashboard')).toBeDefined()
     })
 
@@ -178,7 +179,31 @@ describe('CommandPalette', () => {
         expect(visit).toHaveBeenCalledWith('/hasil/4')
     })
 
-    it('item navigasi membuka route-nya', async () => {
+    it('[K10] fitur ikut dicari, menyebut letaknya, dan membuka route-nya', async () => {
+        await openPalette()
+
+        term.value = 'sandi'
+        await nextTick()
+
+        expect(groupLabels()).toEqual(['Fitur'])
+        const feature = option('Ubah Kata Sandi')
+        expect(feature?.querySelector('[data-palette-location]')?.textContent).toBe('Akun')
+
+        feature?.click()
+        await flushPromises()
+        expect(visit).toHaveBeenCalledWith('/profile.edit')
+    })
+
+    it('[K10] fitur di luar izin user tidak pernah muncul', async () => {
+        await openPalette()
+
+        term.value = 'formulir'
+        await nextTick()
+
+        expect(option('Buat Formulir')).toBeUndefined()
+    })
+
+    it('item halaman membuka route-nya', async () => {
         await openPalette()
 
         option('Dashboard')?.click()
