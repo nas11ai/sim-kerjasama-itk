@@ -4,6 +4,7 @@ namespace App\Support\Reporting;
 
 use App\Models\FormSubmission;
 use App\Models\User;
+use App\States\Submission\Approved;
 use App\Support\ScoreVisibility;
 use Illuminate\Auth\Access\AuthorizationException;
 use InvalidArgumentException;
@@ -63,6 +64,14 @@ final class PrintableDocument
         if (!$submission->isAccessibleBy($user)) {
             throw new AuthorizationException(
                 'Anda tidak berhak membaca pengajuan ini, jadi dokumennya juga tidak dapat dicetak.'
+            );
+        }
+
+        // BR-RPT-13 — surat "diterima" hanya untuk pengajuan yang memang disetujui, juga bagi
+        // Operator: surat yang terbit sebelum keputusan menyatakan keputusan yang belum ada.
+        if ($document === self::ACCEPTANCE_LETTER && !$submission->status instanceof Approved) {
+            throw new AuthorizationException(
+                'Surat Keterangan Diterima dapat dicetak setelah pengajuan disetujui.'
             );
         }
 

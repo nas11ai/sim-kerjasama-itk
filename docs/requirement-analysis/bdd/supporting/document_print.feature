@@ -52,3 +52,21 @@ Feature: Cetak Dokumen PDF
     And "Sari" sudah submit evaluasi siklus "Laporan Monev I" pada "P-001"
     When "Budi" mencetak "Laporan Monev" untuk "P-001"
     Then berkas PDF dihasilkan langsung
+
+  # BR-RPT-13 — Surat Keterangan Diterima menyatakan keputusan, jadi ia baru ada setelah
+  # keputusan itu ada: tidak ditawarkan sebelumnya, dan jalur langsungnya menolak.
+
+  @BR-RPT-13 @M5 @OPERATOR-02-02 @denial
+  Scenario: [RPT-PRINT-07] Surat Keterangan Diterima ditolak sebelum pengajuan disetujui
+    Given submission "P-003" milik "Budi" berstatus UNDER_REVIEW
+    When Operator mencetak "Surat Keterangan Diterima" untuk "P-003"
+    Then cetak ditolak karena pengajuan belum disetujui
+
+  @BR-RPT-13 @M5 @RESEARCHER-02-03 @boundary
+  Scenario: [RPT-PRINT-08] Surat Keterangan Diterima hanya ditawarkan pada pengajuan APPROVED
+    Given submission "P-003" milik "Budi" berstatus SUBMITTED
+    When "Budi" membuka "P-003"
+    Then "Surat Keterangan Diterima" tidak ditawarkan untuk dicetak
+    When "P-003" disetujui
+    And "Budi" membuka "P-003"
+    Then "Surat Keterangan Diterima" ditawarkan untuk dicetak

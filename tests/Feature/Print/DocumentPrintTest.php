@@ -14,7 +14,9 @@ use App\Jobs\GenerateExport;
 use App\Models\ExportJob;
 use App\Models\FormSubmission;
 use App\Models\User;
+use App\Queries\Submission\PrintableDocumentChoices;
 use App\States\Submission\Approved;
+use App\States\Submission\Submitted;
 use App\States\Submission\UnderReview;
 use App\Support\Reporting\ExportThreshold;
 use App\Support\Reporting\ExportWriter;
@@ -191,4 +193,31 @@ it('menawarkan Lembar Penilaian setelah keputusan akhir', function () {
                 fn ($docs) => collect($docs)->pluck('value')->contains(PrintableDocument::SCORE_SHEET)
             )
             ->etc());
+});
+
+it('[RPT-PRINT-07] Surat Keterangan Diterima ditolak sebelum pengajuan disetujui', function () {
+    $submission = printableSubmission(verifiedResearcher(), UnderReview::class);
+
+    expect(fn () => PrintDocument::run(printOperator(), PrintableDocument::ACCEPTANCE_LETTER, $submission))
+        ->toThrow(AuthorizationException::class, 'Surat Keterangan Diterima dapat dicetak setelah pengajuan disetujui.');
+
+    $this->actingAs(printOperator())
+        ->post(route('submissions.print', [$submission->id, PrintableDocument::ACCEPTANCE_LETTER]))
+        ->assertForbidden();
+});
+
+it('[RPT-PRINT-08] Surat Keterangan Diterima hanya ditawarkan pada pengajuan APPROVED', function () {
+    $budi = verifiedResearcher();
+    $submission = printableSubmission($budi, Submitted::class);
+    $offered = fn (): bool => collect(PrintableDocumentChoices::run($budi, $submission->fresh()))
+        ->pluck('value')
+        ->contains(PrintableDocument::ACCEPTANCE_LETTER);
+
+    expect($offered())->toBeFalse();
+
+    $submission->status->transitionTo(UnderReview::class);
+    expect($offered())->toBeFalse();
+
+    $submission->refresh()->status->transitionTo(Approved::class);
+    expect($offered())->toBeTrue();
 });

@@ -1,8 +1,11 @@
 # BC: Reporting
 
 **Klasifikasi:** 🟡 Supporting Domain  
-**Versi:** 1.1  
+**Versi:** 1.2  
 **Status:** Draft
+
+> **Perubahan v1.1 → v1.2** (keputusan pemilik 2026-11-13, E2E-14). BR-RPT-13 baru:
+> Surat Keterangan Diterima hanya untuk pengajuan APPROVED, juga bagi Operator.
 
 ---
 
@@ -155,6 +158,7 @@ Implementasi via `spatie/laravel-activitylog`. Aksi yang dicatat:
 | BR-RPT-10 | Researcher boleh mengekspor datanya sendiri, **ter-scope dengan aturan yang sama persis seperti BR-RPT-05**: Operator seluruh sistem, Researcher hanya submission miliknya. Ekspor tidak melahirkan konsep scoping kedua — query dan batasnya sama, hanya pemanggilnya berbeda |
 | BR-RPT-11 | Cetak dokumen PDF mengikuti ambang yang sama dengan ekspor tabular: dokumen sederhana dihasilkan langsung, dokumen kompleks lewat background job dengan notifikasi saat selesai. Empat dokumen yang didukung — Lembar Penilaian, Surat Keterangan Diterima, Rekap Submission per Peneliti, dan Laporan Monev — masing-masing hanya dapat dicetak oleh pihak yang memang berhak membaca isinya; pencetakan **tidak** membuka data yang tertutup aturan lain (mis. skor yang masih ditahan BR-REV-12) |
 | BR-RPT-12 | Berkas hasil ekspor dan cetak **dihapus otomatis setelah 24 jam** lewat scheduled job. Ini terpisah dari masa berlaku signed URL (BR-RPT-03) walau angkanya sama: URL kedaluwarsa berarti tautannya tidak sah lagi, berkasnya terhapus berarti tidak ada yang bisa diambil sama sekali. Keduanya menghasilkan penolakan yang berbeda, dan menyamakannya membuat Operator mengira cukup meminta tautan baru |
+| BR-RPT-13 | **Surat Keterangan Diterima hanya untuk pengajuan APPROVED.** Ia tidak ditawarkan dan tidak bisa dicetak pada status lain, oleh siapa pun termasuk Operator: surat yang terbit sebelum keputusan (atau sesudah penolakan) menyatakan keputusan yang tidak ada. Lapisan ini ditambahkan di atas sumbu BR-RPT-11 (hak membaca pengajuan), bukan menggantikannya |
 
 ---
 
