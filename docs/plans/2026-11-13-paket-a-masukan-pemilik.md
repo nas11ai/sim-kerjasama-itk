@@ -233,3 +233,18 @@ yang identik setelah teksnya diseragamkan). Spec E2E diperbarui tetapi tidak dij
 
 **Catatan:** item sidebar "Buat Pengajuan Baru" punya `routeName: null` (tersembunyi) padahal route
 `user.submissions.create` ada; palette menawarkannya sebagai fitur. Sidebar tidak diubah.
+
+## Paket 2: perbaikan P1 critique (sesi 4, 2026-11-13)
+
+Critique 23/40 (`.impeccable/critique/2026-11-13T14-52-15Z__resources-js.md`, tidak di-commit). Pemilik memilih: locale +
+nada status dulu, dasar netral dengan warna hanya untuk status, cakupan = tiga P1. Gate: pint, phpstan ×2, Pest 2438,
+eslint, prettier, vue-tsc, Vitest 808; detector impeccable 0 temuan baru (blockquote = false positive lama).
+
+| P1 | Perbaikan |
+| -- | --------- |
+| Locale bocor | `config/app.php` mengunci `locale = id` dan `name = SIMPAS` (bukan dari `.env`); `lang/id` (auth, passwords, pagination, validation + nama field); judul tab `... - SIMPAS`; Dasbor → Beranda, Baca-saja → Hanya baca; seeder E2E "Research" → "Penelitian"; "Periode Periode" diatasi `PeriodName` / `formatPeriodName` (awalan hanya bila belum ada); `FileInput` menggantikan tombol "Choose File" bawaan peramban di tujuh tempat; guard Vitest menolak Dasbor, Baca-saja, Laravel di teks UI. |
+| Nada status + kontras | Token `success` / `warning` / `info` (+ tint, garis tepi, light & dark) dan `destructive` 42% (3.76:1 → 6.47:1); badge nada berupa tint (≥5.6:1, success lama 2.3:1); AppBanner per nada (lock tetap netral); `AlertTitle` bukan h5 lagi; ring fokus kontrol 2px. Nada status pengajuan: Draf outline, Menunggu Penilaian / Sedang Dinilai / Diajukan Ulang info, Perlu Revisi warning, Disetujui success, Ditolak destructive, Ditarik Kembali secondary. |
+| Jalur pengajuan pertama | "Buat Pengajuan Baru" kini di sidebar dan tidak pernah nonaktif-dengan-alasan-tersembunyi; ketiga pintu menaut `user.submissions.create`, backend meneruskan ke Lengkapi Profil yang kini menjelaskan pengalihan dan janji kembali ke langkah 1; banner profil Beranda membawa `next=submission`; `EmptyState` punya slot `#action`, Daftar Pengajuan kosong menawarkan pengajuan pertama. |
+
+Sisa yang sengaja tidak dikerjakan: B22 (periode di sambutan, kartu langkah berikutnya), B23 (metode variant tak terpakai,
+nada Monev), B24 (`MAIL_FROM_NAME` dari `.env` lama) di catatan bug. Dev DB perlu di-seed ulang (Pest mengosongkannya).
