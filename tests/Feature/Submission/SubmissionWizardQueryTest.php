@@ -120,7 +120,7 @@ it('[SCH-RULE-10] TRL tersaring skema terpilih', function () {
     $options = SubmissionWizard::run($owner, $submission, 3)['fields'][0]->options;
 
     expect(array_column($options, 'value'))->toBe([(string) $trls[0]->id, (string) $trls[1]->id])
-        ->and($options[0]['label'])->toBe('TRL 1 — Tingkat 1');
+        ->and($options[0]['label'])->toBe('TKT 1 — Tingkat 1');
 });
 
 it('TRL kosong tanpa skema', function () {

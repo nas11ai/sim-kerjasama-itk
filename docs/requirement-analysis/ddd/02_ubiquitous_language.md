@@ -128,6 +128,7 @@ kasus berperilaku salah tanpa ada yang gagal mencolok.
 | **scheme_selector** | FormField type khusus — dropdown scheme yang tersedia di period. Opsional per Form. **Menulis ke `form_submissions.scheme_id`, bukan ke `form_field_responses`** — sekelas dengan RepeatableField. |
 | **submission_title** | FormField type khusus — teks yang jawabannya menjadi **Judul pengajuan**. Paling banyak satu per Form. Disalin ke `form_submissions.title`, jawabannya tetap di `form_field_responses`; tanpa field ini pengajuan tampil dengan judul Form (BR-SM-22). |
 | **trl_selector**    | FormField type khusus — dropdown TRL filtered by scheme terpilih. **Menulis ke `form_submissions.trl_id`.** Hanya valid jika ada `scheme_selector` di Form yang sama.   |
+| **TKT**             | Tingkat Kesiapterapan Teknologi — istilah **tampilan** untuk TRL (keputusan pemilik 2026-11-13). Kode, kolom, dan skenario tetap memakai `trl` (`trl_id`, `trl_selector`).   |
 
 ---
 

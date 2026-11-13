@@ -88,7 +88,7 @@ class ResearcherSubmissionDetail implements ChangesNoState
             title: $submission->displayTitle(),
             scheme: $submission->scheme?->name,
             period: $submission->submissionPeriod?->name,
-            trl: $trl === null ? null : "TRL {$trl->level} — {$trl->name}",
+            trl: $trl === null ? null : "TKT {$trl->level} — {$trl->name}",
             leadName: $submission->submittedBy->name,
             status: SubmissionStatusData::of($submission),
             // Riwayat terurut terbaru dulu; submit pertama adalah entri submit terakhir di daftar.

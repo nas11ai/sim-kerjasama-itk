@@ -92,7 +92,7 @@ final class ReferenceEntityRegistry
             ),
             new ReferenceEntity(
                 key: 'trls',
-                label: 'Technology Readiness Level',
+                label: 'Tingkat Kesiapterapan Teknologi (TKT)',
                 model: TechnologyReadinessLevel::class,
                 usageRelation: 'schemes',
                 usedBy: 'Skema dan form pengajuan',

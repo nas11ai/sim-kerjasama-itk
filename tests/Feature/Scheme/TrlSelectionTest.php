@@ -71,7 +71,7 @@ it('TRL di luar izin skema ditolak', function () {
 
     // Skema diganti, TRL lama yang tidak diizinkan skema baru ikut terkirim.
     saveSchemeStep($fx, $fx['b'], $fx['levels'][0])
-        ->assertSessionHasErrors(['field_'.$fx['trl']->id => 'TRL ini tidak diizinkan skema terpilih.']);
+        ->assertSessionHasErrors(['field_'.$fx['trl']->id => 'TKT ini tidak diizinkan skema terpilih.']);
 
     expect($fx['submission']->fresh())
         ->scheme_id->toBe($fx['a']->id)
@@ -94,7 +94,7 @@ it('perubahan TRL tercatat di audit', function () {
     saveSchemeStep($fx, $fx['a'], $fx['levels'][1]);
     saveSchemeStep($fx, $fx['a'], $fx['levels'][1]);
 
-    $entries = AuditEntry::where('subject_id', $fx['submission']->id)->where('description', 'TRL pengajuan dipilih')->get();
+    $entries = AuditEntry::where('subject_id', $fx['submission']->id)->where('description', 'TKT pengajuan dipilih')->get();
 
     expect($entries)->toHaveCount(1)
         ->and($entries[0]->properties['new'])->toBe(['trl_id' => $fx['levels'][1]->id]);

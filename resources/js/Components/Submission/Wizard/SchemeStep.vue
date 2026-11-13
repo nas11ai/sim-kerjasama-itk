@@ -29,7 +29,7 @@ const update = (fieldId: number, value: WizardFieldValue) => {
 </script>
 
 <template>
-    <SectionCard title="Step 3 — Skema & TRL">
+    <SectionCard title="Langkah 3 — Skema & TKT">
         <!-- BR-SCH-04 -->
         <AppBanner v-if="fields.length === 0" tone="info">
             Form ini tidak memakai skema — batas anggaran tidak berlaku.
@@ -37,7 +37,7 @@ const update = (fieldId: number, value: WizardFieldValue) => {
         <template v-else>
             <WizardFieldList :fields="fields" :values="values" :errors="errors" @update="update" />
             <AppBanner tone="info">
-                Pilihan TRL disaring oleh skema yang dipilih. Batas anggaran dan pilihan target
+                Pilihan TKT disaring oleh skema yang dipilih. Batas anggaran dan pilihan target
                 luaran juga mengikuti skema ini.
             </AppBanner>
         </template>

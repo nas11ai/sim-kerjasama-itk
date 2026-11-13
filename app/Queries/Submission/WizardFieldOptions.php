@@ -72,7 +72,7 @@ class WizardFieldOptions implements ChangesNoState
         return array_values($scheme->allowedTrls()
             ->orderBy('level')
             ->get()
-            ->map(fn (TechnologyReadinessLevel $trl): array => ['value' => (string) $trl->id, 'label' => "TRL {$trl->level} — {$trl->name}"])
+            ->map(fn (TechnologyReadinessLevel $trl): array => ['value' => (string) $trl->id, 'label' => "TKT {$trl->level} — {$trl->name}"])
             ->all());
     }
 }

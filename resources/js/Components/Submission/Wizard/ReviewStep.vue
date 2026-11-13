@@ -33,7 +33,7 @@ const budget = computed(() => {
 const summary = computed(() => [
     { label: 'Judul', value: props.submission.title },
     { label: 'Skema', value: props.review.scheme ?? '—' },
-    { label: 'TRL', value: props.review.trl ?? '—' },
+    { label: 'TKT', value: props.review.trl ?? '—' },
     { label: 'Anggota', value: `${props.review.memberCount} orang` },
     { label: 'Target Luaran', value: `${props.review.targetOutputCount} target` },
     { label: 'Total Anggaran', value: budget.value },

@@ -13,7 +13,7 @@ const summary = computed(() => [
     { label: 'Judul', value: props.submission.title },
     { label: 'Skema', value: props.submission.scheme ?? '—' },
     { label: 'Periode', value: props.submission.period ?? '—' },
-    { label: 'TRL', value: props.submission.trl ?? '—' },
+    { label: 'TKT', value: props.submission.trl ?? '—' },
     { label: 'Tanggal Submit', value: formatDate(props.submission.submittedAt) },
     { label: 'Peran Anda', value: props.submission.viewerRoleLabel },
 ])

@@ -69,7 +69,7 @@ function save() {
     <AppLayout>
         <PageHeader
             :title="title"
-            subtitle="Atur ketentuan skema: batasan utama, aturan tambahan, dan TRL yang diizinkan."
+            subtitle="Atur ketentuan skema: batasan utama, aturan tambahan, dan TKT yang diizinkan."
             :back-href="route('admin.schemes.index')"
             back-label="Daftar Skema"
         >
@@ -83,7 +83,7 @@ function save() {
         <form class="max-w-3xl space-y-6" @submit.prevent="save">
             <SchemeMainRulesCard v-model="main" :options="options" :errors="form.errors" />
             <SchemeExtraRulesCard v-model="form.rules" :options="options" :errors="form.errors" />
-            <SectionCard title="TRL yang Diizinkan">
+            <SectionCard title="TKT yang Diizinkan">
                 <TrlPicker v-model="form.allowed_trl_ids" :options="options.trls" />
             </SectionCard>
             <div class="flex items-center justify-between">

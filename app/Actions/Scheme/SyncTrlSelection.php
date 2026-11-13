@@ -40,7 +40,7 @@ class SyncTrlSelection
         $submission->update(['trl_id' => $trlId]);
 
         // BR-RPT-09 — dicatat hanya saat berpindah, sama dengan SyncSchemeSelection.
-        AuditTrail::record('TRL pengajuan dipilih', $submission, null, new AuditChange(
+        AuditTrail::record('TKT pengajuan dipilih', $submission, null, new AuditChange(
             old: ['trl_id' => $sebelumnya],
             new: ['trl_id' => $trlId],
         ));
@@ -60,7 +60,7 @@ class SyncTrlSelection
 
         if (!$allowed) {
             throw ValidationException::withMessages([
-                'field_'.$field->id => 'TRL ini tidak diizinkan skema terpilih.',
+                'field_'.$field->id => 'TKT ini tidak diizinkan skema terpilih.',
             ]);
         }
 

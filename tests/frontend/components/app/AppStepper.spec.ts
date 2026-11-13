@@ -7,7 +7,7 @@ import type { WizardStep } from '@/types/submission-wizard'
 const labels = [
     'Pilih Form & Periode',
     'Informasi Dasar',
-    'Skema, TRL & Target Luaran',
+    'Skema, TKT & Target Luaran',
     'Anggota Penelitian',
     'Rencana Anggaran',
     'Upload Berkas',

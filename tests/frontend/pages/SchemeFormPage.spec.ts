@@ -119,7 +119,7 @@ describe('Scheme/FormPage', () => {
         const edit = mountPage(scheme()).text()
         expect(edit).toContain('Edit Skema — Penelitian DIPA')
         expect(edit).toContain(
-            'Atur ketentuan skema: batasan utama, aturan tambahan, dan TRL yang diizinkan.'
+            'Atur ketentuan skema: batasan utama, aturan tambahan, dan TKT yang diizinkan.'
         )
         expect(edit).toContain('Aktif')
         expect(edit).toContain('Kode harus unik antar skema.')

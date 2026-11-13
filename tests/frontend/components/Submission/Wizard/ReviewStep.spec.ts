@@ -24,7 +24,7 @@ const submission: WizardSubmission = {
 
 const review: WizardReview = {
     scheme: 'Penelitian DIPA',
-    trl: 'TRL 4 — Validasi Lab',
+    trl: 'TKT 4 — Validasi Lab',
     memberCount: 3,
     targetOutputCount: 2,
     budgetTotal: 45_000_000,

@@ -40,7 +40,7 @@ final class SchemeFieldGuard
         if ($hasTrl && !$hasScheme) {
             throw ValidationException::withMessages([
                 'fields' => 'Field bertipe trl_selector membutuhkan scheme_selector di Form yang sama — '
-                    .'pilihan TRL disaring oleh skema yang dipilih.',
+                    .'pilihan TKT disaring oleh skema yang dipilih.',
             ]);
         }
     }
