@@ -36,6 +36,9 @@ dikerjakan berurutan sesudahnya.
 - K7 `/` untuk tamu = welcome page (membalik W157) dengan pengumuman publik; user masuk tetap ke Beranda.
   Panel pengumuman di halaman login tetap ("juga ada" = tambahan, bukan pindah).
 - K8 Pratinjau formulir sudah ada (G3-W8, `FormPreview`) — tidak ada task.
+- K9 (pemilik, 2026-11-13 di tengah sesi) Teks UI yang dilihat user **tidak boleh** memuat "—". Pemisah judul → titik dua
+  ("Langkah 3: Skema & TKT", "TKT 4: Validasi Lab"); keterangan → kurung ("Fakultas X (beserta unit di bawahnya)");
+  nilai kosong → "-". Komentar kode, dokumen DDD/BDD, dan pesan commit bukan UI.
 
 ## Global Constraints
 
@@ -157,6 +160,11 @@ Notification subject/line, judul ekspor); test Pest/Vitest/Playwright yang meneg
 - [ ] Per istilah K2: `grep -rnw` di `resources/js` dan `app`, ganti hanya teks tampilan (bukan value, key, route,
   nama tipe, komentar kode). Nomor W/BR di komentar dibiarkan.
 - [ ] Jalankan suite per area yang tersentuh; perbaiki assert teks. vue-tsc → 0 error.
+- [ ] K9: ganti setiap "—" di teks tampilan (template Vue tanpa komentar HTML, string literal TS/Vue-script, string literal
+  PHP di `app/` lewat `token_get_all`) menurut aturan K9.
+- [ ] Guard: `tests/Unit/Architecture/NoEmDashInUiTest.php` — token string PHP di `app/` (bukan komentar) tanpa "—";
+  Vitest `tests/frontend/architecture/noEmDash.spec.ts` — bagian `<template>` setiap `.vue` (komentar HTML dibuang) dan
+  string literal di `resources/js/**/*.{ts,vue}` tanpa "—".
 - [ ] Commit per kelompok (navigasi & shell; pengajuan; penilaian; formulir; identitas & laporan).
 
 ### Task 8: Gate penuh + dokumentasi
