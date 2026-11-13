@@ -36,6 +36,10 @@ dikerjakan berurutan sesudahnya.
 - K7 `/` untuk tamu = welcome page (membalik W157) dengan pengumuman publik; user masuk tetap ke Beranda.
   Panel pengumuman di halaman login tetap ("juga ada" = tambahan, bukan pindah).
 - K8 Pratinjau formulir sudah ada (G3-W8, `FormPreview`) — tidak ada task.
+- K10 (pemilik, 2026-11-13 di tengah sesi) Kotak pencarian topbar mencari **halaman dan fitur** seperti command palette
+  pada umumnya (GitHub, Linear, VS Code): hasil instan di klien, cocok sebagian kata dan sinonim (termasuk istilah Inggris
+  lama), letaknya di menu tampil di samping, hanya yang boleh dibuka user. Fitur = tindakan yang punya halaman tujuan
+  langsung; fitur di dalam satu pengajuan (mis. tambah anggota) tidak didaftar karena butuh konteks.
 - K9 (pemilik, 2026-11-13 di tengah sesi) Teks UI yang dilihat user **tidak boleh** memuat "—". Pemisah judul → titik dua
   ("Langkah 3: Skema & TKT", "TKT 4: Validasi Lab"); keterangan → kurung ("Fakultas X (beserta unit di bawahnya)");
   nilai kosong → "-". Komentar kode, dokumen DDD/BDD, dan pesan commit bukan UI.
@@ -166,6 +170,35 @@ Notification subject/line, judul ekspor); test Pest/Vitest/Playwright yang meneg
   Vitest `tests/frontend/architecture/noEmDash.spec.ts` — bagian `<template>` setiap `.vue` (komentar HTML dibuang) dan
   string literal di `resources/js/**/*.{ts,vue}` tanpa "—".
 - [ ] Commit per kelompok (navigasi & shell; pengajuan; penilaian; formulir; identitas & laporan).
+
+### Task 9: Pencarian halaman & fitur di topbar
+
+**Files:** `resources/js/lib/navigation.ts`, create `resources/js/lib/paletteEntries.ts`,
+`resources/js/Components/app/CommandPalette.vue`, tests `tests/frontend/lib/paletteEntries.spec.ts`,
+`tests/frontend/components/app/CommandPalette.spec.ts`, `docs/design/fe-v2-design.md` (catatan K2 → K10).
+
+**Interfaces:** `NavItem.keywords?: string[]`; `PaletteEntry { kind: 'page' | 'feature'; label; icon; routeName;
+routeParams?; location: string | null; keywords: string[]; anyPermission; requiresOutputSubmission?; requiresMonevSubmission? }`;
+`paletteEntries(groups: VisibleNavGroup[], permissions, flags): PaletteEntry[]` (halaman = item sidebar terlihat, `location`
+= label grupnya; plus `FEATURES` tersaring izin); `searchPalette(entries, term, limit = 8): PaletteEntry[]`.
+
+- [ ] `FEATURES` (route · izin · letak): Buat Pengajuan Baru (`user.submissions.create` · submissions.create · Pengajuan),
+  Ubah Profil & Foto (`profile.edit` · semua · Akun), Ubah Kata Sandi (`profile.edit` · semua · Akun),
+  Buat Pengumuman (`admin.announcements.create` · announcements.manage · Manajemen), Undang Pengguna
+  (`admin.invitations.index` · users.verify|users.manage), Verifikasi NIDN (`admin.verifications.index` · users.verify),
+  Tunjuk Penilai (`admin.reviewers.index` · reviewers.assign), Buat Formulir (`admin.forms.create`), Buat Formulir Evaluasi
+  (`admin.evaluation-forms.create`), Buat Tahap (`admin.phases.create`), Buat Skema (`admin.schemes.create`) — empat terakhir
+  schemes.manage · Konfigurasi; Ekspor Data (`reporting.exports.index` · reporting.export · Laporan), Statistik Saat Ini /
+  Riwayat / Tindak Lanjut (`reporting.stats` + tab `now|history|follow-up`), Catat Luaran (`research-outputs.create` ·
+  outputs.manage + requiresOutputSubmission). Kata kunci memuat sinonim + istilah lama (form, user, reviewer, export,
+  dashboard, password, audit log, …).
+- [ ] `searchPalette`: normalisasi huruf kecil + buang diakritik; setiap token kueri harus cocok di label, letak, atau kata
+  kunci. Urutan: label diawali kueri < kata di label diawali kueri < label memuat kueri < cocok lewat letak/kata kunci;
+  seri → urutan asli. Kueri kosong → semua halaman sidebar (perilaku lama), tanpa fitur. Tes: "sandi" → Ubah Kata Sandi;
+  "form" → Pembuat Formulir & Buat Formulir; "user" → Pengguna & Verifikasi; "eks dat" → Ekspor Data; peneliti tidak
+  pernah melihat entri schemes.manage; satu route+params muncul sekali.
+- [ ] Palette: grup "Halaman" dan "Fitur" di atas hasil server; tiap item menampilkan `location` redup di kanan;
+  placeholder "Cari halaman, fitur, pengajuan, pengguna...". Commit `feat(search): palette mencari halaman dan fitur`.
 
 ### Task 8: Gate penuh + dokumentasi
 
