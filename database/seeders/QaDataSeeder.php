@@ -9,6 +9,7 @@ use App\Models\UserProfile;
 use Database\Seeders\Qa\QaAccounts;
 use Database\Seeders\Qa\QaCatalog;
 use Database\Seeders\Qa\QaClock;
+use Database\Seeders\Qa\QaHistory;
 use Database\Seeders\Qa\QaScenarios;
 use Database\Seeders\Qa\QaSubmissionFlow;
 use Illuminate\Database\Seeder;
@@ -46,7 +47,9 @@ class QaDataSeeder extends Seeder
         $sets = array_map(QaAccounts::build(...), range(1, self::SETS));
         $flow = new QaSubmissionFlow($catalog);
 
+        // Riwayat lebih dulu: draf tahun ini harus tetap baris terbaru wizard peneliti yang sama.
         foreach ($sets as $set) {
+            QaHistory::build($set, $flow);
             QaScenarios::build($set, $flow);
         }
     }

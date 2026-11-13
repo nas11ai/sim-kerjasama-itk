@@ -22,6 +22,7 @@ use App\Actions\Review\FinishReviewRound;
 use App\Actions\Review\OpenEvaluationResponse;
 use App\Actions\Review\OpenReviewThread;
 use App\Actions\Review\RejectSubmission;
+use App\Actions\Review\StartEvaluationForm;
 use App\Actions\Review\SubmitEvaluationAnswers;
 use App\Data\Request\EvaluationAnswersInput;
 use App\Data\Request\MonevReportInput;
@@ -106,13 +107,18 @@ final class QaSubmissionFlow
         AssignReviewers::run($submission->refresh(), array_map(fn (Reviewer $r): int => $r->id, $reviewers), true);
     }
 
-    /** Jawaban akhir setiap lembar penilaian yang ditugaskan ke kursi penilai ini. */
+    /**
+     * Penilai membuka setiap lembar penilaian aktif langkah ini (StartEvaluationForm, sama dengan layar;
+     * mengembalikan penugasan yang sudah ada) lalu mengirim jawaban akhirnya. Kursi Monev tidak diberi
+     * lembar saat ditugaskan, jadi jalur "buka lembar" inilah yang membuatnya.
+     */
     public function evaluate(FormSubmission $submission, Reviewer $reviewer, int $score = 80): void
     {
-        $seat = $this->seat($submission, $reviewer);
         $user = $reviewer->user()->sole();
+        $steps = $submission->refresh()->formPhaseDetail()->sole()->stepEvaluationForms()->where('is_active', true)->with('reviewEvaluationForm')->get();
 
-        foreach ($seat->activeReviewerFormAssignments()->get() as $assignment) {
+        foreach ($steps as $step) {
+            $assignment = StartEvaluationForm::run($submission, $step->reviewEvaluationForm()->sole(), $user);
             $version = OpenEvaluationResponse::run($assignment, $user)->reviewEvaluationFormVersion()->sole();
             $answers = $version->reviewFormFields()->get()->mapWithKeys(fn (ReviewFormField $field): array => [
                 $field->id => $field->fieldType?->name === 'number' ? (string) $score : 'Substansi dan metodologi sudah memadai.',
