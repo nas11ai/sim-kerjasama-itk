@@ -208,4 +208,26 @@ routeParams?; location: string | null; keywords: string[]; anyPermission; requir
 
 ## Status
 
-(diisi saat eksekusi)
+**2026-11-13 (sesi 1)** di branch `worktree-paket-a` (dir `.claude/worktrees/r1-jadwal-periode`, dari 3aee1268), belum di-merge/push:
+
+| Task | Status | Commit |
+| ---- | ------ | ------ |
+| 1 TKT | ☑ | 79da224f |
+| 2 Operator `schemes.manage` | ☑ | e7f5f5bd |
+| 3 Label hak akses + tooltip | ☑ | 0856a552 |
+| 4 Organisasi multi-pilih | ☑ (komponen jadi `Components/app/MultiOptionPicker.vue`: daftar centang bercari, bukan popover) | 161a9e3a |
+| 5 Jurusan | ☑ (3 fakultas, 6 jurusan, 26 prodi; `Organization::facultyAncestor()`) | 39e3ac4e |
+| 6 Welcome page | ☑ (W174 di fe-v2-design) | 7dbbc978 |
+| 9 Palette halaman & fitur | ☑ (`searchNavItems` diganti `lib/paletteEntries.ts`) | 56b23699 |
+| 7 Sapuan istilah | ◐ em-dash ☑ (e9bc1476, dua guard test); kelompok navigasi & shell ☑ (d1014510); sisa ☐ | |
+| 8 Gate | ☑ untuk isi di atas: pint, phpstan ×2, Pest 2422, eslint, prettier, vue-tsc, Vitest 798 | |
+
+**Sisa Task 7 (sesi berikutnya):** sapuan per kelompok sesuai `docs/design/2026-11-13-glosarium-ui.md` — pengajuan
+(Submission/Submit/Draft/Step/Field/Upload/File), penilaian (Review/Reviewer), formulir (Form/Phase/Field/Edit),
+identitas & laporan (User/Role/Password/Login/Export/Link/Researcher). Ekstraktor kandidat: skrip yang memindai template
+Vue + token string TS (≈1.100 baris kandidat di `resources/js`, banyak di antaranya value/route yang harus dilewati) dan
+token string PHP di `app/`. Jebakan: ganti frasa utuh, bukan kata ("Penugasan Reviewer" → "Penugasan Penilaianer" sempat
+terjadi saat "Review" diganti lebih dulu).
+
+**Catatan:** item sidebar "Buat Pengajuan Baru" punya `routeName: null` (tersembunyi) padahal route
+`user.submissions.create` ada; palette menawarkannya sebagai fitur. Sidebar tidak diubah.
