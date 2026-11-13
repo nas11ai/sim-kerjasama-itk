@@ -40,6 +40,7 @@ const pendingRow: UserRowData = {
         verification: { value: 'pending', label: 'Menunggu Verifikasi' },
         online: true,
         lastActiveAt: '2026-11-02T08:00:00+08:00',
+        checkedAt: '2026-11-02T08:01:00+08:00',
     },
     showUrl: '/admin/users/7',
 }
@@ -49,7 +50,13 @@ const invitedRow: UserRowData = {
     id: 8,
     name: 'Ir. Joko Susilo',
     nidn: null,
-    status: { active: false, verification: null, online: false, lastActiveAt: null },
+    status: {
+        active: false,
+        verification: null,
+        online: false,
+        lastActiveAt: null,
+        checkedAt: '2026-11-02T08:01:00+08:00',
+    },
     showUrl: '/admin/users/8',
 }
 

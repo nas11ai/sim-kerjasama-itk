@@ -20,7 +20,13 @@ describe('AccountStatusBadges', () => {
         const wrapper = mount(AccountStatusBadges, {
             props: {
                 userId: 7,
-                status: { active: true, verification: null, online: false, lastActiveAt: null },
+                status: {
+                    active: true,
+                    verification: null,
+                    online: false,
+                    lastActiveAt: null,
+                    checkedAt: new Date().toISOString(),
+                },
             },
         })
         expect(wrapper.text()).not.toContain('Sedang aktif')

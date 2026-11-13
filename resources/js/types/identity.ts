@@ -8,11 +8,13 @@ export type Option = FilterOption
 // Sumber: AccountStatusData. `verification` null = terverifikasi, akun undangan, atau tanpa profil (W49).
 // `online` = aktivitas sesi ≤ 5 menit (BR-IAM-21); `lastActiveAt` null = tak ada sesi tercatat.
 // Di layar, keduanya dihitung ulang oleh useLiveAccountStatus dari dorongan session.active (RT1).
+// `checkedAt` = jam server saat status dibaca; dipakai untuk mengoreksi jam perangkat (E2E-16).
 export interface AccountStatus {
     active: boolean
     verification: Option | null
     online: boolean
     lastActiveAt: string | null
+    checkedAt: string
 }
 
 // Sumber: UserRowData.

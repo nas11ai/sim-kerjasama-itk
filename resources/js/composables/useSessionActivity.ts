@@ -1,4 +1,4 @@
-import { computed, onUnmounted, reactive, ref, type ComputedRef } from 'vue'
+import { computed, onUnmounted, reactive, ref, watch, type ComputedRef } from 'vue'
 
 import { echo } from '@/lib/echo'
 import type { AccountStatus } from '@/types/identity'
@@ -19,6 +19,10 @@ interface SessionActive {
 
 const pushed = reactive(new Map<number, string>())
 const now = ref(Date.now())
+// E2E-16 — jam perangkat dikurangi jam server, diukur dari status server tersegar yang pernah
+// diterima. Status lama (mis. dipulihkan dari riwayat Inertia) tidak menggeser ukurannya.
+const clockOffset = ref(0)
+let freshestCheckedAt = Number.NEGATIVE_INFINITY
 let consumers = 0
 let timer: ReturnType<typeof setInterval> | null = null
 
@@ -49,6 +53,16 @@ function unsubscribe(): void {
     echo()?.leave(CHANNEL)
 }
 
+function observeServerClock(checkedAt: string): void {
+    const serverTime = Date.parse(checkedAt)
+    if (Number.isNaN(serverTime) || serverTime <= freshestCheckedAt) {
+        return
+    }
+
+    freshestCheckedAt = serverTime
+    clockOffset.value = Date.now() - serverTime
+}
+
 function latest(server: string | null, event: string | undefined): string | null {
     if (event === undefined) {
         return server
@@ -64,12 +78,15 @@ export function useLiveAccountStatus(
     // Di setup, bukan onMounted: render pertama harus memakai jam sekarang, bukan `now` basi.
     subscribe()
     onUnmounted(unsubscribe)
+    watch(() => status().checkedAt, observeServerClock, { immediate: true })
 
     return computed(() => {
         const base = status()
         const lastActiveAt = latest(base.lastActiveAt, pushed.get(userId()))
+        // BR-IAM-21 — umur aktivitas dihitung dengan jam server perkiraan, bukan jam perangkat.
+        const serverNow = now.value - clockOffset.value
         const online =
-            lastActiveAt !== null && now.value - Date.parse(lastActiveAt) <= ONLINE_WINDOW_MS
+            lastActiveAt !== null && serverNow - Date.parse(lastActiveAt) <= ONLINE_WINDOW_MS
 
         return { ...base, lastActiveAt, online }
     })

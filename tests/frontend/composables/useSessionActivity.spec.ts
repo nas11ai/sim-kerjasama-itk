@@ -22,6 +22,7 @@ const offline: AccountStatus = {
     verification: null,
     online: false,
     lastActiveAt: null,
+    checkedAt: NOW.toISOString(),
 }
 
 async function load() {
@@ -118,6 +119,46 @@ describe('useLiveAccountStatus', () => {
         b.unmount()
         expect(fake.leave).toHaveBeenCalledWith('identity.activity')
         expect(vi.getTimerCount()).toBe(0)
+    })
+
+    it('[IAM-SESSION-02] jam perangkat yang meleset tidak menggeser badge (E2E-16)', async () => {
+        // Jam server 10:00; perangkat ini 10 menit lebih cepat.
+        vi.setSystemTime(new Date(NOW.getTime() + 10 * 60_000))
+        const twoMinutesAgo = new Date(NOW.getTime() - 2 * 60_000).toISOString()
+        const { live } = await probe(7, { ...offline, online: true, lastActiveAt: twoMinutesAgo })
+
+        expect(live().online).toBe(true)
+
+        vi.advanceTimersByTime(3 * 60_000 + 30_000)
+
+        expect(live().online).toBe(false)
+    })
+
+    it('jam perangkat yang tertinggal juga dikoreksi lewat dorongan session.active', async () => {
+        // Perangkat 10 menit lebih lambat: tanpa koreksi, dorongan baru tampak aktif sampai 15 menit.
+        vi.setSystemTime(new Date(NOW.getTime() - 10 * 60_000))
+        const { live } = await probe(7, offline)
+        listener?.({ userId: 7, at: NOW.toISOString() })
+        expect(live().online).toBe(true)
+
+        vi.advanceTimersByTime(5 * 60_000 + 30_000)
+
+        expect(live().online).toBe(false)
+    })
+
+    it('status lama yang dipulihkan tidak menggeser koreksi jam', async () => {
+        const module = await load()
+        mountProbe(module, 8, offline)
+        // Status dari riwayat: checkedAt satu jam lalu, lastActiveAt dua menit sebelumnya.
+        const hourAgo = NOW.getTime() - 60 * 60_000
+        const restored = mountProbe(module, 7, {
+            ...offline,
+            online: true,
+            lastActiveAt: new Date(hourAgo - 2 * 60_000).toISOString(),
+            checkedAt: new Date(hourAgo).toISOString(),
+        })
+
+        expect(restored().online).toBe(false)
     })
 
     it('tanpa Reverb status mengikuti prop dan tetap padam setelah jendela lewat', async () => {

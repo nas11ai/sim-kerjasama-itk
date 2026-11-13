@@ -64,6 +64,7 @@ const props = (overrides: Partial<UserShowPageProps> = {}): UserShowPageProps =>
             verification: null,
             online: false,
             lastActiveAt: '2026-11-02T07:00:00+08:00',
+            checkedAt: '2026-11-02T08:00:00+08:00',
         },
     },
     access: {

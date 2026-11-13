@@ -101,6 +101,7 @@ it('nilai filter tak dikenal diabaikan', function () {
 });
 
 it('status verifikasi null untuk akun terverifikasi dan akun tanpa profil', function () {
+    $this->freezeSecond();
     UserProfile::factory()->create(['user_id' => User::factory()->create(['name' => 'Budi Terverifikasi'])->id]);
     User::factory()->create(['name' => 'Cici Tanpa Profil']);
     UserProfile::factory()->rejected()->create(['user_id' => User::factory()->create(['name' => 'Dodi Ditolak'])->id]);
@@ -108,7 +109,7 @@ it('status verifikasi null untuk akun terverifikasi dan akun tanpa profil', func
     $this->actingAs(directoryViewer())->get(route('admin.users.index'))
         ->assertInertia(fn (Assert $page) => $page
             ->where('users.data.1.name', 'Budi Terverifikasi')
-            ->where('users.data.1.status', ['active' => true, 'verification' => null, 'online' => false, 'lastActiveAt' => null])
+            ->where('users.data.1.status', ['active' => true, 'verification' => null, 'online' => false, 'lastActiveAt' => null, 'checkedAt' => now()->toIso8601String()])
             ->where('users.data.2.status.verification', null)
             ->where('users.data.3.status.verification', ['value' => 'rejected', 'label' => 'Ditolak'])
             ->where('users.data.1.showUrl', route('admin.users.show', User::query()->where('name', 'Budi Terverifikasi')->value('id'))));

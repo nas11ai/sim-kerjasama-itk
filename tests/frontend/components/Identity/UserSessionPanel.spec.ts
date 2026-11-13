@@ -25,7 +25,13 @@ const user: UserDetailData = {
     organization: null,
     expertise: null,
     registeredAt: null,
-    status: { active: true, verification: null, online: false, lastActiveAt: null },
+    status: {
+        active: true,
+        verification: null,
+        online: false,
+        lastActiveAt: null,
+        checkedAt: new Date().toISOString(),
+    },
 }
 
 const Stub = defineComponent({

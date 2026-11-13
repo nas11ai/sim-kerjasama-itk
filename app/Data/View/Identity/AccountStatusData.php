@@ -21,6 +21,9 @@ final class AccountStatusData extends Data
         public ?array $verification,
         public bool $online,
         public ?string $lastActiveAt,
+        // E2E-16 — jam server saat status dibaca; klien mengukur selisih jam perangkatnya dari
+        // sini, jadi badge "Sedang aktif" tidak ikut meleset bersama jam perangkat.
+        public string $checkedAt,
     ) {}
 
     /** BR-IAM-21 — `$lastActiveAt` dari SessionRegistry; null = tak ada sesi tercatat. */
@@ -35,6 +38,7 @@ final class AccountStatusData extends Data
                 : ['value' => $status->value, 'label' => $status->label()],
             online: SessionRegistry::isOnline($lastActiveAt),
             lastActiveAt: $lastActiveAt?->toIso8601String(),
+            checkedAt: CarbonImmutable::now()->toIso8601String(),
         );
     }
 }
