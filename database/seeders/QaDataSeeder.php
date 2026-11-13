@@ -6,7 +6,10 @@ use App\Enums\VerificationStatus;
 use App\Models\Organization;
 use App\Models\User;
 use App\Models\UserProfile;
+use Database\Seeders\Qa\QaCatalog;
+use Database\Seeders\Qa\QaClock;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Carbon;
 use RuntimeException;
 
 /**
@@ -34,7 +37,9 @@ class QaDataSeeder extends Seeder
         config(['queue.default' => 'sync', 'broadcasting.default' => 'log']);
         fake()->seed(20261114);
 
-        $this->admin();
+        // Admin lahir bersama katalog, di awal tahun lalu, supaya log audit tidak berisi pelaku yang "belum terdaftar".
+        $admin = QaClock::at(Carbon::create(now()->year - 1, 1, 5, 8), fn (): User => $this->admin());
+        $catalog = QaCatalog::build($admin);
     }
 
     private function guard(): void
