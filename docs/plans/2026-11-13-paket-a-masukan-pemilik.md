@@ -219,15 +219,17 @@ routeParams?; location: string | null; keywords: string[]; anyPermission; requir
 | 5 Jurusan | ☑ (3 fakultas, 6 jurusan, 26 prodi; `Organization::facultyAncestor()`) | 39e3ac4e |
 | 6 Welcome page | ☑ (W174 di fe-v2-design) | 7dbbc978 |
 | 9 Palette halaman & fitur | ☑ (`searchNavItems` diganti `lib/paletteEntries.ts`) | 56b23699 |
-| 7 Sapuan istilah | ◐ em-dash ☑ (e9bc1476, dua guard test); kelompok navigasi & shell ☑ (d1014510); sisa ☐ | |
-| 8 Gate | ☑ untuk isi di atas: pint, phpstan ×2, Pest 2422, eslint, prettier, vue-tsc, Vitest 798 | |
+| 7 Sapuan istilah | ☑ em-dash (e9bc1476); navigasi & shell (d1014510); pengajuan, penilaian, formulir, identitas & laporan (sesi 2) | lihat commit sesi 2 |
+| 8 Gate | ☑ sesi 2: pint, phpstan ×2, Pest 2424, eslint, prettier, vue-tsc, Vitest 798 | |
 
-**Sisa Task 7 (sesi berikutnya):** sapuan per kelompok sesuai `docs/design/2026-11-13-glosarium-ui.md` — pengajuan
-(Submission/Submit/Draft/Step/Field/Upload/File), penilaian (Review/Reviewer), formulir (Form/Phase/Field/Edit),
-identitas & laporan (User/Role/Password/Login/Export/Link/Researcher). Ekstraktor kandidat: skrip yang memindai template
-Vue + token string TS (≈1.100 baris kandidat di `resources/js`, banyak di antaranya value/route yang harus dilewati) dan
-token string PHP di `app/`. Jebakan: ganti frasa utuh, bukan kata ("Penugasan Reviewer" → "Penugasan Penilaianer" sempat
-terjadi saat "Review" diganti lebih dulu).
+**Sesi 2 (2026-11-13), sisa Task 7:** satu sapuan untuk keempat kelompok, karena teksnya bercampur di berkas yang sama.
+Pengubah berbasis token (template Vue, string TS, string PHP) dengan aturan frasa berurutan lalu ditinjau di diff.
+Keputusan yang dicatat di glosarium: nama status pengajuan (Draf, Menunggu Penilaian, Sedang Dinilai, ...) dan
+`SubmissionStatus::options()` diselaraskan dengan `label()` (sebelumnya Inggris di filter), dijaga test;
+deskripsi log audit **tidak** diganti karena jadi kunci kueri (catatan bug B18). Tambahan: dokumen cetak Blade
+("Judul Formulir", nilai kosong "-") dan guard em-dash untuk Blade; sidebar "Fase" → "Tahap"; pesan validasi lembar
+penilaian kini bahasa Indonesia; `Submission/IndexPage` dan `Review/HistoryPage` memakai `FilterToolbar` (blok kotak-cari
+yang identik setelah teksnya diseragamkan). Spec E2E diperbarui tetapi tidak dijalankan (butuh server).
 
 **Catatan:** item sidebar "Buat Pengajuan Baru" punya `routeName: null` (tersembunyi) padahal route
 `user.submissions.create` ada; palette menawarkannya sebagai fitur. Sidebar tidak diubah.

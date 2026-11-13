@@ -13,7 +13,10 @@ Peta irisan: `docs/plans/2026-11-10-fase-reuse-roadmap.md`.
 
 ## Terbuka
 
-Tidak ada.
+| #   | Temuan | Perbaikan yang diusulkan |
+| --- | ------ | ------------------------ |
+| B18 | Paket A K2: deskripsi log audit masih istilah lama ("Pengajuan disubmit", "Draft pengajuan dibuat", "Reviewer ditugaskan", ...) dan tampil apa adanya di Log Audit, Aktivitas Terbaru, dan riwayat pengajuan. Sapuan istilah sengaja tidak menyentuhnya: deskripsi dipakai sebagai kunci (`FirstSubmitAt`, `TargetOutputHistory`, `MonevCycles::REPORT_SUBMITTED_AUDIT`, filter Aksi di `AuditLogList`) dan baris lama di basis data memakai teks itu. | Peta label tampilan (deskripsi tersimpan → teks UI) di `app/Support/Audit/`, dipakai `AuditEntryRowData`, `RecentActivity`, `SubmissionHistory`, dan opsi filter Aksi; nilai yang disimpan tidak berubah, jadi tanpa migrasi data. |
+| B19 | `App\Queries\Review\EvaluationRequirements` mengembalikan `message` berbahasa Inggris, tetapi tidak punya pemanggil di luar test-nya. | Hapus kueri dan test-nya bila memang tak terpakai, atau terjemahkan bila ada rencana memakainya. |
 
 ## Butuh keputusan pemilik
 

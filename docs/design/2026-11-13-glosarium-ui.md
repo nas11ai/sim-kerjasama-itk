@@ -40,12 +40,28 @@ memakai istilah ubiquitous language (`submission`, `reviewer`, `trl`, ...).
 | Edit                  | Sunting / Ubah              |
 | Read-only             | Hanya baca                  |
 | TRL                   | TKT (Tingkat Kesiapterapan Teknologi) |
+| Lead Researcher       | Ketua Peneliti              |
+| Thread (review)       | Ulir (penilaian)            |
+| Review & Submit       | Periksa & Kirim             |
+| Request (ekspor)      | Ajukan                      |
+| Reset (kata sandi)    | Atur Ulang                  |
+| Workload              | Beban                       |
+| Subtree               | Subunit                     |
+| General / Access Control | Umum / Kontrol Akses     |
+
+Nama status pengajuan: Draf, Menunggu Penilaian, Sedang Dinilai, Perlu Revisi, Diajukan Ulang, Disetujui,
+Ditolak, Ditarik Kembali. `SubmissionStatus::options()` dan `label()` tiap state wajib sama (dijaga test).
+Laporan monev yang terkirim berstatus **Dikirim**.
 
 Tetap: **Monev**, **Operator**, **Email**, **NIDN**, **Admin**.
 
+**Pengecualian:** deskripsi log audit (`AuditTrail::record(...)`, konstanta `AUDIT_DESCRIPTION`) tidak
+diterjemahkan karena dipakai sebagai kunci kueri dan baris lama memakai teks itu. Tampilannya dibereskan lewat
+peta label (catatan bug B18). Kata kunci palette (`lib/paletteEntries.ts`) sengaja tetap memuat istilah lama.
+
 ## Tanda baca (K9)
 
-Teks UI tidak memuat "—". Dijaga `tests/Unit/Architecture/NoEmDashInUiTest.php` (string PHP di `app/`) dan
+Teks UI tidak memuat "—". Dijaga `tests/Unit/Architecture/NoEmDashInUiTest.php` (string PHP di `app/` dan template Blade) dan
 `tests/frontend/architecture/noEmDash.spec.ts` (template dan string skrip di `resources/js`).
 
 | Pemakaian lama                 | Pengganti                          | Contoh                                  |
