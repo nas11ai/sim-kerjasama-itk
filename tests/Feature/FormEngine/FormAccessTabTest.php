@@ -174,17 +174,17 @@ it('aturan form lain tidak bisa dihapus lewat URL form ini', function () {
     expect(FormAccessControl::query()->whereKey($other->id)->exists())->toBeTrue();
 });
 
-it('wewenang: operator 403', function () {
-    $operator = accessTabActor('operator');
+it('wewenang: peneliti 403', function () {
+    $researcher = accessTabActor('researcher');
     $rule = FormAccessControl::create([
         'form_id' => $this->form->id, 'permission' => 'submissions.create', 'organization_id' => $this->faculty->id,
     ]);
 
-    $this->actingAs($operator)->get(route('admin.forms.access.index', $this->form))->assertForbidden();
-    $this->actingAs($operator)
+    $this->actingAs($researcher)->get(route('admin.forms.access.index', $this->form))->assertForbidden();
+    $this->actingAs($researcher)
         ->post(route('admin.forms.access.store', $this->form), ['permission' => 'submissions.create', 'organization_id' => $this->faculty->id])
         ->assertForbidden();
-    $this->actingAs($operator)->delete(route('admin.forms.access.destroy', [$this->form, $rule]))->assertForbidden();
+    $this->actingAs($researcher)->delete(route('admin.forms.access.destroy', [$this->form, $rule]))->assertForbidden();
     expect(FormAccessControl::query()->count())->toBe(1);
 });
 

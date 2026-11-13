@@ -88,10 +88,10 @@ it('kontrak pemasangan form evaluasi di langkah', function () {
         ->assertInertia(fn (AssertableInertia $page) => $page->has('evaluationOptions', 2));
 });
 
-it('wewenang pasang: operator 403', function () {
+it('wewenang pasang: peneliti 403', function () {
     $detail = phaseEvaluationDetail($this->form, true);
 
-    $this->actingAs(phaseEvaluationActor('operator'))
+    $this->actingAs(phaseEvaluationActor('researcher'))
         ->put(route('admin.phases.draft.update', $detail->formPhase), phaseEvaluationDraft($detail, [publishedEvaluation('Lembar Substansi')]))
         ->assertForbidden();
 

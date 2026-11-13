@@ -299,14 +299,14 @@ it('marks never-published forms in the directory', function () {
             ->where('forms.data.0.isPublished', false));
 });
 
-it('forbids an operator from the draft and publish routes', function () {
+it('forbids a researcher from the draft and publish routes', function () {
     $form = Form::factory()->create();
-    $operator = User::factory()->create();
-    $operator->assignRole('operator');
+    $researcher = User::factory()->create();
+    $researcher->assignRole('researcher');
 
-    $this->actingAs($operator)->put(route('admin.forms.draft.update', $form), draftFields([]))->assertForbidden();
-    $this->actingAs($operator)->delete(route('admin.forms.draft.destroy', $form))->assertForbidden();
-    $this->actingAs($operator)->post(route('admin.forms.publish', $form))->assertForbidden();
+    $this->actingAs($researcher)->put(route('admin.forms.draft.update', $form), draftFields([]))->assertForbidden();
+    $this->actingAs($researcher)->delete(route('admin.forms.draft.destroy', $form))->assertForbidden();
+    $this->actingAs($researcher)->post(route('admin.forms.publish', $form))->assertForbidden();
 });
 
 it('locks the form before touching its draft on save, discard, and publish', function () {

@@ -73,6 +73,8 @@ class PermissionSeeder extends Seeder
             'announcements.manage',
             // BR-RO-07 — Operator mengoreksi luaran (identity v2.7, W138).
             'outputs.manage',
+            // Keputusan pemilik 2026-11-13 — Operator mengelola Form Builder, Form Evaluasi, Fase, Skema.
+            'schemes.manage',
         ],
         // admin is synced to the full catalog in run()
         'admin' => [],

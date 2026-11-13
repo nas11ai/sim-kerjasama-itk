@@ -176,7 +176,7 @@ reporting.view-audit-log  organizations.manage
 | `researcher`        | submissions.create, view-own, budget.edit, members.manage, outputs.manage              |
 | `reviewer_internal` | reviewers.evaluate, submissions.view-assigned, reviewers.view-scores-others            |
 | `reviewer_external` | reviewers.evaluate, submissions.view-assigned                                          |
-| `operator`          | submissions.view-all, reviewers.assign, periods.manage, users.verify, organizations.manage, reporting.export, outputs.manage |
+| `operator`          | submissions.view-all, reviewers.assign, periods.manage, schemes.manage, users.verify, organizations.manage, reporting.export, outputs.manage |
 | `admin`             | semua                                                                                  |
 
 > **v2.7 — `outputs.manage` dipegang dua peran dengan makna berbeda.** Bagi `researcher` ia

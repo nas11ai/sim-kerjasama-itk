@@ -364,10 +364,10 @@ it('deletes an unattached form together with its draft', function () {
 
 it('hides the library from users without schemes.manage', function () {
     $form = libraryForm('Lembar Proposal');
-    $operator = User::factory()->create();
-    $operator->assignRole('operator');
+    $researcher = User::factory()->create();
+    $researcher->assignRole('researcher');
 
-    $this->actingAs($operator)->get(route('admin.evaluation-forms.index'))->assertForbidden();
+    $this->actingAs($researcher)->get(route('admin.evaluation-forms.index'))->assertForbidden();
     $this->get(route('admin.evaluation-forms.edit', $form))->assertForbidden();
     $this->put(route('admin.evaluation-forms.draft.update', $form), draftPayload($this->text, 'Dibajak'))->assertForbidden();
     $this->put(route('admin.phases.draft.update', $this->research), libraryDraft($this->researchStep, [[$form, true]]))->assertForbidden();

@@ -66,7 +66,7 @@ it('kontrak konfigurasi umum', function () {
             ->etc());
 });
 
-it('wewenang: pemegang schemes.manage 200, pemegang users.manage saja 403, operator 403', function () {
+it('wewenang: pemegang schemes.manage 200, pemegang users.manage saja 403, peneliti 403', function () {
     $type = SchemeType::factory()->create();
     Permission::findOrCreate('users.manage', 'web');
     $usersOnly = User::factory()->create();
@@ -74,7 +74,7 @@ it('wewenang: pemegang schemes.manage 200, pemegang users.manage saja 403, opera
 
     $this->actingAs(generalConfigActor())->get(route('admin.reference.index'))->assertOk();
 
-    foreach ([$usersOnly, generalConfigActor('operator')] as $actor) {
+    foreach ([$usersOnly, generalConfigActor('researcher')] as $actor) {
         $this->actingAs($actor)->get(route('admin.reference.index'))->assertForbidden();
         $this->actingAs($actor)->post(route('admin.reference.store', 'scheme-types'), ['name' => 'Baru'])->assertForbidden();
         $this->actingAs($actor)->put(route('admin.reference.update', ['scheme-types', $type->id]), ['name' => 'Lain'])->assertForbidden();

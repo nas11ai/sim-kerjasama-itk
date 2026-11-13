@@ -196,11 +196,11 @@ it('hides the link-period action without periods.manage', function () {
     expect(SubmissionPeriodPhase::where('form_phase_id', $phase->id)->exists())->toBeFalse();
 });
 
-it('wewenang: admin 200, operator 403, tamu ke login', function () {
+it('wewenang: admin 200, peneliti 403, tamu ke login', function () {
     $url = route('admin.phases.index');
 
     $this->actingAs(libraryActor())->get($url)->assertOk();
-    $this->actingAs(libraryActor('operator'))->get($url)->assertForbidden();
+    $this->actingAs(libraryActor('researcher'))->get($url)->assertForbidden();
     auth()->logout();
     $this->get($url)->assertRedirect(route('login'));
 });
@@ -217,10 +217,10 @@ it('route tahap bersarang di Form dan daftar tahap global lama sudah dicabut (W1
     expect($legacy)->toBeEmpty();
 });
 
-it('wewenang aktif dan hapus: operator 403', function () {
+it('wewenang aktif dan hapus: peneliti 403', function () {
     $phase = libraryDetail($this->form)->formPhase;
 
-    $this->actingAs(libraryActor('operator'))
+    $this->actingAs(libraryActor('researcher'))
         ->patch(route('admin.phases.active', $phase), ['active' => false])
         ->assertForbidden();
     $this->delete(route('admin.phases.destroy', $phase))->assertForbidden();

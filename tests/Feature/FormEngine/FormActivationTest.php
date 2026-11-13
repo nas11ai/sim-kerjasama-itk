@@ -41,12 +41,12 @@ it('menyetel nilai yang sama tidak mengaudit', function () {
     expect(Activity::query()->where('description', 'Formulir diaktifkan')->count())->toBe(0);
 });
 
-it('wewenang: operator tidak bisa mengubah status maupun menghapus', function () {
+it('wewenang: peneliti tidak bisa mengubah status maupun menghapus', function () {
     $form = Form::factory()->create();
-    $operator = activationActor('operator');
+    $researcher = activationActor('researcher');
 
-    $this->actingAs($operator)->patch(route('admin.forms.active', $form), ['active' => false])->assertForbidden();
-    $this->actingAs($operator)->delete(route('admin.forms.destroy', $form))->assertForbidden();
+    $this->actingAs($researcher)->patch(route('admin.forms.active', $form), ['active' => false])->assertForbidden();
+    $this->actingAs($researcher)->delete(route('admin.forms.destroy', $form))->assertForbidden();
 
     expect($form->fresh()->is_active)->toBeTrue();
 });

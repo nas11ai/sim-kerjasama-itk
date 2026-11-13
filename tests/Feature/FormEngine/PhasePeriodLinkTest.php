@@ -162,17 +162,17 @@ it('kartu tidak memperingatkan periode yang sudah tutup sepenuhnya', function ()
     expect(linkCard($phase)['deadlineGaps'])->toBe([]);
 });
 
-it('wewenang: operator 403 (schemes.manage), pengguna schemes.manage tanpa periods.manage 403', function () {
+it('wewenang: peneliti 403 (schemes.manage), pengguna schemes.manage tanpa periods.manage 403', function () {
     $phase = linkPhase();
     linkPeriodNamed('P1');
     linkDetail($this->form, $phase);
     $p2 = linkPeriodNamed('P2');
-    $operator = User::factory()->create();
-    $operator->assignRole('operator');
+    $researcher = User::factory()->create();
+    $researcher->assignRole('researcher');
     $schemesOnly = User::factory()->create();
     $schemesOnly->givePermissionTo('schemes.manage');
 
-    foreach ([$operator, $schemesOnly] as $actor) {
+    foreach ([$researcher, $schemesOnly] as $actor) {
         $this->actingAs($actor)
             ->post(linkUrl($phase), ['submission_period_id' => $p2->id])
             ->assertForbidden();

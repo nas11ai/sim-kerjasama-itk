@@ -176,15 +176,15 @@ it('update tanpa continue tetap di editor', function () {
         ->assertRedirect(route('admin.forms.access.index', $form));
 });
 
-it('wewenang: operator 403 untuk create, store, edit, update', function () {
+it('wewenang: peneliti 403 untuk create, store, edit, update', function () {
     $form = Form::factory()->create(['form_type_id' => $this->regularType->id]);
-    $operator = formEditActor('operator');
+    $researcher = formEditActor('researcher');
     $payload = formEditPayload($this->regularType->id);
 
-    $this->actingAs($operator)->get(route('admin.forms.create'))->assertForbidden();
-    $this->actingAs($operator)->post(route('admin.forms.store'), $payload)->assertForbidden();
-    $this->actingAs($operator)->get(route('admin.forms.edit', $form))->assertForbidden();
-    $this->actingAs($operator)->put(route('admin.forms.update', $form), $payload)->assertForbidden();
+    $this->actingAs($researcher)->get(route('admin.forms.create'))->assertForbidden();
+    $this->actingAs($researcher)->post(route('admin.forms.store'), $payload)->assertForbidden();
+    $this->actingAs($researcher)->get(route('admin.forms.edit', $form))->assertForbidden();
+    $this->actingAs($researcher)->put(route('admin.forms.update', $form), $payload)->assertForbidden();
 
     expect(Form::query()->count())->toBe(1);
 });

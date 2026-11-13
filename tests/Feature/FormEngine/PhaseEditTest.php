@@ -104,10 +104,10 @@ it('kontrak layar sunting tahap', function () {
             ->missing('deadlineOptions'));
 });
 
-it('wewenang: operator 403', function () {
+it('wewenang: peneliti 403', function () {
     $own = phaseEditDetail($this->form);
 
-    $this->actingAs(phaseEditActor('operator'))
+    $this->actingAs(phaseEditActor('researcher'))
         ->get(route('admin.phases.edit', $own->formPhase))
         ->assertForbidden();
     $this->put(route('admin.phases.update', $own->formPhase), phaseGeneralPayload())
@@ -283,10 +283,10 @@ it('menyimpan tahap baru mengarah ke editornya dengan pesan W95', function () {
         ->assertSessionHas('success', 'Tahap dibuat. Susun langkahnya lalu terbitkan.');
 });
 
-it('wewenang buat: operator 403', function () {
+it('wewenang buat: peneliti 403', function () {
     $reference = phaseEditDetail($this->form);
 
-    $this->actingAs(phaseEditActor('operator'))
+    $this->actingAs(phaseEditActor('researcher'))
         ->get(route('admin.phases.create'))
         ->assertForbidden();
     $this->post(route('admin.phases.store'), phaseEditPayload([phaseEditRow($reference)]))

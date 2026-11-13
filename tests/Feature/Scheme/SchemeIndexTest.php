@@ -81,15 +81,15 @@ it('kontrak daftar skema', function () {
             ]));
 });
 
-it('wewenang: admin 200, operator 403, tamu ke login', function () {
+it('wewenang: admin 200, peneliti 403, tamu ke login', function () {
     $scheme = Scheme::factory()->create(['is_active' => true]);
 
     $this->actingAs(schemeListActor())->get(route('admin.schemes.index'))->assertOk();
 
-    $operator = schemeListActor('operator');
-    $this->actingAs($operator)->get(route('admin.schemes.index'))->assertForbidden();
-    $this->actingAs($operator)->post(route('admin.schemes.deactivate', $scheme))->assertForbidden();
-    $this->actingAs($operator)->post(route('admin.schemes.activate', $scheme))->assertForbidden();
+    $researcher = schemeListActor('researcher');
+    $this->actingAs($researcher)->get(route('admin.schemes.index'))->assertForbidden();
+    $this->actingAs($researcher)->post(route('admin.schemes.deactivate', $scheme))->assertForbidden();
+    $this->actingAs($researcher)->post(route('admin.schemes.activate', $scheme))->assertForbidden();
 
     auth()->logout();
     $this->get(route('admin.schemes.index'))->assertRedirect(route('login'));

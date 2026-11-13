@@ -67,9 +67,9 @@ it('kontrak layar daftar form', function () {
             ]));
 });
 
-it('wewenang: admin 200, operator 403, tamu ke login', function () {
+it('wewenang: admin 200, peneliti 403, tamu ke login', function () {
     $this->actingAs(formListActor())->get(route('admin.forms.index'))->assertOk();
-    $this->actingAs(formListActor('operator'))->get(route('admin.forms.index'))->assertForbidden();
+    $this->actingAs(formListActor('researcher'))->get(route('admin.forms.index'))->assertForbidden();
     auth()->logout();
     $this->get(route('admin.forms.index'))->assertRedirect(route('login'));
 });

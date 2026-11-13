@@ -81,14 +81,14 @@ it('kontrak form buat dan sunting', function () {
             ->has('options'));
 });
 
-it('wewenang: operator 403 di create, edit, store, update', function () {
+it('wewenang: peneliti 403 di create, edit, store, update', function () {
     $scheme = Scheme::factory()->create();
-    $operator = schemeFormActor('operator');
+    $researcher = schemeFormActor('researcher');
 
-    $this->actingAs($operator)->get(route('admin.schemes.create'))->assertForbidden();
-    $this->actingAs($operator)->get(route('admin.schemes.edit', $scheme))->assertForbidden();
-    $this->actingAs($operator)->post(route('admin.schemes.store'), schemeFormPayload($scheme, ['code' => 'BARU']))->assertForbidden();
-    $this->actingAs($operator)->put(route('admin.schemes.update', $scheme), schemeFormPayload($scheme))->assertForbidden();
+    $this->actingAs($researcher)->get(route('admin.schemes.create'))->assertForbidden();
+    $this->actingAs($researcher)->get(route('admin.schemes.edit', $scheme))->assertForbidden();
+    $this->actingAs($researcher)->post(route('admin.schemes.store'), schemeFormPayload($scheme, ['code' => 'BARU']))->assertForbidden();
+    $this->actingAs($researcher)->put(route('admin.schemes.update', $scheme), schemeFormPayload($scheme))->assertForbidden();
 });
 
 it('membuat skema membuka halaman suntingnya', function () {
