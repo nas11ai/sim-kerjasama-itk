@@ -1,25 +1,26 @@
 <script setup lang="ts">
 import { Link, router, useForm } from '@inertiajs/vue3'
 import { ArrowRight, Plus, ShieldCheck, Trash2 } from 'lucide-vue-next'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 import AppBanner from '@/Components/app/AppBanner.vue'
 import ConfirmDialog from '@/Components/app/ConfirmDialog.vue'
 import DataTable from '@/Components/app/DataTable.vue'
 import EmptyState from '@/Components/app/EmptyState.vue'
 import FormField from '@/Components/app/FormField.vue'
+import MultiOptionPicker, { type PickerOption } from '@/Components/app/MultiOptionPicker.vue'
 import OptionSelect from '@/Components/app/OptionSelect.vue'
 import SectionCard from '@/Components/app/SectionCard.vue'
 import PermissionHint from '@/Components/Identity/PermissionHint.vue'
 import { Button } from '@/Components/ui/button'
 import type { FormAccessRuleData, FormHeaderData } from '@/types/form-engine'
-import type { FilterOption } from '@/types/submission-page'
+import type { OrganizationOption, PermissionOption } from '@/types/identity'
 
 const props = defineProps<{
     form: FormHeaderData
     rules: FormAccessRuleData[]
-    permissionOptions: FilterOption[]
-    organizationOptions: FilterOption[]
+    permissionOptions: PermissionOption[]
+    organizationOptions: OrganizationOption[]
 }>()
 
 const columns = [
@@ -28,16 +29,45 @@ const columns = [
     { key: 'action', label: '' },
 ]
 
-const grant = useForm<{ permission: string | null; organization_id: string | null }>({
+const grant = useForm<{ permission: string | null; organization_ids: string[] }>({
     permission: props.permissionOptions[0]?.value ?? null,
-    organization_id: null,
+    organization_ids: [],
 })
 
 const add = () =>
     grant.post(route('admin.forms.access.store', props.form.id), {
         preserveScroll: true,
-        onSuccess: () => grant.reset('organization_id'),
+        onSuccess: () => grant.reset('organization_ids'),
     })
+
+// K6, BR-FE-02 — organisasi yang sudah beraturan untuk hak akses terpilih tidak bisa dipilih lagi.
+const grantedForPermission = computed(
+    () =>
+        new Set(
+            props.rules
+                .filter((rule) => rule.permission === grant.permission)
+                .map((rule) => String(rule.organizationId))
+        )
+)
+
+const organizationPickerOptions = computed<PickerOption[]>(() =>
+    props.organizationOptions.map((option) => {
+        const granted = grantedForPermission.value.has(option.value)
+
+        return { ...option, disabled: granted, hint: granted ? 'sudah ada' : undefined }
+    })
+)
+
+watch(grantedForPermission, (granted) => {
+    grant.organization_ids = grant.organization_ids.filter((id) => !granted.has(id))
+})
+
+// Galat per butir (`organization_ids.0`) diringkas jadi satu pesan di bawah daftar.
+const organizationError = computed(
+    () =>
+        grant.errors.organization_ids ??
+        Object.entries(grant.errors).find(([key]) => key.startsWith('organization_ids.'))?.[1]
+)
 
 const pickedDescription = computed(
     () => props.permissionOptions.find((option) => option.value === grant.permission)?.description
@@ -85,7 +115,7 @@ const remove = () => {
     <div class="max-w-3xl space-y-6">
         <form @submit.prevent="add">
             <SectionCard title="Tambah Aturan Akses">
-                <div class="grid gap-4 sm:grid-cols-2">
+                <div class="grid gap-4">
                     <FormField
                         id="access-permission"
                         label="Hak Akses"
@@ -105,20 +135,26 @@ const remove = () => {
                         id="access-organization"
                         label="Organisasi"
                         required
-                        :error="grant.errors.organization_id"
+                        :error="organizationError"
                     >
-                        <OptionSelect
+                        <MultiOptionPicker
                             id="access-organization"
-                            v-model="grant.organization_id"
-                            :options="organizationOptions"
-                            placeholder="Pilih unit organisasi..."
+                            v-model="grant.organization_ids"
+                            :options="organizationPickerOptions"
+                            search-placeholder="Cari unit organisasi..."
                         />
                     </FormField>
                 </div>
                 <AppBanner v-if="duplicate" tone="denial">{{ duplicate }}</AppBanner>
                 <div>
-                    <Button type="submit" :disabled="grant.processing"
-                        ><Plus class="size-4" />Tambah Aturan</Button
+                    <Button
+                        type="submit"
+                        :disabled="grant.processing || grant.organization_ids.length === 0"
+                        ><Plus class="size-4" />{{
+                            grant.organization_ids.length > 1
+                                ? `Tambah ${grant.organization_ids.length} Aturan`
+                                : 'Tambah Aturan'
+                        }}</Button
                     >
                 </div>
             </SectionCard>

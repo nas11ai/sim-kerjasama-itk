@@ -46,7 +46,7 @@ it('grants access on a faculty that a study program below it can reach (ADR 0013
     $this->actingAs($this->admin)
         ->post(route('admin.forms.access.store', $this->form), [
             'permission' => 'submissions.create',
-            'organization_id' => $this->faculty->id,
+            'organization_ids' => [$this->faculty->id],
         ])
         ->assertSessionHasNoErrors()
         ->assertRedirect(route('admin.forms.access.index', $this->form));
@@ -67,9 +67,9 @@ it('rejects access on an inactive organization (ADR 0013)', function () {
     $this->actingAs($this->admin)
         ->post(route('admin.forms.access.store', $this->form), [
             'permission' => 'submissions.create',
-            'organization_id' => $this->faculty->id,
+            'organization_ids' => [$this->faculty->id],
         ])
-        ->assertSessionHasErrors('organization_id');
+        ->assertSessionHasErrors('organization_ids.0');
 
     expect(FormAccessControl::query()->where('form_id', $this->form->id)->exists())->toBeFalse();
 });

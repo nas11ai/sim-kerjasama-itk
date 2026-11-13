@@ -67,8 +67,8 @@ it('kontrak tab access control', function () {
             ])
             ->has('permissionOptions', count(FormAccessControl::ALLOWED_PERMISSIONS))
             ->where('organizationOptions', [
-                ['value' => (string) $this->faculty->id, 'label' => 'Fakultas Akses — beserta unit di bawahnya'],
-                ['value' => (string) $program->id, 'label' => 'Prodi Akses'],
+                ['value' => (string) $this->faculty->id, 'label' => 'Fakultas Akses (beserta unit di bawahnya)', 'depth' => 0],
+                ['value' => (string) $program->id, 'label' => 'Prodi Akses', 'depth' => 1],
             ]));
 });
 
@@ -79,32 +79,66 @@ it('label organisasi menyebut unit di bawahnya hanya bila ada turunan aktif (ADR
     $this->actingAs(accessTabActor())
         ->get(route('admin.forms.access.index', $this->form))
         ->assertInertia(fn (AssertableInertia $page) => $page
-            ->where('organizationOptions', [['value' => (string) $this->faculty->id, 'label' => 'Fakultas Akses']]));
+            ->where('organizationOptions', [['value' => (string) $this->faculty->id, 'label' => 'Fakultas Akses', 'depth' => 0]]));
 });
 
 it('menambah aturan mengaudit dan menolak duplikat', function () {
     $admin = accessTabActor();
-    $payload = ['permission' => 'submissions.create', 'organization_id' => $this->faculty->id];
+    $payload = ['permission' => 'submissions.create', 'organization_ids' => [$this->faculty->id]];
 
     $this->actingAs($admin)
         ->post(route('admin.forms.access.store', $this->form), $payload)
         ->assertSessionHasNoErrors()
         ->assertRedirect(route('admin.forms.access.index', $this->form))
-        ->assertSessionHas('success', 'Aturan akses ditambahkan.');
+        ->assertSessionHas('success', '1 aturan akses ditambahkan.');
 
     $rule = FormAccessControl::query()->where('form_id', $this->form->id)->sole();
     expect(accessTabAudit('Kontrol akses formulir dibuat', $rule)?->causer_id)->toBe($admin->id);
 
     $this->actingAs($admin)
         ->post(route('admin.forms.access.store', $this->form), $payload)
-        ->assertSessionHasErrors(['duplicate' => GrantFormAccess::DUPLICATE_MESSAGE]);
+        ->assertSessionHasErrors(['duplicate' => GrantFormAccess::duplicateMessage(['Fakultas Akses'])]);
+    expect(FormAccessControl::query()->where('form_id', $this->form->id)->count())->toBe(1);
+});
+
+it('[K6] menambah aturan untuk beberapa organisasi sekaligus, masing-masing diaudit', function () {
+    $admin = accessTabActor();
+    $first = Organization::create(['name' => 'Prodi Satu', 'type' => 'study_program', 'parent_id' => $this->faculty->id]);
+    $second = Organization::create(['name' => 'Prodi Dua', 'type' => 'study_program', 'parent_id' => $this->faculty->id]);
+
+    $this->actingAs($admin)
+        ->post(route('admin.forms.access.store', $this->form), [
+            'permission' => 'submissions.create',
+            'organization_ids' => [$this->faculty->id, $first->id, $second->id],
+        ])
+        ->assertSessionHasNoErrors()
+        ->assertSessionHas('success', '3 aturan akses ditambahkan.');
+
+    $rules = FormAccessControl::query()->where('form_id', $this->form->id)->get();
+    expect($rules->pluck('organization_id')->sort()->values()->all())->toBe([$this->faculty->id, $first->id, $second->id])
+        ->and($rules->every(fn (FormAccessControl $rule): bool => accessTabAudit('Kontrol akses formulir dibuat', $rule) !== null))->toBeTrue();
+});
+
+it('[K6] satu pasangan duplikat menolak seluruh kiriman tanpa menyimpan sebagian (BR-FE-02)', function () {
+    $program = Organization::create(['name' => 'Prodi Baru', 'type' => 'study_program', 'parent_id' => $this->faculty->id]);
+    FormAccessControl::create([
+        'form_id' => $this->form->id, 'permission' => 'submissions.create', 'organization_id' => $this->faculty->id,
+    ]);
+
+    $this->actingAs(accessTabActor())
+        ->post(route('admin.forms.access.store', $this->form), [
+            'permission' => 'submissions.create',
+            'organization_ids' => [$program->id, $this->faculty->id],
+        ])
+        ->assertSessionHasErrors(['duplicate' => GrantFormAccess::duplicateMessage(['Fakultas Akses'])]);
+
     expect(FormAccessControl::query()->where('form_id', $this->form->id)->count())->toBe(1);
 });
 
 it('menolak permission di luar daftar dan organisasi kosong', function () {
     $this->actingAs(accessTabActor())
-        ->post(route('admin.forms.access.store', $this->form), ['permission' => 'users.manage'])
-        ->assertSessionHasErrors(['permission', 'organization_id']);
+        ->post(route('admin.forms.access.store', $this->form), ['permission' => 'users.manage', 'organization_ids' => []])
+        ->assertSessionHasErrors(['permission', 'organization_ids']);
 });
 
 it('organisasi nonaktif ditolak', function () {
@@ -112,9 +146,9 @@ it('organisasi nonaktif ditolak', function () {
 
     $this->actingAs(accessTabActor())
         ->post(route('admin.forms.access.store', $this->form), [
-            'permission' => 'submissions.create', 'organization_id' => $this->faculty->id,
+            'permission' => 'submissions.create', 'organization_ids' => [$this->faculty->id],
         ])
-        ->assertSessionHasErrors('organization_id');
+        ->assertSessionHasErrors('organization_ids.0');
     expect(FormAccessControl::query()->exists())->toBeFalse();
 });
 
@@ -188,7 +222,7 @@ it('wewenang: peneliti 403', function () {
 
     $this->actingAs($researcher)->get(route('admin.forms.access.index', $this->form))->assertForbidden();
     $this->actingAs($researcher)
-        ->post(route('admin.forms.access.store', $this->form), ['permission' => 'submissions.create', 'organization_id' => $this->faculty->id])
+        ->post(route('admin.forms.access.store', $this->form), ['permission' => 'submissions.create', 'organization_ids' => [$this->faculty->id]])
         ->assertForbidden();
     $this->actingAs($researcher)->delete(route('admin.forms.access.destroy', [$this->form, $rule]))->assertForbidden();
     expect(FormAccessControl::query()->count())->toBe(1);

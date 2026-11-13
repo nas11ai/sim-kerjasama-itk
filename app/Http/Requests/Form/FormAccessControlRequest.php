@@ -22,15 +22,19 @@ class FormAccessControlRequest extends FormRequest
     {
         return [
             'permission' => ['required', 'string', Rule::in(FormAccessControl::ALLOWED_PERMISSIONS)],
-            // ADR 0013 — organisasi aktif bertipe apa pun.
-            'organization_id' => ['required', 'integer', Rule::exists('organizations', 'id')->where('is_active', true)],
+            // K6 — beberapa organisasi sekaligus; ADR 0013 — masing-masing aktif, bertipe apa pun.
+            'organization_ids' => ['required', 'array', 'min:1'],
+            'organization_ids.*' => ['integer', 'distinct', Rule::exists('organizations', 'id')->where('is_active', true)],
         ];
     }
 
     /** @return array<string, string> */
     public function messages(): array
     {
-        return ['organization_id.exists' => 'Organisasi tidak ditemukan atau sudah nonaktif.'];
+        return [
+            'organization_ids.required' => 'Pilih minimal satu organisasi.',
+            'organization_ids.*.exists' => 'Organisasi tidak ditemukan atau sudah nonaktif.',
+        ];
     }
 
     public function toInput(Form $form): FormAccessInput
@@ -38,7 +42,13 @@ class FormAccessControlRequest extends FormRequest
         return new FormAccessInput(
             formId: $form->id,
             permission: $this->string('permission')->value(),
-            organizationId: $this->integer('organization_id'),
+            organizationIds: $this->organizationIds(),
         );
+    }
+
+    /** @return list<int> */
+    private function organizationIds(): array
+    {
+        return array_values(array_map(intval(...), $this->array('organization_ids')));
     }
 }

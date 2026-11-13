@@ -62,6 +62,11 @@ export interface UserDetailData {
 }
 
 // Sumber: UserAccessData. `effectivePermissions` = gabungan role + langsung (IAM-PERM-03).
+// Sumber: OrganizationOptions — `depth` = tingkat pohon untuk indentasi (K6, 2026-11-13).
+export interface OrganizationOption extends Option {
+    depth: number
+}
+
 // Sumber: PermissionCatalog::options — `description` dibaca tooltip hak akses (K5, 2026-11-13).
 export interface PermissionOption extends Option {
     description: string

@@ -1,4 +1,4 @@
-import type { PermissionOption } from '@/types/identity'
+import type { OrganizationOption, PermissionOption } from '@/types/identity'
 import type { Paginated } from '@/types/pagination'
 import type { FilterOption } from '@/types/submission-page'
 import type { WizardFieldType } from '@/types/submission-wizard'
@@ -221,7 +221,7 @@ export interface FormEditAccessProps {
     form: FormHeaderData
     rules: FormAccessRuleData[]
     permissionOptions: PermissionOption[]
-    organizationOptions: FilterOption[]
+    organizationOptions: OrganizationOption[]
 }
 
 // Sumber: App\Data\View\FormEngine\PhaseCardData — `submissionCount` > 0 mengunci hapus (BR-FE-20);

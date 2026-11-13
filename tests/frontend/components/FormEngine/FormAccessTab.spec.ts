@@ -46,7 +46,7 @@ const rules: FormAccessRuleData[] = [
         permissionLabel: 'Membuat pengajuan',
         permissionDescription: 'Membuat dan mengirim pengajuan baru.',
         organizationId: 5,
-        organizationLabel: 'FTI — beserta unit di bawahnya',
+        organizationLabel: 'FTI (beserta unit di bawahnya)',
         phaseCount: 0,
     },
     {
@@ -72,7 +72,11 @@ const mountTab = () =>
                     description: 'Membuat dan mengirim pengajuan baru.',
                 },
             ],
-            organizationOptions: [{ value: '5', label: 'FTI — beserta unit di bawahnya' }],
+            organizationOptions: [
+                { value: '5', label: 'FTI (beserta unit di bawahnya)', depth: 0 },
+                { value: '6', label: 'Informatika', depth: 1 },
+                { value: '7', label: 'Sistem Informasi', depth: 1 },
+            ],
         },
         attachTo: document.body,
         global: { mocks: { route } },
@@ -109,14 +113,41 @@ describe('FormEngine/FormAccessTab', () => {
         expect(wrapper.text()).toContain('Dipakai 2 tahap')
     })
 
-    it('menambah aturan memanggil route store', async () => {
+    it('[K6] menambah aturan untuk beberapa organisasi sekaligus', async () => {
         const wrapper = mountTab()
+        const submit = () => wrapper.find('button[type="submit"]')
+
+        expect(submit().attributes('disabled')).toBeDefined()
+        await wrapper.find('#access-organization-option-6').trigger('click')
+        await wrapper.find('#access-organization-option-7').trigger('click')
+        expect(submit().text()).toBe('Tambah 2 Aturan')
 
         await wrapper.find('form').trigger('submit')
 
         expect(posted).toHaveBeenCalledTimes(1)
         expect(posted.mock.calls[0]?.[0]).toBe('/admin.forms.access.store/7')
-        expect(posted.mock.calls[0]?.[1]).toMatchObject({ permission: 'submissions.create' })
+        expect(posted.mock.calls[0]?.[1]).toMatchObject({
+            permission: 'submissions.create',
+            organization_ids: ['6', '7'],
+        })
+    })
+
+    it('[K6] organisasi yang sudah beraturan untuk hak akses terpilih tidak bisa dicentang', () => {
+        const wrapper = mountTab()
+        const granted = wrapper.find('#access-organization-option-5')
+
+        expect(granted.attributes('disabled')).toBeDefined()
+        expect(wrapper.find('#access-organization-list').text()).toContain('sudah ada')
+        expect(wrapper.find('#access-organization-option-6').attributes('disabled')).toBeUndefined()
+    })
+
+    it('[K6] pencarian menyaring daftar organisasi', async () => {
+        const wrapper = mountTab()
+
+        await wrapper.find('#access-organization').setValue('sistem')
+
+        const labels = wrapper.findAll('#access-organization-list li').map((item) => item.text())
+        expect(labels).toEqual(['Sistem Informasi'])
     })
 
     it('hapus dikonfirmasi lalu memanggil route destroy', async () => {

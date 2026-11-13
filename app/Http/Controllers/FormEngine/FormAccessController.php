@@ -38,9 +38,9 @@ class FormAccessController extends Controller
 
     public function store(FormAccessControlRequest $request, Form $form): RedirectResponse
     {
-        GrantFormAccess::run($request->toInput($form), $this->actor($request));
+        $granted = GrantFormAccess::run($request->toInput($form), $this->actor($request));
 
-        return redirect()->route('admin.forms.access.index', $form)->with('success', 'Aturan akses ditambahkan.');
+        return redirect()->route('admin.forms.access.index', $form)->with('success', count($granted).' aturan akses ditambahkan.');
     }
 
     // BR-FE-20 — penolakan aturan yang dipakai detail tahap datang dari Action.
