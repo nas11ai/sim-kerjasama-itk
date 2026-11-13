@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Queries\Submission\SubmissionYear;
 use App\States\Submission\Approved;
 use App\States\Submission\Rejected;
+use App\Support\PrivateUploadDisk;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\Qa\QaAccounts;
 use Database\Seeders\Qa\QaCatalog;
@@ -16,7 +17,7 @@ use Database\Seeders\Qa\QaSubmissionFlow;
 use Illuminate\Support\Facades\Storage;
 
 it('riwayat tahun lalu terhitung di tahun lalu dan tuntas', function () {
-    Storage::fake(config('filesystems.default'));
+    Storage::fake(PrivateUploadDisk::NAME);
     $this->seed(DatabaseSeeder::class);
     $admin = User::factory()->create();
     $admin->assignRole('admin');

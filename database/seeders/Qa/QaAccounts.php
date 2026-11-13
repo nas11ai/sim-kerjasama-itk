@@ -39,7 +39,7 @@ final class QaAccounts
         VerifyNidn::run($user->userProfile);
         CompleteProfile::run($user->refresh(), new ProfileDetailsInput(
             '08'.substr($nidn, -10),
-            fake()->randomElement(['Rekayasa Material', 'Sistem Informasi', 'Energi Terbarukan', 'Teknik Sipil', 'Matematika Terapan', 'Kimia Lingkungan']),
+            fake('id_ID')->randomElement(['Rekayasa Material', 'Sistem Informasi', 'Energi Terbarukan', 'Teknik Sipil', 'Matematika Terapan', 'Kimia Lingkungan']),
         ), QaFiles::photo());
 
         return $user->refresh();
@@ -150,6 +150,6 @@ final class QaAccounts
     /** Nama orang rekaan dengan gelar akademik. */
     private static function name(): string
     {
-        return fake()->randomElement(['Dr. ', 'Dr. Ir. ', '', '']).fake()->firstName().' '.fake()->lastName().fake()->randomElement([', M.T.', ', M.Sc.', ', M.Kom.', ', Ph.D.']);
+        return fake('id_ID')->randomElement(['Dr. ', 'Dr. Ir. ', '', '']).fake('id_ID')->firstName().' '.fake('id_ID')->lastName().fake('id_ID')->randomElement([', M.T.', ', M.Sc.', ', M.Kom.', ', Ph.D.']);
     }
 }

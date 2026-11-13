@@ -13,8 +13,12 @@ php artisan db:seed --class=QaDataSeeder
 - Kedua perintah **menghapus seluruh isi database**. Jangan jalankan di database berisi data sungguhan.
 - Seeder menolak berjalan di `APP_ENV=production` dan menolak berjalan dua kali. Untuk mengulang, selalu mulai
   dari `migrate:fresh --seed`.
-- Berkas (foto profil, proposal, laporan) diunggah ke disk yang diatur `FILESYSTEM_DISK`.
-- Lama proses sekitar satu sampai dua menit.
+- Berkas (foto profil, proposal, laporan monev) **tidak** mengikuti `FILESYSTEM_DISK`: unggahan pengguna selalu
+  disimpan di disk privat `local` (`storage/app/private`) milik mesin yang menjalankan seeder. Jalankan seeder di
+  mesin yang sama dengan aplikasi yang dipakai QA; bila seeder dijalankan dari laptop lain ke database bersama,
+  tautan berkasnya akan 404 di mesin QA (lihat B27 di catatan bug).
+- Lama proses sekitar satu menit di database lokal dengan `BCRYPT_ROUNDS=4` (ukuran test). Dengan cost bcrypt
+  bawaan dan database jarak jauh seperti Neon, perkirakan beberapa kali lebih lama.
 - Tahun mengikuti tanggal saat seeder dijalankan: "tahun ini" dan "tahun lalu".
 
 ## Akun
@@ -69,3 +73,11 @@ Monev 1 sudah dinilai, luaran tercatat) dan satu Ditolak (peneliti04).
 Akun `latar-*@simpas.test` dan pengajuan berawalan `[Latar]` hanya mengisi layar tingkat institusi (paginasi,
 statistik per fakultas, perbandingan tahun). Mohon tidak diubah. Tidak ada kerugian bila terubah, tetapi
 angka statistik jadi bergeser dari yang diharapkan.
+
+## Yang terlihat janggal tetapi memang begitu datanya
+
+- `latar-penilai1` dan `latar-penilai2` memegang sekitar 20 penilaian aktif, di atas batas beban skema (10).
+  Peringatan beban penilai di layar penugasan untuk keduanya memang benar, bukan bug.
+- Akun `qa{k}-peneliti-baru` dibuat langsung oleh seeder, bukan lewat formulir pendaftaran, jadi Operator **tidak**
+  menerima notifikasi "pendaftaran menunggu verifikasi" untuknya. Akunnya tetap muncul di antrean verifikasi.
+  Untuk menguji notifikasi itu, daftarkan akun baru lewat halaman pendaftaran.

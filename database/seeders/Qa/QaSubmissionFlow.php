@@ -79,8 +79,8 @@ final class QaSubmissionFlow
     {
         AddResearchMember::run($submission, $member, ResearchMember::ROLE_MEMBER);
         AddStudentMember::run($submission, $lead, [
-            'name' => fake()->name(),
-            'student_id' => (string) fake()->unique()->numerify('1120#####'),
+            'name' => fake('id_ID')->name(),
+            'student_id' => (string) fake('id_ID')->unique()->numerify('1120#####'),
             'study_program' => $lead->userProfile?->organization?->name,
         ]);
 
@@ -167,7 +167,7 @@ final class QaSubmissionFlow
         SaveWizardStep::run($submission, new WizardStepInput(new SubmissionAnswersInput(
             $form->id,
             $submission->submission_period_id,
-            [$this->catalog->fields[$formKey]['abstrak']->id => fake()->paragraph(5).' Metodologi pengambilan sampel diperjelas sesuai catatan penilai.'],
+            [$this->catalog->fields[$formKey]['abstrak']->id => fake('id_ID')->paragraph(5).' Metodologi pengambilan sampel diperjelas sesuai catatan penilai.'],
             [],
             $submission->updated_at?->toIso8601String(),
         ), 2, 3), $lead);
@@ -206,8 +206,8 @@ final class QaSubmissionFlow
     public function output(FormSubmission $submission, User $lead): void
     {
         SaveResearchOutput::run($submission->refresh(), $lead, new ResearchOutputInput('article', [
-            'title' => $submission->title === null ? 'Artikel hasil penelitian' : 'Artikel: '.substr($submission->title, 6),
-            'journal_name' => fake()->randomElement(['Jurnal Teknologi Kalimantan', 'Jurnal Rekayasa Terapan', 'Jurnal Sains Borneo']),
+            'title' => $submission->title === null ? 'Artikel hasil penelitian' : 'Artikel: '.preg_replace('/^\[[^\]]+\]\s*/', '', $submission->title),
+            'journal_name' => fake('id_ID')->randomElement(['Jurnal Teknologi Kalimantan', 'Jurnal Rekayasa Terapan', 'Jurnal Sains Borneo']),
             'journal_type' => 'national_accredited',
             'year' => (string) now()->year,
         ]));
@@ -246,8 +246,8 @@ final class QaSubmissionFlow
         return match ($step) {
             2 => [[
                 $fields['judul']->id => $title,
-                $fields['abstrak']->id => fake()->paragraph(6),
-                $fields['kata_kunci']->id => implode(', ', fake()->words(4)),
+                $fields['abstrak']->id => fake('id_ID')->paragraph(6),
+                $fields['kata_kunci']->id => implode(', ', fake('id_ID')->words(4)),
                 $fields['mulai']->id => now()->addMonths(2)->startOfMonth()->toDateString(),
                 $fields['bidang']->id => (string) $fields['bidang']->formFieldOptions()->orderBy('id')->get()->random()->id,
             ], []],

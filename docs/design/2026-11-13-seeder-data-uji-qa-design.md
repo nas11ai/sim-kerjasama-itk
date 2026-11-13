@@ -158,7 +158,7 @@ Nama tampilan berawalan set ("QA2 Dr. Rina …") supaya Operator, yang melihat s
 
 Pengajuan Disetujui membawa anggota (`AddResearchMember`, `AddStudentMember`), rencana anggaran
 (`SaveBudgetLineItem`), dan target luaran (`SaveTargetOutput`). Berkas proposal adalah PDF kecil buatan seeder,
-diunggah ke disk yang dikonfigurasi (R2 di staging), lewat jalur unggah yang sama dengan wizard.
+diunggah lewat jalur unggah yang sama dengan wizard, yaitu ke disk privat `local` (`PrivateUploadDisk`, W15), bukan `FILESYSTEM_DISK` (koreksi sesudah review akhir; lihat B27).
 
 Ditambah **riwayat Periode 2025** per set: 4 pengajuan (3 Disetujui, 1 Ditolak) dibuat dengan jam dimundurkan ke
 masa periode itu, supaya statistik "tahun lalu" dan riwayat peneliti terisi. Yang Disetujui dituntaskan

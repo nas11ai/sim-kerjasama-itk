@@ -6,12 +6,14 @@ use App\Enums\VerificationStatus;
 use App\Models\InvitationToken;
 use App\Models\Reviewer;
 use App\Models\User;
+use App\Support\PrivateUploadDisk;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\Qa\QaAccounts;
+use Faker\Provider\id_ID\Person;
 use Illuminate\Support\Facades\Storage;
 
 it('membuat akun set dengan peran dan status verifikasi yang benar', function () {
-    Storage::fake(config('filesystems.default'));
+    Storage::fake(PrivateUploadDisk::NAME);
     $this->seed(DatabaseSeeder::class);
 
     $set = QaAccounts::build(2);
@@ -38,4 +40,22 @@ it('membuat akun set dengan peran dan status verifikasi yang benar', function ()
     expect($accounts)->toHaveCount(19)
         ->and($accounts->every(fn (User $u): bool => str_ends_with($u->email, '@simpas.test')))->toBeTrue()
         ->and($accounts->every(fn (User $u): bool => str_starts_with($u->name, 'QA2 ')))->toBeTrue();
+});
+
+it('memberi nama orang Indonesia walau locale Faker aplikasi en_US', function () {
+    config(['app.faker_locale' => 'en_US']);
+    Storage::fake(PrivateUploadDisk::NAME);
+    $this->seed(DatabaseSeeder::class);
+
+    $set = QaAccounts::build(1);
+
+    $provider = new ReflectionClass(Person::class);
+    $indonesian = [
+        ...$provider->getStaticPropertyValue('firstNameMale'),
+        ...$provider->getStaticPropertyValue('firstNameFemale'),
+    ];
+    // "QA1 Dr. Ir. Budi Santoso, M.T." → "Budi"
+    $firstName = fn (User $u): string => explode(' ', trim(str_replace(['QA1 ', 'Dr. ', 'Ir. '], '', $u->name)))[0];
+
+    expect(collect($set->researchers)->map($firstName)->diff($indonesian)->all())->toBe([]);
 });

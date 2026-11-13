@@ -40,7 +40,7 @@ final class QaBackground
             foreach (range(1, self::RESEARCHERS) as $n) {
                 $users[$n] = QaAccounts::researcher(
                     sprintf('latar-peneliti%02d', $n),
-                    'Latar '.fake()->firstName().' '.fake()->lastName(),
+                    'Latar '.fake('id_ID')->firstName().' '.fake('id_ID')->lastName(),
                     $prodi[($n - 1) % count($prodi)],
                     sprintf('%010d', 7_200_000_000 + $n),
                 );
@@ -101,8 +101,7 @@ final class QaBackground
      */
     private static function thisYear(QaSubmissionFlow $flow, array $researchers, User $operator, Reviewer $a, Reviewer $b): void
     {
-        $today = now()->toImmutable();
-        $at = fn (int $daysAgo, \Closure $work) => QaClock::at($today->subDays($daysAgo)->setTime(11, 0), $work);
+        $at = fn (int $daysAgo, \Closure $work) => QaClock::at(QaClock::ago($daysAgo), $work);
         $s = [];
 
         $at(30, function () use ($flow, $researchers, &$s): void {

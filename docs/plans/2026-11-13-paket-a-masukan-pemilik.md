@@ -256,4 +256,4 @@ cara pakai untuk QA `docs/qa/data-uji.md`. `php artisan db:seed --class=QaDataSe
 empat set penguji (`qa1`–`qa4`, masing-masing 19 akun dan 16 pengajuan di setiap status, termasuk riwayat tahun
 lalu) plus volume institusi (30 peneliti latar, 60 pengajuan); seluruh perubahan status lewat Action asli. Temuan
 yang tidak diperbaiki: B25 (TKT tanpa seeder, simpan TKT di Konfigurasi gagal), B26 (`DummyUserSeeder` peran lama,
-fixture E2E menulis status). Berikutnya menurut K1: staging (Neon + storage S3-kompatibel, `APP_ENV=staging`).
+fixture E2E menulis status), B27 (unggahan selalu ke disk privat `local`, menentukan rancangan staging). Berikutnya menurut K1: staging (Neon + storage S3-kompatibel, `APP_ENV=staging`), mulai dari B27.

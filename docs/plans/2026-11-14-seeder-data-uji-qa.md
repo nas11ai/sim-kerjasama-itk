@@ -37,7 +37,7 @@ bukan disiasati.
 3. **Run kedua di DB yang sudah dipakai QA** → ditolak dengan pesan berisi `migrate:fresh --seed`, nol baris baru.
    Test di Task 1.
 4. **Berkas ke disk sungguhan**: test tidak boleh menulis ke R2 → test memakai `Storage::fake()` untuk disk default;
-   seeder sendiri memakai disk yang dikonfigurasi. Test di Task 4.
+   seeder sendiri memakai disk privat `local` (koreksi review akhir: unggahan tidak mengikuti `FILESYSTEM_DISK`). Test di Task 4.
 5. **Tahun statistik**: pengajuan riwayat harus terhitung tahun `L`, yang sekarang tahun `Y` → assert
    `SubmissionYear` di Task 5.
 

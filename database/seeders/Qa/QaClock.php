@@ -13,6 +13,22 @@ use Illuminate\Support\Carbon;
  */
 final class QaClock
 {
+    /** Panjang linimasa "tahun ini" dalam hari: periode berjalan dibuka sejauh ini ke belakang. */
+    public const SPAN_DAYS = 42;
+
+    /**
+     * Saat `$days` hari lalu dalam linimasa tahun ini. Bila sejak 1 Januari belum ada SPAN_DAYS hari,
+     * jaraknya dimampatkan ke dalam tahun berjalan (urutannya tetap): tahun statistik dibaca dari jam
+     * audit, jadi data "tahun ini" tidak boleh tumpah ke tahun lalu.
+     */
+    public static function ago(int $days): CarbonImmutable
+    {
+        $now = CarbonImmutable::now();
+        $span = min(self::SPAN_DAYS * 86_400, (int) abs($now->diffInSeconds($now->startOfYear())));
+
+        return $now->subSeconds(intdiv($span * $days, self::SPAN_DAYS));
+    }
+
     /**
      * @template T
      *

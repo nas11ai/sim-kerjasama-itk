@@ -42,7 +42,7 @@ class QaDataSeeder extends Seeder
         // Notifikasi ber-antrean terkirim saat itu juga, dengan jam yang sedang dimundurkan, dan tidak
         // meninggalkan ratusan job basi. Broadcast tidak butuh Reverb yang hidup.
         config(['queue.default' => 'sync', 'broadcasting.default' => 'log']);
-        fake()->seed(20261114);
+        fake('id_ID')->seed(20261114);
 
         // Admin lahir bersama katalog, di awal tahun lalu, supaya log audit tidak berisi pelaku yang "belum terdaftar".
         $admin = QaClock::at(Carbon::create(now()->year - 1, 1, 5, 8), fn (): User => $this->admin());

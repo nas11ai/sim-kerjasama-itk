@@ -29,8 +29,7 @@ final class QaScenarios
     /** @return array<int, FormSubmission> kunci = nomor baris tabel desain */
     public static function build(QaSet $set, QaSubmissionFlow $flow): array
     {
-        $today = now()->toImmutable();
-        $at = fn (int $daysAgo, \Closure $work) => QaClock::at($today->subDays($daysAgo)->setTime(10, 0), $work);
+        $at = fn (int $daysAgo, \Closure $work) => QaClock::at(QaClock::ago($daysAgo), $work);
         [$a, $b] = $set->reviewers;
         $op = $set->operator;
         $lead = fn (int $n) => $set->researchers[$n];

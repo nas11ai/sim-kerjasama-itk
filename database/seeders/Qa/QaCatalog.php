@@ -68,10 +68,11 @@ final class QaCatalog
 
         $catalog = QaClock::at(Carbon::create($lastYear, 1, 5, 9), fn (): array => self::library($admin, $lastYear));
 
-        // Periode tahun ini dibuka enam minggu lalu: cukup untuk linimasa skenario, dan Batas Submit
-        // (+3 bulan) tetap di depan saat QA mulai.
-        $opened = now()->subDays(42)->setTime(8, 0);
-        $catalog['periods']['current'] = QaClock::at($opened, fn (): SubmissionPeriod => self::period($admin, 'Periode '.now()->year, $catalog['phaseIds'], $opened));
+        // Periode tahun ini dibuka di awal linimasa (enam minggu lalu, atau 1 Januari bila lebih dekat):
+        // Batas Submit (+3 bulan) tetap di depan saat QA mulai. Namanya dihitung sebelum jam dimundurkan.
+        $name = 'Periode '.now()->year;
+        $opened = QaClock::ago(QaClock::SPAN_DAYS);
+        $catalog['periods']['current'] = QaClock::at($opened, fn (): SubmissionPeriod => self::period($admin, $name, $catalog['phaseIds'], $opened));
 
         return new QaCatalogResult(
             schemes: $catalog['schemes'],

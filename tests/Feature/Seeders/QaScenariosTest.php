@@ -14,6 +14,7 @@ use App\States\Submission\Rejected;
 use App\States\Submission\Submitted;
 use App\States\Submission\UnderReview;
 use App\States\Submission\Withdrawn;
+use App\Support\PrivateUploadDisk;
 use App\Support\RequiredFieldGuard;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\Qa\QaAccounts;
@@ -33,7 +34,9 @@ function auditedAs(FormSubmission $submission, string $description): bool
 }
 
 it('[QA-SEED] setiap baris skenario tercapai', function () {
-    Storage::fake(config('filesystems.default'));
+    // Seperti `.env.example`: disk default bukan tempat unggahan pengguna mendarat.
+    config(['filesystems.default' => 's3']);
+    Storage::fake(PrivateUploadDisk::NAME);
     $this->seed(DatabaseSeeder::class);
     $admin = User::factory()->create();
     $admin->assignRole('admin');
@@ -77,6 +80,6 @@ it('[QA-SEED] setiap baris skenario tercapai', function () {
             ->and($submission->title)->toStartWith('[QA1] ');
     }
 
-    // Review Focus 4 — berkas proposal mendarat di disk yang dikonfigurasi (di sini disk palsu).
-    expect(Storage::disk(config('filesystems.default'))->allFiles())->not->toBeEmpty();
+    // Review Focus 4 — unggahan pengguna mendarat di disk privat (W15), bukan disk default.
+    expect(Storage::disk(PrivateUploadDisk::NAME)->allFiles())->not->toBeEmpty();
 });

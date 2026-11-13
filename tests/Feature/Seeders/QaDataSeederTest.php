@@ -5,8 +5,10 @@
 
 use App\Models\FormSubmission;
 use App\Models\Organization;
+use App\Models\ResearchOutput;
 use App\Models\User;
 use App\Queries\Submission\SubmissionYear;
+use App\Support\PrivateUploadDisk;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\QaDataSeeder;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +25,7 @@ function facultyOf(?Organization $unit): ?int
 }
 
 it('mengisi database segar untuk empat penguji', function () {
-    Storage::fake(config('filesystems.default'));
+    Storage::fake(PrivateUploadDisk::NAME);
     $this->seed(DatabaseSeeder::class);
 
     $this->seed(QaDataSeeder::class);
@@ -40,6 +42,11 @@ it('mengisi database segar untuk empat penguji', function () {
         // Akun bawaan DatabaseSeeder (`@example.com`) bukan buatan seeder ini.
         ->and(User::where('email', 'not like', '%@simpas.test')->where('email', 'not like', '%@example.com')->count())->toBe(0)
         ->and(DB::table('jobs')->count())->toBe(0);
+
+    // Judul luaran tanpa sisa awalan set (`[QA1]`, `[Latar]`): yang terlihat rusak akan dilaporkan sebagai bug.
+    $titles = ResearchOutput::all()->map(fn (ResearchOutput $o): string => (string) ($o->metadata['title'] ?? ''));
+    expect($titles)->not->toBeEmpty()
+        ->and($titles->filter(fn (string $t): bool => str_contains($t, '[') || str_contains($t, ']'))->all())->toBe([]);
 
     // Setiap fakultas punya pengajuan tahun ini dan tahun lalu (perbandingan statistik).
     $faculties = Organization::where('type', 'faculty')->pluck('id');
