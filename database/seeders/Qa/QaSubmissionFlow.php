@@ -30,12 +30,14 @@ use App\Data\Request\ResearchOutputInput;
 use App\Data\Request\SubmissionAnswersInput;
 use App\Data\Request\WizardStepInput;
 use App\Models\BudgetComponent;
+use App\Models\FormField;
 use App\Models\FormSubmission;
 use App\Models\ResearchMember;
 use App\Models\Reviewer;
 use App\Models\ReviewFormField;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
 
 /**
  * Langkah alur pengajuan yang dipakai ulang seeder QA. Setiap metode memanggil Action yang sama
@@ -235,7 +237,7 @@ final class QaSubmissionFlow
      * Jawaban satu langkah wizard: id isian => nilai, dan id isian => berkas. Nilai pilihan memakai bentuk
      * yang sama dengan layar (`WizardFieldOptions`): id opsi / skema / TKT sebagai string.
      *
-     * @return array{0: array<int, string>, 1: array<int, \Illuminate\Http\UploadedFile>}
+     * @return array{0: array<int, string>, 1: array<int, UploadedFile>}
      */
     private function answersFor(int $step, string $formKey, string $schemeKey, string $title): array
     {
@@ -258,7 +260,7 @@ final class QaSubmissionFlow
     /**
      * BR-SCH-05 — TKT dipilih dari izin skema terpilih.
      *
-     * @param  array<string, \App\Models\FormField>  $fields
+     * @param  array<string, FormField>  $fields
      * @return array<int, string>
      */
     private function schemeAnswers(array $fields, string $schemeKey): array

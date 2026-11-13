@@ -248,3 +248,12 @@ eslint, prettier, vue-tsc, Vitest 808; detector impeccable 0 temuan baru (blockq
 
 Sisa yang sengaja tidak dikerjakan: B22 (periode di sambutan, kartu langkah berikutnya), B23 (metode variant tak terpakai,
 nada Monev), B24 (`MAIL_FROM_NAME` dari `.env` lama) di catatan bug. Dev DB perlu di-seed ulang (Pest mengosongkannya).
+
+## Langkah 3: seeder data uji QA (2026-11-14)
+
+Rencana `docs/plans/2026-11-14-seeder-data-uji-qa.md`, desain `docs/design/2026-11-13-seeder-data-uji-qa-design.md`,
+cara pakai untuk QA `docs/qa/data-uji.md`. `php artisan db:seed --class=QaDataSeeder` sesudah `migrate:fresh --seed`:
+empat set penguji (`qa1`–`qa4`, masing-masing 19 akun dan 16 pengajuan di setiap status, termasuk riwayat tahun
+lalu) plus volume institusi (30 peneliti latar, 60 pengajuan); seluruh perubahan status lewat Action asli. Temuan
+yang tidak diperbaiki: B25 (TKT tanpa seeder, simpan TKT di Konfigurasi gagal), B26 (`DummyUserSeeder` peran lama,
+fixture E2E menulis status). Berikutnya menurut K1: staging (Neon + storage S3-kompatibel, `APP_ENV=staging`).
