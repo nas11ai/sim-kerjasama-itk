@@ -1,0 +1,170 @@
+# Paket A — Masukan Pemilik 10 Nov (Implementation Plan)
+
+> **For agentic workers:** REQUIRED SUB-SKILL: superpowers:executing-plans (native, keputusan pemilik
+> 2026-11-10). Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** tujuh masukan pemilik (chat 2026-11-10) yang mengubah aplikasi: TKT, Operator mengelola form
+builder, label hak akses, pemilih organisasi multi, Jurusan, welcome page, dan UI berbahasa Indonesia.
+
+**Architecture:** perubahan tampilan + katalog; tidak ada tabel baru. Jurusan memakai tipe organisasi
+`department` yang sudah ada di UL dan di pohon `parent_id`; pencocokan akses (ancestor-or-self, ADR 0013)
+tidak berubah. Pemberian akses multi-organisasi tetap satu Action (`GrantFormAccess`) yang kini menerima
+daftar organisasi dalam satu transaksi.
+
+**Tech Stack:** Laravel 13, Inertia, Vue 3, reka-ui (`ui/combobox`, `ui/tooltip`), Pest, Vitest.
+
+**Spec:** pesan pemilik 2026-11-10 + keputusan di sesi 2026-11-13 (dicatat di bawah). Paket lain dari pesan
+yang sama (review UI impeccable, seeder data uji, staging, matriks QA Excel) **di luar** rencana ini dan
+dikerjakan berurutan sesudahnya.
+
+## Keputusan (sesi 2026-11-13, disetujui pemilik "langsung jalan pakai usulanmu")
+
+- K1 Urutan paket: A (ini) → review UI impeccable → seeder data uji → staging (Neon + storage S3-kompatibel,
+  bukan Google Drive) → matriks QA Excel.
+- K2 Glosarium UI (Task 7) — kode, nama route, kolom DB, dan dokumen DDD tetap memakai istilah UL:
+  Dashboard→Beranda, Submission→Pengajuan, Submit→Kirim, Draft→Draf, Form→Formulir,
+  Form Builder→Pembuat Formulir, Upload→Unggah, Download→Unduh, File→Berkas, Reviewer→Penilai,
+  Review→Penilaian, Step→Langkah, Phase(s)→Tahap, Field→Isian, Export→Ekspor, Audit Log→Log Audit,
+  Login→Masuk, Logout→Keluar, Password→Kata Sandi, Settings→Pengaturan, Role→Peran,
+  Permission→Hak Akses, User→Pengguna, Deadline→Tenggat, Preview→Pratinjau. Tetap: Monev, Operator, Email.
+- K3 TRL tampil sebagai **TKT** (Tingkat Kesiapterapan Teknologi). Identifier kode (`trl_id`,
+  `trl_selector`, `TechnologyReadinessLevel`) tidak diganti — UL dicatat "TKT (kode: `trl`)".
+- K4 Operator mendapat `schemes.manage` (Form Builder, Form Evaluasi, Fase, Skema — satu gerbang W88).
+- K5 Hak akses: label pendek bahasa Indonesia + tooltip berisi penjelasan satu kalimat dan kode mesinnya.
+- K6 Organisasi di tab akses: combobox multi-pilih yang bisa dicari, berindentasi menurut pohon;
+  organisasi yang sudah punya aturan untuk permission terpilih tampil nonaktif.
+- K7 `/` untuk tamu = welcome page (membalik W157) dengan pengumuman publik; user masuk tetap ke Beranda.
+  Panel pengumuman di halaman login tetap ("juga ada" = tambahan, bukan pindah).
+- K8 Pratinjau formulir sudah ada (G3-W8, `FormPreview`) — tidak ada task.
+
+## Global Constraints
+
+- Tidak ada migration baru; tidak ada dependency baru.
+- Setiap BR yang disentuh disebut kodenya di komentar; status hanya lewat `transitionTo()` (tak relevan di sini).
+- Komentar: maks 3 baris prosa per blok (QualityBudget `hard.comment.prose`).
+- Gate per task: test terkait; gate penuh di Task 8, satu langkah per waktu dengan watchdog memori.
+
+## Review Focus
+
+1. Registrasi mandiri: prodi di bawah Jurusan harus tetap muncul (RegistrableStudyPrograms saat ini mensyaratkan induk `faculty`) — test di Task 5.
+2. Grant multi-organisasi yang memuat satu pasangan duplikat: tidak ada baris yang tersimpan sebagian — test di Task 4.
+3. Statistik per fakultas dengan Jurusan di tengah: prodi tetap terhitung di fakultasnya (UnitFaculty rekursif) — test di Task 5.
+4. Tamu yang membuka `/` setelah logout tidak mendarat di halaman yang butuh auth — test di Task 6.
+5. Sapuan istilah tidak mengubah nilai yang dibaca mesin (value option, nama route, kunci props) — dijaga test yang sudah ada + vue-tsc di Task 7.
+
+---
+
+### Task 1: TRL → TKT di tampilan
+
+**Files:** `app/Queries/Submission/{WizardReviewSummary,ResearcherSubmissionDetail,WizardFieldOptions}.php`,
+`app/Queries/Form/FieldTypeOptions.php`, `app/Support/{WizardStepGate,SchemeFieldGuard}.php`,
+`app/Support/Config/ReferenceEntityRegistry.php`, `resources/js/Pages/Scheme/FormPage.vue`,
+`resources/js/Components/Submission/{InfoSection,Wizard/SchemeStep,Wizard/ReviewStep}.vue`,
+`docs/requirement-analysis/ddd/02_ubiquitous_language.md` (baris TRL/trl_selector), test yang menegaskan teks lama.
+
+- [ ] Ganti teks tampilan: `"TRL {level} — {name}"` → `"TKT {level} — {name}"`; `'Pilihan TRL'` → `'Pilihan TKT'`;
+  label acuan `'Technology Readiness Level'` → `'Tingkat Kesiapterapan Teknologi (TKT)'`; judul langkah
+  `'Skema, TKT & Target Luaran'`; pesan SchemeFieldGuard menyebut "pilihan TKT"; Vue: "TKT yang Diizinkan", kolom "TKT".
+- [ ] `grep -rn "TRL" tests resources/js app` → perbarui setiap assert teks tampilan; komentar boleh tetap.
+- [ ] UL: tambah entri **TKT** "Tingkat Kesiapterapan Teknologi; istilah tampilan untuk TRL, kode memakai `trl`".
+- [ ] Jalankan test Scheme/Submission wizard + vitest komponen terkait → PASS. Commit `feat(scheme): TRL tampil sebagai TKT`.
+
+### Task 2: Operator mengelola Form Builder
+
+**Files:** `database/seeders/PermissionSeeder.php` (`operator` + `schemes.manage`),
+`docs/requirement-analysis/ddd/generic/02_identity_access.md:179`, test baru `tests/Feature/Identity/OperatorFormBuilderAccessTest.php`.
+
+- [ ] Test: `it('[K4] operator membuka Form Builder, Form Evaluasi, Fase, dan Skema')` — user `assignRole('operator')`
+  setelah `seed(PermissionSeeder)`, GET `admin.forms.index`, `admin.phases.index` (form fixture), `admin.schemes.index` → 200.
+  Plus `expect(Role::findByName('operator')->hasPermissionTo('schemes.manage'))->toBeTrue()`.
+- [ ] Jalankan → FAIL 403. Tambah permission di matriks seeder + baris DDD 179. Jalankan → PASS.
+- [ ] Cari test yang menegaskan operator ditolak di route `schemes.manage` (`grep -rn "operator" tests | grep -i "form\|scheme"`) → sesuaikan.
+- [ ] Commit `feat(identity): operator mendapat schemes.manage`.
+
+### Task 3: Label hak akses + tooltip
+
+**Files:** `app/Support/Identity/PermissionCatalog.php`, `app/Data/View/FormEngine/FormAccessRuleData.php`,
+`resources/js/Components/FormEngine/FormAccessTab.vue`, `resources/js/Components/Identity/UserAccessSection.vue`,
+`resources/js/types/{form-engine,identity}.ts`, `tests/Unit/**/IdentityCatalogTest.php` (atau lokasinya), Vitest FormAccessTab.
+
+- [ ] `PermissionCatalog::DESCRIPTIONS` (`array<string,string>`, kunci = `LABELS`), satu kalimat per permission;
+  label disesuaikan glosarium (reviewer→penilai, user→pengguna, audit log→log audit).
+  `options()` mengembalikan `{value, label, description}`; `description(string $name): string`.
+- [ ] Test katalog: kunci DESCRIPTIONS === kunci LABELS === `PermissionSeeder::PERMISSIONS`.
+- [ ] `FormAccessRuleData` + `permissionDescription`. FormAccessTab: kolom "Hak Akses"; baris `<code>` diganti ikon
+  info ber-`UiTooltip` berisi deskripsi + kode; field form berlabel "Hak Akses". UserAccessSection: tooltip sama di
+  daftar langsung & efektif.
+- [ ] Vitest: tooltip trigger punya `aria-label` berisi label; kode tidak dirender di sel. Commit `feat(identity): hak akses berlabel dan bertooltip`.
+
+### Task 4: Tab akses — organisasi multi-pilih
+
+**Files:** `app/Http/Requests/Form/FormAccessControlRequest.php`, `app/Data/Request/FormAccessInput.php`,
+`app/Actions/Form/GrantFormAccess.php`, `app/Queries/Identity/OrganizationOptions.php` (+ `depth`),
+`app/Http/Controllers/FormEngine/FormAccessController.php` (flash berjumlah),
+create `resources/js/Components/app/MultiOptionCombobox.vue`, modify `FormAccessTab.vue`,
+tests `tests/Feature/FormEngine/FormAccessGrantTest.php`, `tests/frontend/components/FormEngine/FormAccessTab.spec.ts`,
+`tests/frontend/components/app/MultiOptionCombobox.spec.ts`.
+
+**Interfaces:** `FormAccessInput(formId:int, permission:string, organizationIds: list<int>)`;
+`GrantFormAccess::run(FormAccessInput, User): list<FormAccessControl>`; option `{value,label,depth:int}`;
+`MultiOptionCombobox` props `options: {value,label,depth?,disabled?}[]`, `v-model: string[]`, `placeholder`, `id`.
+
+- [ ] Test Pest: grant 3 organisasi → 3 baris + 3 audit; satu sudah ada → ValidationException `duplicate` memuat nama
+  organisasinya dan **0** baris baru (Review Focus 2); `organization_ids` kosong → 422; id nonaktif → 422 `organization_ids.*`.
+- [ ] Request: `organization_ids` `required|array|min:1`, `organization_ids.*` integer exists aktif, `distinct`.
+- [ ] Action: cek duplikat untuk semua id dulu (BR-FE-02), lalu buat semua dalam satu `DB::transaction`.
+- [ ] Combobox: cari klien, item berindentasi `depth`, chip terpilih bisa dilepas, item `disabled` tak bisa dipilih.
+  FormAccessTab menonaktifkan organisasi yang sudah ber-aturan untuk permission terpilih (dari `rules`; perlu
+  `organizationId` di `FormAccessRuleData`). Flash: "{n} aturan akses ditambahkan."
+- [ ] Pest + Vitest PASS. Commit `feat(form): aturan akses untuk beberapa organisasi sekaligus`.
+
+### Task 5: Jurusan di antara Fakultas dan Prodi
+
+**Files:** `app/Support/Identity/OrganizationTypeCatalog.php` (`'department' => 'Jurusan'`),
+`database/seeders/OrganizationSeeder.php`, `app/Queries/Identity/RegistrableStudyPrograms.php`,
+`app/Queries/Submission/ResearcherStudyProgram.php`, `resources/js/Components/Auth/OrganizationSelect.vue` (label grup),
+tests registrasi, statistik, seeder.
+
+- [ ] Seeder: Institusi → Fakultas → Jurusan → Prodi persis daftar pemilik (6 jurusan, 33 prodi). Kode jurusan:
+  JSAD, JTEIB, JTK, JTSP, JTI, JRI. Prodi yang sudah ada dipindah induknya (upsert `parent_id`), tidak diduplikasi.
+- [ ] Test seeder: setiap prodi berinduk `department`, setiap jurusan berinduk `faculty`; jumlah 3/6/33.
+- [ ] RegistrableStudyPrograms: prodi aktif dikelompokkan per **induk langsung** (fakultas atau jurusan) yang aktif
+  dan seluruh leluhurnya aktif; nama grup jurusan = "Jurusan X — Fakultas Y". Test: prodi di bawah jurusan muncul
+  (Review Focus 1); jurusan nonaktif → prodinya tidak ditawarkan.
+- [ ] ResearcherStudyProgram: `faculty.name` = leluhur bertipe `faculty` (bukan induk langsung). Test.
+- [ ] Test statistik: prodi di bawah jurusan terhitung di fakultasnya (Review Focus 3).
+- [ ] Commit `feat(identity): jurusan sebagai subunit fakultas`.
+
+### Task 6: Welcome page
+
+**Files:** `routes/web.php:63`, create `app/Http/Controllers/WelcomeController.php`,
+create `resources/js/Pages/Welcome/WelcomePage.vue`, `tests/Feature/HomeRedirectTest.php` → `WelcomePageTest.php`,
+Vitest `tests/frontend/pages/WelcomePage.spec.ts`, `docs/design/fe-v2-design.md` (baris W173 membalik W157).
+
+- [ ] Test: tamu GET `/` → Inertia `Welcome/WelcomePage` dengan `announcements` (PublicAnnouncementPanel, ≤5,
+  hanya yang berlaku untuk tamu); user masuk → redirect `dashboard`; route `login` tetap bisa dibuka.
+- [ ] Halaman: AuthLayout-tanpa-kartu atau layout publik sederhana — logo ITK, nama SIMPAS + satu kalimat tujuan,
+  tombol "Masuk" dan "Daftar", daftar pengumuman publik (pakai `PublicAnnouncementPanel`), kosong → tidak ada seksi.
+- [ ] Commit `feat(welcome): halaman sambutan dengan pengumuman publik`.
+
+### Task 7: Sapuan istilah UI ke bahasa Indonesia
+
+**Files:** create `docs/design/2026-11-13-glosarium-ui.md` (tabel K2 + aturan "kode tetap UL");
+teks tampilan di `resources/js/**` (template, label map, `navigation.ts`, `<Head title>`), dan string user-facing di
+`app/**` (flash `with('success'|'error')`, `ValidationException::withMessages`, `messages()`, label Data/Support,
+Notification subject/line, judul ekspor); test Pest/Vitest/Playwright yang menegaskan teks itu.
+
+- [ ] Per istilah K2: `grep -rnw` di `resources/js` dan `app`, ganti hanya teks tampilan (bukan value, key, route,
+  nama tipe, komentar kode). Nomor W/BR di komentar dibiarkan.
+- [ ] Jalankan suite per area yang tersentuh; perbaiki assert teks. vue-tsc → 0 error.
+- [ ] Commit per kelompok (navigasi & shell; pengajuan; penilaian; formulir; identitas & laporan).
+
+### Task 8: Gate penuh + dokumentasi
+
+- [ ] `free -m` ≥ 3 GB, watchdog; satu per satu: pint, phpstan (2 tier), pest, eslint, prettier, vue-tsc, vitest.
+- [ ] Catat hasil di bagian Status rencana ini; temuan yang tak langsung diperbaiki → catatan bug.
+- [ ] Commit `docs: paket A selesai`.
+
+## Status
+
+(diisi saat eksekusi)
