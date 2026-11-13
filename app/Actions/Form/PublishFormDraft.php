@@ -10,6 +10,7 @@ use App\Services\Form\FormFieldWriter;
 use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use App\Support\SchemeFieldGuard;
+use App\Support\SubmissionTitleField;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -42,6 +43,7 @@ class PublishFormDraft
 
             $input = FormDraftInput::fromPayload($draft->payload);
             SchemeFieldGuard::assertTrlHasSchemeSelector($input->fieldTypeIds());
+            SubmissionTitleField::assertAtMostOne($input->fieldTypeIds());
 
             $old = $form->auditSnapshot();
             // BR-FE-23/24 — penjaga tipe terkunci dan id asing berjalan di sini, saat field hidup ditulis.

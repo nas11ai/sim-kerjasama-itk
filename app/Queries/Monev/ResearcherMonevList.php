@@ -35,7 +35,7 @@ class ResearcherMonevList implements ChangesNoState
             ->get()
             ->map(fn (FormSubmission $parent): MonevSubmissionData => new MonevSubmissionData(
                 id: $parent->id,
-                title: $parent->form->title,
+                title: $parent->displayTitle(),
                 scheme: $parent->scheme?->name,
                 status: SubmissionStatusData::of($parent),
                 canFill: $user->can('startMonevReport', $parent),

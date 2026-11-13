@@ -34,6 +34,7 @@ class FieldTypeOptions implements ChangesNoState
         'phone' => 'Telepon',
         'scheme_selector' => 'Pilihan skema',
         'trl_selector' => 'Pilihan TRL',
+        'submission_title' => 'Judul pengajuan',
     ];
 
     /** Nama tipe yang tak dikenal tampil apa adanya. */

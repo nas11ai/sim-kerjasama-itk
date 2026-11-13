@@ -29,6 +29,7 @@ use App\Models\SubmissionPeriodPhase;
 use App\Models\SubmissionType;
 use App\Models\User;
 use App\Models\UserProfile;
+use App\Support\SubmissionTitleField;
 use Illuminate\Database\Seeder;
 
 /**
@@ -164,9 +165,11 @@ class EndToEndFlowSeeder extends Seeder
 
         // BR-SCH-04 — tanpa pemilih skema, batas anggaran dan jumlah reviewer skema tidak berlaku.
         $schemeSelector = FieldType::firstOrCreate(['name' => 'scheme_selector']);
+        // BR-SM-22 — jawabannya menjadi judul pengajuan di daftar dan detail.
+        $submissionTitle = FieldType::firstOrCreate(['name' => SubmissionTitleField::TYPE]);
 
         $fields = [
-            ['Judul Penelitian', $text, true, 1],
+            ['Judul Penelitian', $submissionTitle, true, 1],
             ['Abstrak', $textarea, true, 2],
             ['Kata Kunci', $text, false, 3],
             ['Skema Penelitian', $schemeSelector, true, 4],

@@ -37,7 +37,8 @@ class SearchSubmissions implements ChangesNoState
         $found = $this->scope($viewer, $viewAll, $viewOwn)
             ->whereNull('parent_submission_id')
             ->where(fn (Builder $any) => $any
-                ->whereHas('form', fn (Builder $form) => $form->whereLike('title', $pattern))
+                ->whereLike('form_submissions.title', $pattern)
+                ->orWhereHas('form', fn (Builder $form) => $form->whereLike('title', $pattern))
                 ->orWhereHas('submittedBy', fn (Builder $lead) => $lead->whereLike('name', $pattern)))
             ->with(['form:id,title', 'submittedBy:id,name'])
             ->orderByDesc('updated_at')
@@ -49,8 +50,8 @@ class SearchSubmissions implements ChangesNoState
         return array_values($found
             ->map(fn (FormSubmission $s): SearchHitData => new SearchHitData(
                 id: $s->id,
-                // E2E-11 — label = judul Form, sama dengan daftar pengajuan.
-                label: $s->form->title,
+                // BR-SM-22 — label = judul pengajuan, sama dengan daftar pengajuan.
+                label: $s->displayTitle(),
                 sublabel: SubmissionStatusData::of($s)->label.' · '.$s->submittedBy->name,
                 // E2E-19 — milik sendiri ke halaman peneliti, selebihnya ke halaman Operator.
                 url: route(in_array($s->id, $own, true) ? 'user.submissions.show' : 'admin.submissions.show', $s->id),

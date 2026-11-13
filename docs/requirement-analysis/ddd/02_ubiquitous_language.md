@@ -1,7 +1,10 @@
 # 02 — Ubiquitous Language
 
-**Versi:** 2.5  
+**Versi:** 2.6  
 **Status:** Draft
+
+> **Perubahan v2.5 → v2.6** (pemilik 2026-11-13). Istilah baru **submission_title** /
+> **Judul pengajuan** (BR-SM-22).
 
 > **Perubahan v2.4 → v2.5** ([ADR 0019](../../adr/0019-fase-template-jadwal-periode-form-evaluasi-berversi.md)).
 > Istilah baru **Angkatan**, **Kalender periode**, **Langkah**. FormPhaseDetail tidak lagi
@@ -123,6 +126,7 @@ kasus berperilaku salah tanpa ada yang gagal mencolok.
 | **Scheme**          | Metadata aturan yang mengatur sebuah kategori pengajuan: `max_budget`, `max_members`, `duration_months`, dan `rules` JSONB untuk rule opsional.                        |
 | **scheme.rules**    | JSONB column di tabel `schemes` untuk rule yang opsional dan extensible tanpa migration. Contoh: `min_reviewer_count`, `max_reviewer_workload`, `max_student_members`. |
 | **scheme_selector** | FormField type khusus — dropdown scheme yang tersedia di period. Opsional per Form. **Menulis ke `form_submissions.scheme_id`, bukan ke `form_field_responses`** — sekelas dengan RepeatableField. |
+| **submission_title** | FormField type khusus — teks yang jawabannya menjadi **Judul pengajuan**. Paling banyak satu per Form. Disalin ke `form_submissions.title`, jawabannya tetap di `form_field_responses`; tanpa field ini pengajuan tampil dengan judul Form (BR-SM-22). |
 | **trl_selector**    | FormField type khusus — dropdown TRL filtered by scheme terpilih. **Menulis ke `form_submissions.trl_id`.** Hanya valid jika ada `scheme_selector` di Form yang sama.   |
 
 ---

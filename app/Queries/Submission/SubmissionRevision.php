@@ -32,7 +32,7 @@ class SubmissionRevision implements ChangesNoState
         $review = WizardReviewSummary::run($viewer, $submission);
 
         return [
-            'submission' => new RevisionSubmissionData($submission->id, $submission->form->title, SubmissionStatusData::of($submission)),
+            'submission' => new RevisionSubmissionData($submission->id, $submission->displayTitle(), SubmissionStatusData::of($submission)),
             'threads' => ReviewThreadData::many($threads['summaries'], $threads['comments']),
             'missingFields' => $review->missingFields,
             'accountBlock' => $review->accountBlock,

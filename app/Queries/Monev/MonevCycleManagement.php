@@ -58,7 +58,7 @@ class MonevCycleManagement implements ChangesNoState
         return [
             'submission' => [
                 'id' => $parent->id,
-                'title' => $parent->form->title,
+                'title' => $parent->displayTitle(),
                 'leader' => $parent->submittedBy->name,
                 'status' => SubmissionStatusData::of($parent),
             ],

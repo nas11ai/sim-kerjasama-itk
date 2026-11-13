@@ -59,7 +59,7 @@ class ResearchOutputForm implements ChangesNoState
 
         return new OutputFormData(
             submissionId: $submission->id,
-            submissionTitle: $submission->form->title,
+            submissionTitle: $submission->displayTitle(),
             scheme: $submission->scheme?->name,
             access: $access,
             types: self::types($submission, $output),

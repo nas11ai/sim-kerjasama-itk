@@ -31,7 +31,7 @@ final class SubmissionRowData extends Data
 
         return new self(
             id: $submission->id,
-            title: $submission->form->title,
+            title: $submission->displayTitle(),
             scheme: $submission->scheme?->name,
             period: $submission->submissionPeriod?->name,
             status: SubmissionStatusData::of($submission),

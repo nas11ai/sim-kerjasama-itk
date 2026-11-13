@@ -10,8 +10,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * Jawaban field pemilih kolom (`scheme_selector`, `trl_selector`) sebuah pengajuan, sebelum
- * dipindah ke kolomnya (ADR 0005). Null bila Form tidak punya field bertipe itu.
+ * Jawaban field yang disalin ke kolom (`scheme_selector`, `trl_selector`, `submission_title`)
+ * sebuah pengajuan, sebelum dipindah ke kolomnya (ADR 0005, BR-SM-22). Null bila Form tidak punya
+ * field bertipe itu.
  *
  * @method static array{field: FormField, value: string|null}|null run(FormSubmission $submission, string $type)
  */

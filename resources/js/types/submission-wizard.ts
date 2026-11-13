@@ -24,6 +24,7 @@ export type WizardFieldType =
     | 'phone'
     | 'scheme_selector'
     | 'trl_selector'
+    | 'submission_title'
 
 // Sumber: WizardStepData.
 export interface WizardStep {

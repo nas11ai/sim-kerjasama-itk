@@ -70,7 +70,7 @@ class MonevCycleBoard implements ChangesNoState
 
         return new MonevBoardRowData(
             id: $parent->id,
-            title: $parent->form->title,
+            title: $parent->displayTitle(),
             leader: $parent->submittedBy->name,
             scheme: $parent->scheme?->name,
             currentCycle: $current?->name,
@@ -86,9 +86,10 @@ class MonevCycleBoard implements ChangesNoState
     {
         $search = $filters['search'];
 
-        // PostgreSQL — whereLike tidak peka huruf, judul atau nama ketua.
+        // PostgreSQL — whereLike tidak peka huruf, judul (BR-SM-22: pengajuan atau Form) atau nama ketua.
         $query->when($search !== '', fn (Builder $q) => $q->where(fn (Builder $any) => $any
-            ->whereHas('form', fn (Builder $form) => $form->whereLike('title', "%{$search}%"))
+            ->whereLike('form_submissions.title', "%{$search}%")
+            ->orWhereHas('form', fn (Builder $form) => $form->whereLike('title', "%{$search}%"))
             ->orWhereHas('submittedBy', fn (Builder $lead) => $lead->whereLike('name', "%{$search}%"))));
         $query->when(ctype_digit($filters['period']), fn (Builder $q) => $q->where('submission_period_id', (int) $filters['period']));
         $query->when(ctype_digit($filters['scheme']), fn (Builder $q) => $q->where('scheme_id', (int) $filters['scheme']));

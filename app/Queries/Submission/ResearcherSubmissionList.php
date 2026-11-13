@@ -63,10 +63,10 @@ class ResearcherSubmissionList implements ChangesNoState
         $status = $filters['status'];
         $period = $filters['period'];
 
-        $query->when($search !== '', fn (Builder $q) => $q->whereHas(
-            'form',
-            fn (Builder $form) => $form->whereLike('title', "%{$search}%"),
-        ));
+        // BR-SM-22 — judul pengajuan atau, bila belum ada, judul Form-nya.
+        $query->when($search !== '', fn (Builder $q) => $q->where(fn (Builder $any) => $any
+            ->whereLike('form_submissions.title', "%{$search}%")
+            ->orWhereHas('form', fn (Builder $form) => $form->whereLike('title', "%{$search}%"))));
         // Nilai di luar pilihan diabaikan, bukan menghasilkan daftar kosong yang membingungkan.
         $query->when(in_array($status, $statuses, true), fn (Builder $q) => $q->where('status', $status));
         $query->when(ctype_digit($period), fn (Builder $q) => $q->where('submission_period_id', (int) $period));

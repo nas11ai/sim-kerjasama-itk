@@ -12,7 +12,11 @@ import type { WizardField, WizardFieldType } from '@/types/submission-wizard'
 const props = defineProps<{ field: WizardField; error?: string }>()
 const model = defineModel<string | File | null>({ required: true })
 
-const INPUT_TYPES: Partial<Record<WizardFieldType, string>> = { phone: 'tel' }
+// BR-SM-22 — submission_title diisi seperti teks biasa; perannya ada di server.
+const INPUT_TYPES: Partial<Record<WizardFieldType, string>> = {
+    phone: 'tel',
+    submission_title: 'text',
+}
 const NOT_INPUT: WizardFieldType[] = [
     'textarea',
     'select',

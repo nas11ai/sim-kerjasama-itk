@@ -35,7 +35,7 @@ final class ReviewHistoryRowData extends Data
 
         return new self(
             id: $assignment->id,
-            title: $submission->form->title,
+            title: $submission->displayTitle(),
             scheme: $submission->scheme?->name,
             context: $context === [] ? null : implode(' · ', $context),
             completedAt: $assignment->reviewerFormAssignments

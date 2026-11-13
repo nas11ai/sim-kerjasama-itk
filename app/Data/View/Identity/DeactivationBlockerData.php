@@ -24,7 +24,7 @@ final class DeactivationBlockerData extends Data
     {
         return new self(
             submissionId: $submission->id,
-            title: $submission->form->title,
+            title: $submission->displayTitle(),
             status: SubmissionStatusData::of($submission),
             hasActiveCoInvestigator: $submission->getAttribute('has_active_co_investigator') === true,
             manageUrl: $viewerManagesSubmissions ? route('admin.submissions.show', $submission) : null,

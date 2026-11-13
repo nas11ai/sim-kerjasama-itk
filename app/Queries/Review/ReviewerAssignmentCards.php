@@ -71,7 +71,7 @@ class ReviewerAssignmentCards implements ChangesNoState
 
         return new AssignmentCardData(
             submissionId: $submission->id,
-            title: $submission->form->title,
+            title: $submission->displayTitle(),
             leadName: $submission->submittedBy->name,
             scheme: $submission->scheme?->name,
             dueDate: $this->nearestDue($assignment),

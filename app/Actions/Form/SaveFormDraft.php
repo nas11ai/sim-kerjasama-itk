@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use App\Support\SchemeFieldGuard;
+use App\Support\SubmissionTitleField;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -30,6 +31,8 @@ class SaveFormDraft
     {
         // BR-SCH-05 — galatnya sudah terlihat saat simpan; Terbitkan memeriksanya lagi.
         SchemeFieldGuard::assertTrlHasSchemeSelector($input->fieldTypeIds());
+        // BR-SM-22 — paling banyak satu field judul pengajuan per Form.
+        SubmissionTitleField::assertAtMostOne($input->fieldTypeIds());
 
         return DB::transaction(function () use ($form, $input, $actor): FormDraft {
             // B13 — Terbitkan memegang kunci ini sambil menghapus draf; tanpanya simpan yang

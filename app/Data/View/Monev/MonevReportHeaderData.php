@@ -30,7 +30,7 @@ final class MonevReportHeaderData extends Data
         return new self(
             id: $report->id,
             parentId: $parent->id,
-            title: $parent->form->title,
+            title: $parent->displayTitle(),
             scheme: $parent->scheme?->name,
             cycleName: $detail === null ? 'Monev' : MonevCycles::nameOf($detail),
             // BR-FE-26 — laporan memakai kalender periode induknya.

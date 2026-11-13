@@ -66,7 +66,7 @@ final class MonevRecapExport implements ExportDefinition
     /** @return list<string|int|null> */
     private static function row(FormSubmission $parent, MonevCycleData $cycle): array
     {
-        return [$parent->id, $parent->form->title, $cycle->name, $cycle->state->label()];
+        return [$parent->id, $parent->displayTitle(), $cycle->name, $cycle->state->label()];
     }
 
     /** @return Builder<FormSubmission> */

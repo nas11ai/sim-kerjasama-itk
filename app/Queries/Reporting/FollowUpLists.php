@@ -87,7 +87,7 @@ class FollowUpLists implements ChangesNoState
 
         return array_values($submissions->map(fn (FormSubmission $submission): FollowUpItemData => new FollowUpItemData(
             id: $submission->id,
-            title: $submission->form->title,
+            title: $submission->displayTitle(),
             leader: $submission->submittedBy->name,
             scheme: $submission->scheme?->name,
             ageDays: $this->ageDays($submission),

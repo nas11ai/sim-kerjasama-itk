@@ -85,7 +85,7 @@ class ResearcherSubmissionDetail implements ChangesNoState
 
         return new SubmissionDetailData(
             id: $submission->id,
-            title: $submission->form->title,
+            title: $submission->displayTitle(),
             scheme: $submission->scheme?->name,
             period: $submission->submissionPeriod?->name,
             trl: $trl === null ? null : "TRL {$trl->level} — {$trl->name}",

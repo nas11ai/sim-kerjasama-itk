@@ -33,7 +33,7 @@ class ResearchOutputDetail implements ChangesNoState
         return new OutputDetailData(
             id: $output->id,
             submissionId: $submission->id,
-            submissionTitle: $submission->form->title,
+            submissionTitle: $submission->displayTitle(),
             typeName: $typeName,
             headline: OutputRows::headline($output, $type),
             fields: [new OutputDetailFieldData('Tipe', $typeName), ...self::fields($output, $type)],

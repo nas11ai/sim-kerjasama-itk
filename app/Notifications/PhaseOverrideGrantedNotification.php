@@ -38,7 +38,7 @@ class PhaseOverrideGrantedNotification extends Notification
             // FormSubmission tidak punya kolom judul — itu milik Form. Kode lama
             // pakai `$submission->title`, yang selalu null, jadi baris ini selalu
             // "Pengajuan #id", tak menolong peneliti berpengajuan majemuk.
-            ->line('Pengajuan: '.$this->submission->form->title.' (#'.$this->submission->id.')')
+            ->line('Pengajuan: '.$this->submission->displayTitle().' (#'.$this->submission->id.')')
             ->line($this->deadlineLine());
     }
 

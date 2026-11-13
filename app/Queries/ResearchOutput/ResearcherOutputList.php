@@ -34,7 +34,7 @@ class ResearcherOutputList implements ChangesNoState
             ->get()
             ->map(fn (FormSubmission $submission): OutputSubmissionGroupData => new OutputSubmissionGroupData(
                 submissionId: $submission->id,
-                title: $submission->form->title,
+                title: $submission->displayTitle(),
                 scheme: $submission->scheme?->name,
                 status: SubmissionStatusData::of($submission),
                 access: OutputWriteAccess::for($user, $submission),

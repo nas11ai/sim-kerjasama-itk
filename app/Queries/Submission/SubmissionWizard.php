@@ -87,7 +87,7 @@ class SubmissionWizard implements ChangesNoState
     {
         return new WizardSubmissionData(
             id: $submission->id,
-            title: $submission->form->title,
+            title: $submission->displayTitle(),
             status: SubmissionStatusData::of($submission),
             period: $submission->submissionPeriod?->name,
             form: $submission->form->title,

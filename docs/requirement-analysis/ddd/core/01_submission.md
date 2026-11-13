@@ -1,8 +1,12 @@
 # BC: Submission
 
 **Klasifikasi:** 🔴 Core Domain  
-**Versi:** 2.5  
+**Versi:** 2.6  
 **Status:** Draft
+
+> **Perubahan v2.5 → v2.6** (keputusan pemilik 2026-11-13, E2E-11). BR-SM-22 baru:
+> **judul pengajuan** adalah jawaban field `submission_title`, disalin ke
+> `form_submissions.title`; tanpa field itu, pengajuan tampil dengan judul Form.
 
 > **Perubahan v2.4 → v2.5.** BR-SM-10 dan BR-SM-13 diberi catatan laporan anak
 > (keputusan pemilik 2026-11-07, W135), turunan BR-SCH-07 v2.5: laporan monev
@@ -271,6 +275,7 @@ classDiagram
 | BR-SM-19 | `SubmissionTargetOutput` dihapus oleh `submitted_by` sampai pengajuan REJECTED atau WITHDRAWN — gerbang yang sama dengan penyuntingannya ([BR-SM-15](#business-rules)). Co-Investigator hanya membaca, berbeda dari [BR-RO-07](../supporting/03_research_output.md) pada luaran realisasi, dan perbedaannya disengaja: target adalah janji ketua pengaju |
 | BR-SM-20 | Anggota mahasiswa dicatat sebagai **data, bukan akun**: mahasiswa tidak mendaftar ke SIMPAS, jadi `StudentMember` menyimpan nama, NIM, dan program studinya apa adanya. Jumlahnya dibatasi `scheme.rules.max_student_members`; skema yang tidak menyatakannya tidak membatasi — sejajar `allowed_output_types` di [BR-SM-14](#business-rules). Sumbu siapa dan kapannya sama dengan anggota bergelar ([BR-SM-18](#business-rules)): hanya `submitted_by`, dan hanya selama pengajuan belum terminal |
 | BR-SM-21 | Mitra eksternal dicatat sebagai **baris, bukan teks**. `output_type = 'pks'` sudah menyimpan `involved_parties` di metadata JSON-nya ([BR-RO-02](../supporting/03_research_output.md)), tapi itu kemitraan yang **sudah terwujud** dan tersimpan dalam bentuk yang tidak bisa ditanyai: tidak ada cara menjawab "berapa pengajuan yang melibatkan institusi ini". `Partner` mencatat mitra **pada saat diajukan** — dua momen, dua entitas, sejajar [BR-SM-14](#business-rules) versus [BR-RO-05](../supporting/03_research_output.md) pada luaran. Sumbu siapa dan kapannya sama dengan anggota ([BR-SM-18](#business-rules)): hanya `submitted_by`, dan hanya selama pengajuan belum terminal |
+| BR-SM-22 | **Judul pengajuan.** Field bertipe `submission_title` (paling banyak satu per Form, dijaga saat Form disimpan dan diterbitkan) adalah judul pengajuan: jawabannya disalin ke `form_submissions.title` setiap kali draft disimpan, sekelas dengan `scheme_selector` ([ADR 0005](../../../adr/0005-scheme-selector-writes-to-column.md)). Daftar, detail, pencarian, ekspor, dan notifikasi membaca kolom itu. Form tanpa field judul, atau jawaban yang dikosongkan, tampil dengan judul Form. Jawabannya tetap tersimpan sebagai jawaban biasa, jadi tetap terbaca di isian pengajuan dan ikut rekaman teks BR-FE-35 |
 
 ---
 

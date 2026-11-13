@@ -36,14 +36,14 @@ final class BudgetDetailExport implements ExportDefinition
     public function rows(User $user, ExportFilters $filters): array
     {
         $items = $this->query($user, $filters)
-            ->with(['formSubmission:id,form_id', 'formSubmission.form:id,title', 'budgetComponent:id,name'])
+            ->with(['formSubmission:id,form_id,title', 'formSubmission.form:id,title', 'budgetComponent:id,name'])
             ->orderBy('form_submission_id')
             ->orderBy('id')
             ->get();
 
         return array_values($items->map(fn (BudgetLineItem $item): array => [
             $item->form_submission_id,
-            $item->formSubmission->form->title,
+            $item->formSubmission->displayTitle(),
             $item->budgetComponent->name,
             $item->item_name,
             $item->volume,

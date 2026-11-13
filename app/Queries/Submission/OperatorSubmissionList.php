@@ -76,9 +76,10 @@ class OperatorSubmissionList implements ChangesNoState
     {
         $search = $filters['search'];
 
-        // PostgreSQL — whereLike tidak peka huruf, judul atau nama ketua.
+        // PostgreSQL — whereLike tidak peka huruf, judul (BR-SM-22: pengajuan atau Form) atau nama ketua.
         $query->when($search !== '', fn (Builder $q) => $q->where(fn (Builder $any) => $any
-            ->whereHas('form', fn (Builder $form) => $form->whereLike('title', "%{$search}%"))
+            ->whereLike('form_submissions.title', "%{$search}%")
+            ->orWhereHas('form', fn (Builder $form) => $form->whereLike('title', "%{$search}%"))
             ->orWhereHas('submittedBy', fn (Builder $lead) => $lead->whereLike('name', "%{$search}%"))));
         // Nilai di luar pilihan diabaikan, bukan menghasilkan daftar kosong yang membingungkan.
         $query->when(in_array($filters['status'], $statuses, true), fn (Builder $q) => $q->where('status', $filters['status']));

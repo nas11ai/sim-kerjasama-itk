@@ -23,6 +23,7 @@ const mountInput = (f: WizardField, error?: string) =>
 describe('WizardFieldInput', () => {
     it.each([
         ['text', 'input[type="text"]'],
+        ['submission_title', 'input[type="text"]'],
         ['email', 'input[type="email"]'],
         ['url', 'input[type="url"]'],
         ['phone', 'input[type="tel"]'],

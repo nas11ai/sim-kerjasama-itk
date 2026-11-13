@@ -25,7 +25,7 @@ final class EvaluationSubmissionData extends Data
 
         return new self(
             id: $submission->id,
-            title: $submission->form->title,
+            title: $submission->displayTitle(),
             scheme: $submission->scheme?->name,
             period: $submission->submissionPeriod?->name,
             leadName: $submission->submittedBy->name,

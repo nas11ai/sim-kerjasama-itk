@@ -31,7 +31,7 @@ final class OperatorSubmissionRowData extends Data
 
         return new self(
             id: $submission->id,
-            title: $submission->form->title,
+            title: $submission->displayTitle(),
             leadName: $submission->submittedBy->name,
             organization: $submission->submittedBy->organization?->name,
             scheme: $submission->scheme?->name,

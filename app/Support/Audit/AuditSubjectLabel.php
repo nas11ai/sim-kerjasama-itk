@@ -78,7 +78,7 @@ final class AuditSubjectLabel
 
         if ($subject instanceof FormSubmission && $subject->parent !== null && $subject->formPhaseDetail !== null) {
             // E2E-06 — laporan monev dinamai siklusnya, bukan "Submission".
-            return MonevCycles::nameOf($subject->formPhaseDetail).' — '.$subject->parent->form->title;
+            return MonevCycles::nameOf($subject->formPhaseDetail).' — '.$subject->parent->displayTitle();
         }
 
         $type = $entry->subject_type ?? '';
@@ -100,8 +100,11 @@ final class AuditSubjectLabel
             $query->orWhereHasMorph('subject', [$type], fn (Builder $subject) => $subject->whereLike($column, $pattern));
         }
 
+        // BR-SM-22 — judul pengajuan (atau induknya, untuk laporan monev) di samping judul Form.
         return $query->orWhereHasMorph('subject', [FormSubmission::class], fn (Builder $submission) => $submission
-            ->whereHas('form', fn (Builder $form) => $form->whereLike('title', $pattern))
+            ->whereLike('form_submissions.title', $pattern)
+            ->orWhereHas('form', fn (Builder $form) => $form->whereLike('title', $pattern))
+            ->orWhereHas('parent', fn (Builder $parent) => $parent->whereLike('title', $pattern))
             ->orWhereHas('parent.form', fn (Builder $form) => $form->whereLike('title', $pattern)));
     }
 
@@ -112,7 +115,7 @@ final class AuditSubjectLabel
         }
 
         if ($subject instanceof FormSubmission) {
-            return $subject->form->title;
+            return $subject->displayTitle();
         }
 
         $column = self::NAME_COLUMNS[$subject::class] ?? null;

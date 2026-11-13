@@ -35,6 +35,7 @@ use Spatie\ModelStates\HasStates;
  * @property bool $is_submitted
  * @property CarbonImmutable|null $cycle_opened_at
  * @property list<FieldLabel>|null $submitted_field_labels
+ * @property string|null $title
  * @property-read bool $is_archived
  * @property SubmissionStatus|null $status
  * @property-read Form $form
@@ -68,6 +69,7 @@ class FormSubmission extends Model
         'submitted_by',
         'parent_submission_id',
         'submitted_field_labels',
+        'title',
     ];
 
     protected $appends = ['is_archived'];
@@ -92,6 +94,15 @@ class FormSubmission extends Model
     public function children(): HasMany
     {
         return $this->hasMany(FormSubmission::class, 'parent_submission_id');
+    }
+
+    /**
+     * BR-SM-22 — judul yang dilihat orang: jawaban field `submission_title`, atau judul Form bila
+     * Form tidak punya field itu atau jawabannya kosong. Butuh relasi `form` (cukup `id,title`).
+     */
+    public function displayTitle(): string
+    {
+        return $this->title ?? $this->form->title;
     }
 
     /** @return BelongsTo<Form, $this> */

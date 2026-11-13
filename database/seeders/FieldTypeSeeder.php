@@ -31,6 +31,8 @@ class FieldTypeSeeder extends Seeder
                 // (BR-SCH-09).
                 'scheme_selector',
                 'trl_selector',
+                // BR-SM-22 — field teks yang jawabannya menjadi judul pengajuan.
+                'submission_title',
             ];
 
             foreach ($fieldTypes as $type) {

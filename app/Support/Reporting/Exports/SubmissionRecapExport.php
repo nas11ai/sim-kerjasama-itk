@@ -46,7 +46,7 @@ final class SubmissionRecapExport implements ExportDefinition
 
         return array_values($submissions->map(fn (FormSubmission $s): array => [
             $s->id,
-            $s->form->title,
+            $s->displayTitle(),
             SubmissionStatusData::of($s)->label,
             $s->scheme?->name,
             $s->submittedBy->name,

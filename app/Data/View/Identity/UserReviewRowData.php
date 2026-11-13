@@ -32,7 +32,7 @@ final class UserReviewRowData extends Data
         return new self(
             id: $seat->id,
             submissionId: $seat->form_submission_id,
-            title: $seat->formSubmission->form->title,
+            title: $seat->formSubmission->displayTitle(),
             assignmentStatus: ['value' => $seat->status, 'label' => $seat->status === 'replaced' ? 'Digantikan' : 'Aktif'],
             evaluationStatus: ['value' => $seat->evaluation_status, 'label' => $labels[$seat->evaluation_status] ?? $labels['pending']],
             assignedAt: $seat->created_at?->toIso8601String(),

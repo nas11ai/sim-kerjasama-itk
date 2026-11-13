@@ -38,7 +38,7 @@ final class ResearchOutputListExport implements ExportDefinition
     public function rows(User $user, ExportFilters $filters): array
     {
         $outputs = $this->query($user, $filters)
-            ->with(['formSubmission:id,form_id', 'formSubmission.form:id,title'])
+            ->with(['formSubmission:id,form_id,title', 'formSubmission.form:id,title'])
             ->orderBy('form_submission_id')
             ->orderBy('id')
             ->get();
@@ -46,7 +46,7 @@ final class ResearchOutputListExport implements ExportDefinition
 
         return array_values($outputs->map(fn (ResearchOutput $output): array => [
             $output->form_submission_id,
-            $output->formSubmission->form->title,
+            $output->formSubmission->displayTitle(),
             OutputRows::typeName($output, $types->get($output->output_type)),
             OutputRows::headline($output, $types->get($output->output_type)),
             $output->created_at?->format('Y-m-d'),

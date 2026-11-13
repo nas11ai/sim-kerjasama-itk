@@ -28,7 +28,7 @@ final class UserSubmissionRowData extends Data
 
         return new self(
             id: $submission->id,
-            title: $submission->form->title,
+            title: $submission->displayTitle(),
             role: $submission->submitted_by === $user->id
                 ? 'Ketua'
                 : ResearchMember::ROLE_LABELS[$memberRole] ?? ResearchMember::ROLE_LABELS[ResearchMember::ROLE_MEMBER],

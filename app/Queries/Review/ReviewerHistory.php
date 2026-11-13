@@ -35,10 +35,10 @@ class ReviewerHistory implements ChangesNoState
                 'formSubmission.formPhaseDetail.formPhase:id,title',
                 'reviewerFormAssignments.reviewFormResponse:id,reviewer_form_assignment_id,submitted_at',
             ])
-            ->when($search !== '', fn (Builder $q) => $q->whereHas(
-                'formSubmission.form',
-                fn (Builder $form) => $form->whereLike('title', "%{$search}%"),
-            ))
+            // BR-SM-22 — judul pengajuan atau, bila belum ada, judul Form-nya.
+            ->when($search !== '', fn (Builder $q) => $q->whereHas('formSubmission', fn (Builder $submission) => $submission
+                ->whereLike('title', "%{$search}%")
+                ->orWhereHas('form', fn (Builder $form) => $form->whereLike('title', "%{$search}%"))))
             ->when($year !== null, fn (Builder $q) => $q->whereYear('created_at', $year))
             ->latest()
             ->orderByDesc('id')

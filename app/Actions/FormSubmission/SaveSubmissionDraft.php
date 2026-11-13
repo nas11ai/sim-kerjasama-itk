@@ -60,6 +60,8 @@ class SaveSubmissionDraft
             // kalau hanya jadi jawaban form, setiap penanya harus tahu field mana yang menyimpannya.
             SyncSchemeSelection::run($submission);
             SyncTrlSelection::run($submission);
+            // BR-SM-22 — jawaban submission_title menjadi judul pengajuan.
+            SyncSubmissionTitle::run($submission);
 
             // BR-RPT-09 — satu Action, satu entri audit.
             AuditTrail::record('Draft pengajuan disimpan', $submission, $user);
