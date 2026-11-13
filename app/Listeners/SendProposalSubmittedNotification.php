@@ -22,7 +22,7 @@ class SendProposalSubmittedNotification implements ShouldQueue
             // Log::error, bukan warning — submissions.view-all entri kanonik di
             // PermissionSeeder, jadi ketiadaannya berarti seeder belum jalan:
             // cacat deploy, bukan kondisi normal.
-            Log::error('Gagal mencari operator untuk notifikasi proposal submitted — permission belum ada', [
+            Log::error('Gagal mencari operator untuk notifikasi proposal submitted, permission belum ada', [
                 'permission' => 'submissions.view-all',
                 'submission_id' => $event->submission->id,
                 'error' => $exception->getMessage(),

@@ -27,7 +27,7 @@ final class ReviewCommentData extends Data
     {
         return new self(
             id: $comment->id,
-            author: $comment->reviewer_id !== null ? ($comment->reviewer?->user->name ?? 'Reviewer') : ($comment->user->name ?? '—'),
+            author: $comment->reviewer_id !== null ? ($comment->reviewer?->user->name ?? 'Reviewer') : ($comment->user->name ?? '-'),
             body: $comment->comment_text,
             at: $comment->created_at?->toIso8601String(),
             replies: array_values($comment->replies->map(self::of(...))->all()),

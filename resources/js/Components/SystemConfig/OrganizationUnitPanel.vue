@@ -31,8 +31,8 @@ const directUsers = (unit: OrganizationUnitData) => {
     }
 
     return directActiveUsers === directProfiles
-        ? `${directProfiles} — seluruhnya aktif`
-        : `${directProfiles} — ${directActiveUsers} aktif`
+        ? `${directProfiles}, seluruhnya aktif`
+        : `${directProfiles} · ${directActiveUsers} aktif`
 }
 
 const facts = (unit: OrganizationUnitData) => [
@@ -50,7 +50,7 @@ const deactivateHint = (unit: OrganizationUnitData) => {
         unitsWithActiveUsers > 0 ? `, tersebar di ${unitsWithActiveUsers} unit turunan` : ''
     const blocked = unit.canDeactivate
         ? ''
-        : `Terhalang ${subtreeActiveUsers} user aktif${spread} — pindahkan atau nonaktifkan orangnya lebih dulu. `
+        : `Terhalang ${subtreeActiveUsers} user aktif${spread}, pindahkan atau nonaktifkan orangnya lebih dulu. `
 
     return `${blocked}Menonaktifkan unit memerlukan konfirmasi.`
 }
@@ -59,7 +59,7 @@ const deactivateHint = (unit: OrganizationUnitData) => {
 const deleteHint = (unit: OrganizationUnitData) =>
     unit.canDelete
         ? 'Menghapus unit memerlukan konfirmasi.'
-        : `Terhalang ${unit.census.subtreeProfiles} profil user. Penghapusan menuntut subtree benar-benar kosong — termasuk profil yang user-nya sudah nonaktif.`
+        : `Terhalang ${unit.census.subtreeProfiles} profil user. Penghapusan menuntut subtree benar-benar kosong, termasuk profil yang user-nya sudah nonaktif.`
 
 const actions = computed<ActionItem[]>(() => {
     const unit = props.unit

@@ -26,7 +26,7 @@ class ProposalRejectedNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Pengajuan ditolak — SIMPAS')
+            ->subject('Pengajuan ditolak | SIMPAS')
             ->line($this->message());
     }
 

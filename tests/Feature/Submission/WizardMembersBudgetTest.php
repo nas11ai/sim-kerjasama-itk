@@ -270,7 +270,7 @@ it('[SM-WIZARD-04] langkah 5 terkunci tanpa skema', function () {
 
     $budget = SubmissionWizard::run($submission->submittedBy, $submission, 5)['budget'];
 
-    expect($budget->blockedReason)->toBe('Pilih skema di langkah 3 lebih dulu — batas anggaran berasal dari skema.')
+    expect($budget->blockedReason)->toBe('Pilih skema di langkah 3 lebih dulu, batas anggaran berasal dari skema.')
         ->and($budget->maxBudget)->toBeNull();
 });
 

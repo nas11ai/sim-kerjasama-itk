@@ -117,7 +117,7 @@ describe('MonevManageShowPage', () => {
         expect(text).toContain(
             'Mengaktifkan siklus memberi tahu peneliti dan reviewer yang ditugaskan pada siklus itu.'
         )
-        expect(text).toContain('Monev I — Siklus Aktif')
+        expect(text).toContain('Monev I · Siklus Aktif')
         expect(text).toContain('Disubmit')
         expect(text).toContain('Dr. Rina Wijaya')
         expect(text).toContain('Lihat Laporan Researcher')
@@ -144,7 +144,7 @@ describe('MonevManageShowPage', () => {
         expect(wrapper.text()).toContain(
             'Aktivasi terbuka setelah siklus Monev I selesai dievaluasi.'
         )
-        expect(wrapper.text()).toContain('Monev II — Belum Aktif')
+        expect(wrapper.text()).toContain('Monev II · Belum Aktif')
     })
 
     it('Aktifkan memanggil monev.manage.open', async () => {

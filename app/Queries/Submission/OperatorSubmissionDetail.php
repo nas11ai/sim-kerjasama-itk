@@ -126,7 +126,7 @@ class OperatorSubmissionDetail implements ChangesNoState
         $detail->loadMissing('formPhase:id,title');
         $parts = array_filter([$detail->formPhase?->title, $detail->deadlineLabel()]);
 
-        return $parts === [] ? null : implode(' — ', $parts);
+        return $parts === [] ? null : implode(' · ', $parts);
     }
 
     /** @return list<string> reviewer aktif yang evaluasinya lewat tenggat dan dibuka override detail ini (W25) */

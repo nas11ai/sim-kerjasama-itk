@@ -49,7 +49,7 @@ const verify = (card: VerificationCardData) => {
     <AppLayout>
         <PageHeader
             title="Antrian Verifikasi NIDN"
-            subtitle="Pendaftar baru menunggu verifikasi — periksa kecocokan NIDN sebelum menyetujui."
+            subtitle="Pendaftar baru menunggu verifikasi, periksa kecocokan NIDN sebelum menyetujui."
             :back-href="route('admin.users.index')"
             back-label="Daftar User"
         >
@@ -74,7 +74,7 @@ const verify = (card: VerificationCardData) => {
                 title="Tidak ada pendaftar yang menunggu verifikasi"
             />
             <AppBanner tone="info">
-                Menolak pendaftaran wajib menyertakan alasan — alasan dikirimkan ke pendaftar.
+                Menolak pendaftaran wajib menyertakan alasan, alasan dikirimkan ke pendaftar.
                 Setelah diverifikasi, pendaftar dapat mulai membuat pengajuan.
             </AppBanner>
             <!-- BR-IAM-12 — akun undangan tidak pernah berstatus pending (IAM-REG-14) -->

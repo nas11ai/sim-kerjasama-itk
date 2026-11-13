@@ -32,7 +32,7 @@ const submit = () =>
     <Head title="Daftar" />
     <AuthLayout>
         <AuthHeading
-            title="Daftar — Dosen ITK"
+            title="Daftar: Dosen ITK"
             subtitle="Registrasi mandiri untuk dosen dengan email kampus"
         />
 
@@ -45,7 +45,7 @@ const submit = () =>
             <FormField
                 id="email"
                 label="Email ITK"
-                hint="Harus berdomain @itk.ac.id persis — subdomain seperti @student.itk.ac.id tidak diterima."
+                hint="Harus berdomain @itk.ac.id persis, subdomain seperti @student.itk.ac.id tidak diterima."
                 :error="form.errors.email"
                 required
             >

@@ -82,7 +82,7 @@ class ResearchOutputDetail implements ChangesNoState
         $fields = [];
 
         foreach (array_diff_key($metadata, $known) as $key => $value) {
-            $fields[] = new OutputDetailFieldData($key, $value === null || $value === '' ? '—' : (string) $value);
+            $fields[] = new OutputDetailFieldData($key, $value === null || $value === '' ? '-' : (string) $value);
         }
 
         return $fields;
@@ -91,7 +91,7 @@ class ResearchOutputDetail implements ChangesNoState
     private static function display(OutputFieldSpecData $spec, string|int|null $value): string
     {
         if ($value === null || $value === '') {
-            return $spec->emptyLabel ?? '—';
+            return $spec->emptyLabel ?? '-';
         }
 
         return $spec->displayValue($value);

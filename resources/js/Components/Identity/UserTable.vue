@@ -29,8 +29,8 @@ const columns = [
             <span class="font-medium">{{ row.name }}</span>
         </template>
         <template #cell-email="{ row }">{{ row.email }}</template>
-        <template #cell-nidn="{ row }">{{ row.nidn ?? '—' }}</template>
-        <template #cell-organization="{ row }">{{ row.organization ?? '—' }}</template>
+        <template #cell-nidn="{ row }">{{ row.nidn ?? '-' }}</template>
+        <template #cell-organization="{ row }">{{ row.organization ?? '-' }}</template>
         <template #cell-roles="{ row }">
             <span class="inline-flex flex-wrap gap-1">
                 <Badge v-for="role in row.roles" :key="role.value" variant="outline">{{

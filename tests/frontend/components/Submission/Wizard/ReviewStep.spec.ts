@@ -24,7 +24,7 @@ const submission: WizardSubmission = {
 
 const review: WizardReview = {
     scheme: 'Penelitian DIPA',
-    trl: 'TKT 4 — Validasi Lab',
+    trl: 'TKT 4 · Validasi Lab',
     memberCount: 3,
     targetOutputCount: 2,
     budgetTotal: 45_000_000,
@@ -77,7 +77,7 @@ describe('ReviewStep', () => {
 
         expect(wrapper.text()).toContain('2 field wajib belum terisi. Perbaiki sebelum mengirim.')
         expect(wrapper.text()).toContain(
-            "Proposal PDF — Field 'Proposal PDF' wajib diisi sebelum submit."
+            "Proposal PDF · Field 'Proposal PDF' wajib diisi sebelum submit."
         )
 
         await wrapper.find('button[data-goto="6"]').trigger('click')

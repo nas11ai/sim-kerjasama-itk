@@ -33,7 +33,7 @@ const pendingRow: UserRowData = {
     name: 'Dr. Maya Sari',
     email: 'maya.sari@itk.ac.id',
     nidn: '0654321098',
-    organization: 'FSTI — Matematika',
+    organization: 'FSTI: Matematika',
     roles: [{ value: 'researcher', label: 'Peneliti' }],
     status: {
         active: true,
@@ -120,7 +120,7 @@ describe('UserIndexPage', () => {
             .findAll('td')
             .map((td) => td.text())
 
-        expect(cells[2]).toBe('—')
+        expect(cells[2]).toBe('-')
         expect(cells[5]).toBe('Nonaktif')
     })
 

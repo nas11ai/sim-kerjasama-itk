@@ -39,7 +39,7 @@ class ResearchOutput extends Model
     {
         static::deleting(function (): never {
             throw new DeletionNotPermitted(
-                'Luaran tidak dapat dihapus — ia dasar pelaporan dan tetap tersimpan '
+                'Luaran tidak dapat dihapus, ia dasar pelaporan dan tetap tersimpan '
                 .'sebagai data historis (BR-RO-06). Luaran yang keliru diperbaiki '
                 .'lewat penyuntingan, bukan dihilangkan.'
             );

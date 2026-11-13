@@ -51,11 +51,11 @@ const confirmSubmit = () => submit(() => (confirmOpen.value = false))
         <div class="mx-auto flex max-w-3xl flex-col gap-4">
             <AppBanner tone="info">
                 Setiap siklus monev hanya menerima satu laporan. Setelah batas waktu terlewat, form
-                ditutup — hubungi Operator LPPM bila membutuhkan perpanjangan.
+                ditutup, hubungi Operator LPPM bila membutuhkan perpanjangan.
             </AppBanner>
             <AppBanner v-if="override" tone="warning">
                 Anda mendapatkan perpanjangan akses hingga
-                {{ override.expires_at ? formatDateTime(override.expires_at) : '—' }}. Akses
+                {{ override.expires_at ? formatDateTime(override.expires_at) : '-' }}. Akses
                 diberikan oleh operator.
             </AppBanner>
             <!-- BR-MON-02/05/08 — blok penuh: tanpa form selama siklusnya tidak terbuka -->

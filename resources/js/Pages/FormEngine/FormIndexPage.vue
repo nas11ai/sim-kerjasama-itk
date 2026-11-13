@@ -37,7 +37,7 @@ const selects = computed((): FilterSelectSpec<Exclude<keyof FormIndexFilters, 's
     <AppLayout>
         <PageHeader
             title="Form Builder"
-            subtitle="Kelola form pengajuan & monev — susunan field dapat diubah sewaktu-waktu."
+            subtitle="Kelola form pengajuan & monev, susunan field dapat diubah sewaktu-waktu."
         >
             <template #actions>
                 <Button as-child>
@@ -64,7 +64,7 @@ const selects = computed((): FilterSelectSpec<Exclude<keyof FormIndexFilters, 's
         <PaginationBar :page="forms" />
         <!-- W76 / BR-FE-19 — Form yang pernah dipakai dinonaktifkan, bukan dihapus -->
         <p class="mt-4 text-xs text-muted-foreground">
-            Form yang pernah dipakai pengajuan tidak dapat dihapus — nonaktifkan agar berhenti
+            Form yang pernah dipakai pengajuan tidak dapat dihapus, nonaktifkan agar berhenti
             menerima pengajuan baru. Menonaktifkan form memerlukan konfirmasi.
         </p>
         <FormDeleteBlockedDialog

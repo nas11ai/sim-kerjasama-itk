@@ -35,7 +35,7 @@ class SaveReferenceEntity
         // tetap ada.
         if (!$entity->editable) {
             throw ValidationException::withMessages([
-                'name' => "\"{$entity->label}\" hanya dapat diubah lewat seeder — nilainya mengikat "
+                'name' => "\"{$entity->label}\" hanya dapat diubah lewat seeder, nilainya mengikat "
                     .$entity->usedBy.' sekaligus.',
             ]);
         }

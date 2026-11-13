@@ -19,7 +19,7 @@ const rejected = computed(() => props.verification.status === 'rejected')
 const details = computed(() => [
     {
         label: rejected.value ? 'NIDN diajukan' : 'NIDN terdaftar',
-        value: props.verification.nidn ?? '—',
+        value: props.verification.nidn ?? '-',
     },
     { label: 'Email', value: props.verification.email },
     { label: 'Status', value: props.verification.statusLabel },
@@ -43,8 +43,8 @@ const details = computed(() => [
                 <template v-if="rejected">
                     <EmptyTitle>Verifikasi Ditolak</EmptyTitle>
                     <EmptyDescription>
-                        Operator LPPM belum dapat memverifikasi NIDN Anda. Alasannya di bawah —
-                        hubungi LPPM untuk koreksi, akun Anda tidak dihapus.
+                        Operator LPPM belum dapat memverifikasi NIDN Anda. Alasannya ada di bawah;
+                        hubungi LPPM untuk koreksi. Akun Anda tidak dihapus.
                     </EmptyDescription>
                 </template>
                 <template v-else>
@@ -63,7 +63,7 @@ const details = computed(() => [
             <!-- BR-IAM-13 — penolakan tidak terminal; alasannya wajib terbaca -->
             <template v-if="rejected">
                 <AppBanner tone="warning"
-                    >Alasan: {{ verification.rejectionReason ?? '—' }}</AppBanner
+                    >Alasan: {{ verification.rejectionReason ?? '-' }}</AppBanner
                 >
                 <AppBanner tone="info">
                     Draft yang sudah Anda siapkan tetap tersimpan dan tetap dapat disunting. Yang

@@ -36,7 +36,7 @@ final class ReviewerRowData extends Data
         return new self(
             id: $reviewer->id,
             userId: $reviewer->user_id,
-            name: $reviewer->user->name ?? '—',
+            name: $reviewer->user->name ?? '-',
             type: ReviewerTypeCatalog::option($reviewer->reviewer_type),
             tenureStart: $reviewer->start_date?->toDateString(),
             tenureEnd: $reviewer->end_date?->toDateString(),

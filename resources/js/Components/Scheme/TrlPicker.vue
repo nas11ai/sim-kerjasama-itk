@@ -31,5 +31,5 @@ function toggle(value: string) {
             {{ option.label }}
         </button>
     </div>
-    <p class="text-xs text-muted-foreground">Klik untuk memilih — tanda penuh berarti terpilih.</p>
+    <p class="text-xs text-muted-foreground">Klik untuk memilih, tanda penuh berarti terpilih.</p>
 </template>

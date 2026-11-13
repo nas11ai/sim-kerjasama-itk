@@ -46,7 +46,7 @@ const typeLabel = (type: string) => (type === 'external' ? 'Eksternal' : 'Intern
                     <span class="min-w-0">
                         <span class="block font-medium">{{ candidate.name }}</span>
                         <span class="block text-xs text-muted-foreground">
-                            NIDN {{ candidate.nidn ?? '—' }} · {{ typeLabel(candidate.type) }} ·
+                            NIDN {{ candidate.nidn ?? '-' }} · {{ typeLabel(candidate.type) }} ·
                             Workload: {{ candidate.activeLoad }} aktif
                         </span>
                     </span>

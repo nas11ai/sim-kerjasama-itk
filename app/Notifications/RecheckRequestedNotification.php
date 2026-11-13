@@ -27,7 +27,7 @@ class RecheckRequestedNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Revisi menunggu pemeriksaan Anda — SIMPAS')
+            ->subject('Revisi menunggu pemeriksaan Anda | SIMPAS')
             ->line($this->message());
     }
 

@@ -34,7 +34,7 @@ class RejectNidnVerification
         // karena email dan NIDN-nya sudah terpakai.
         if (trim($reason) === '') {
             throw ValidationException::withMessages([
-                'reason' => 'Alasan penolakan wajib diisi — pendaftar perlu tahu apa yang harus diperbaiki.',
+                'reason' => 'Alasan penolakan wajib diisi, pendaftar perlu tahu apa yang harus diperbaiki.',
             ]);
         }
 

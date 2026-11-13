@@ -50,7 +50,7 @@ const draft: EvaluationForm = {
             type: 'select',
             required: true,
             value: '5',
-            options: [{ value: '5', label: '5 — Baik' }],
+            options: [{ value: '5', label: '5: Baik' }],
             fileName: null,
             downloadUrl: null,
         },
@@ -129,7 +129,7 @@ describe('EvaluationFormPanel', () => {
 
         expect(wrapper.text()).toContain('Penilaian sudah dikirim dan tidak dapat diubah.')
         // Opsi ditampilkan dengan labelnya, bukan nilai mentah.
-        expect(wrapper.text()).toContain('5 — Baik')
+        expect(wrapper.text()).toContain('5: Baik')
         expect(wrapper.find('form').exists()).toBe(false)
     })
 

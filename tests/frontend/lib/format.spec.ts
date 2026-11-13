@@ -17,7 +17,7 @@ describe('formatDate', () => {
     })
 
     it('menulis tanda pisah untuk tanggal kosong', () => {
-        expect(formatDate(null)).toBe('—')
+        expect(formatDate(null)).toBe('-')
     })
 })
 

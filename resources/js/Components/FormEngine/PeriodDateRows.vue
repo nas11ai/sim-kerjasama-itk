@@ -90,7 +90,7 @@ const remove = (index: number) => (rows.value = rows.value.filter((_, i) => i !=
             </div>
             <!-- BR-FE-26 / FE-DELETE-11 — tanggal yang dibaca langkah fase tertaut tidak boleh hilang -->
             <p v-if="row.locked > 0" class="text-xs text-muted-foreground">
-                Dipakai {{ row.locked }} detail tahap — tidak bisa dibuang.
+                Dipakai {{ row.locked }} detail tahap, tidak bisa dibuang.
             </p>
         </div>
         <Button type="button" variant="outline" size="sm" class="self-start" @click="add"

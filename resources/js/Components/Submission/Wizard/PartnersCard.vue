@@ -42,7 +42,7 @@ const revoke = (row: WizardPartnerRow) =>
                 <span class="min-w-0 flex-1">
                     {{ row.institutionName }}
                     <span v-if="row.contactPerson" class="text-muted-foreground">
-                        — {{ row.contactPerson }}
+                        · {{ row.contactPerson }}
                     </span>
                 </span>
                 <Button variant="ghost" size="sm" data-action="revoke-partner" @click="revoke(row)">

@@ -72,7 +72,7 @@ describe('FormEngine/PeriodEvaluationVersionsPage', () => {
     it('[REV-VER-01] angkatan yang belum mulai dinilai memakai versi terbaru, tanpa tombol', () => {
         mountPage([row({ pinId: null, pinnedLabel: null, responseCount: 0, canApply: false })])
 
-        expect(wrapper.text()).toContain('Belum mulai dinilai — memakai Versi 2')
+        expect(wrapper.text()).toContain('Belum mulai dinilai, memakai Versi 2')
         expect(buttons('Terapkan Versi 2')).toHaveLength(0)
     })
 

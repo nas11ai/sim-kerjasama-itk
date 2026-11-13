@@ -25,7 +25,7 @@ const submit = () => form.post(route('login'), { onFinish: () => form.reset('pas
     <AuthLayout>
         <AuthHeading
             title="Masuk ke SIMPAS"
-            subtitle="Sistem Informasi Penelitian dan Pengabdian — LPPM ITK"
+            subtitle="Sistem Informasi Penelitian dan Pengabdian: LPPM ITK"
         />
 
         <form class="space-y-4" @submit.prevent="submit">

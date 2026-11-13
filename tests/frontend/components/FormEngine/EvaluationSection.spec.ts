@@ -47,7 +47,7 @@ const mountSection = (list: StepEvaluationFormData[]) => {
             'onUpdate:modelValue': (next: StepEvaluationFormData[]) =>
                 wrapper.setProps({ modelValue: next }),
             stepKey: 'step-0',
-            label: 'Review Proposal — Form Proposal',
+            label: 'Review Proposal: Form Proposal',
             evaluationOptions: options,
         },
         global: { mocks: { route } },
@@ -73,7 +73,7 @@ describe('FormEngine/EvaluationSection', () => {
     it('mendaftar pemasangan dengan label versinya dan menautkan pustaka', () => {
         mountSection([attached({ isRequired: false })])
 
-        expect(wrapper.text()).toContain('Form evaluasi untuk Review Proposal — Form Proposal')
+        expect(wrapper.text()).toContain('Form evaluasi untuk Review Proposal: Form Proposal')
         expect(wrapper.text()).toContain('Lembar Substansi')
         expect(wrapper.text()).toContain('Versi 2')
         expect(wrapper.text()).toContain('Tidak wajib')

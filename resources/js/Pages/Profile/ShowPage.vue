@@ -68,7 +68,7 @@ const save = () => form.patch(route('profile.update'), { preserveScroll: true })
                             label="NIDN"
                             hint="Tidak dapat diubah sendiri"
                         >
-                            <Input id="profile-nidn" :model-value="profile.nidn ?? '—'" disabled />
+                            <Input id="profile-nidn" :model-value="profile.nidn ?? '-'" disabled />
                         </FormField>
                         <DetailsFields
                             v-if="profile.hasProfile"

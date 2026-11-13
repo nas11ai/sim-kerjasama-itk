@@ -56,7 +56,7 @@ const upload = (event: Event) => {
             </span>
             <div class="min-w-0">
                 <strong class="block truncate">{{ profile.name }}</strong>
-                <span class="text-sm text-muted-foreground">{{ profile.organization ?? '—' }}</span>
+                <span class="text-sm text-muted-foreground">{{ profile.organization ?? '-' }}</span>
             </div>
         </div>
         <FormField

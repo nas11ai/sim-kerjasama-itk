@@ -38,10 +38,10 @@ const tomorrow = () => {
 const current = computed(() => {
     const deadline = formatDate(props.phaseAccess.deadline)
     const items = [
-        { label: 'Fase', value: props.target.phaseLabel ?? '—' },
+        { label: 'Fase', value: props.target.phaseLabel ?? '-' },
         {
             label: 'Tenggat Awal',
-            value: props.phaseAccess.is_open ? deadline : `${deadline} — terlewat`,
+            value: props.phaseAccess.is_open ? deadline : `${deadline}, terlewat`,
         },
     ]
     if (props.target.affectedReviewers.length > 0) {
@@ -108,7 +108,7 @@ const send = () => {
                 id="extend-reason"
                 v-model="form.reason"
                 label="Alasan Perpanjangan"
-                placeholder="Wajib diisi — tercatat di riwayat sistem."
+                placeholder="Wajib diisi, tercatat di riwayat sistem."
                 required
                 :error="form.errors.reason"
             />

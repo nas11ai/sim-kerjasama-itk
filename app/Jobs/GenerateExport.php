@@ -57,7 +57,7 @@ class GenerateExport implements ShouldQueue
         $user = $job->requestedBy;
 
         if (!$user instanceof User) {
-            throw new RuntimeException("ExportJob {$job->id} tidak punya pemohon — tidak bisa di-scope.");
+            throw new RuntimeException("ExportJob {$job->id} tidak punya pemohon, tidak bisa di-scope.");
         }
 
         $job->update([

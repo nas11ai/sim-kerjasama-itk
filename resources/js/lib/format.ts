@@ -11,7 +11,7 @@ const rupiahFormat = new Intl.NumberFormat('id-ID', {
 })
 
 export function formatDate(iso: string | null): string {
-    return iso === null ? '—' : dateFormat.format(new Date(iso))
+    return iso === null ? '-' : dateFormat.format(new Date(iso))
 }
 
 // Tenggat dibaca di zona aplikasi (config app.timezone), bukan zona peramban.

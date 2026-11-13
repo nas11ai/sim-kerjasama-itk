@@ -68,7 +68,7 @@ class ReviewerDashboardCards implements ChangesNoState
     private function nearest(?AssignmentCardData $card, ?DeadlineData $deadline): KpiCardData
     {
         if ($card === null || $deadline === null) {
-            return new KpiCardData('nearest', 'Deadline Terdekat', '—', null, null);
+            return new KpiCardData('nearest', 'Deadline Terdekat', '-', null, null);
         }
 
         $value = match (true) {

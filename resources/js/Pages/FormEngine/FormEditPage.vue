@@ -14,7 +14,7 @@ import type { FormEditPageProps } from '@/types/form-engine'
 const props = defineProps<FormEditPageProps>()
 
 const title = computed(() =>
-    props.form === null ? 'Buat Form Baru' : `Edit Form — ${props.form.title}`
+    props.form === null ? 'Buat Form Baru' : `Edit Form: ${props.form.title}`
 )
 
 const subtitles = {

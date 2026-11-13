@@ -45,7 +45,7 @@ const refreshLinks = () => router.reload({ only: ['jobs'] })
     <AppLayout>
         <PageHeader
             title="Export Data"
-            subtitle="Ekspor diproses di latar belakang — Anda diberi tahu saat file siap diunduh."
+            subtitle="Ekspor diproses di latar belakang: Anda diberi tahu saat file siap diunduh."
         />
         <div class="flex flex-col gap-6">
             <ExportRequestCard

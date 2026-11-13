@@ -117,7 +117,7 @@ const remove = (target: SubmissionTargetOutput) =>
         <!-- BR-SM-14, BR-SM-15 -->
         <p class="text-xs text-muted-foreground">
             Tipe yang tersedia dibatasi skema terpilih. Target ini masih bisa diubah setelah
-            pengajuan disetujui — setiap perubahan dicatat di jejak audit.
+            pengajuan disetujui, setiap perubahan dicatat di jejak audit.
         </p>
     </SectionCard>
 </template>

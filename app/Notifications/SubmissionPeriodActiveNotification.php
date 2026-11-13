@@ -40,7 +40,7 @@ class SubmissionPeriodActiveNotification extends Notification implements ShouldQ
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Periode Submission Baru Aktif — SIMPAS')
+            ->subject('Periode Submission Baru Aktif | SIMPAS')
             ->line("Periode submission '{$this->submissionPeriod->name}' telah dibuka.")
             ->line("Berlangsung dari {$this->startDate()} hingga {$this->endDate()}.")
             ->action('Buka Dashboard', route('dashboard'));

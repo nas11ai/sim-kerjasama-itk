@@ -56,7 +56,7 @@ function confirmDelete() {
             </DialogHeader>
             <!-- BR-SC-02 — mengikat empat context, jadi tidak punya aksi di layar -->
             <AppBanner v-if="!category.editable" tone="info">
-                {{ category.label }} hanya dapat diubah lewat seeder. Bukan kekurangan antarmuka —
+                {{ category.label }} hanya dapat diubah lewat seeder. Bukan kekurangan antarmuka,
                 nilainya mengikat empat context sekaligus.
             </AppBanner>
             <ul class="divide-y">

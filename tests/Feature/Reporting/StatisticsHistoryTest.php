@@ -91,7 +91,7 @@ it('kinerja skema memakai definisi KPI yang sama', function () {
             'approvalRate' => '50%', 'approvedBudget' => 'Rp 4.000.000',
             'href' => route('admin.submissions.index', ['scheme' => $dipa->id, 'year' => 2026]),
         ])
-        ->and($rows['Mandiri']->approvalRate)->toBe('—')
+        ->and($rows['Mandiri']->approvalRate)->toBe('-')
         ->and($rows->sum(fn (SchemePerformanceData $row) => $row->submitted))->toBe((int) $overview['submissions'])
         ->and($rows['DIPA']->approvedBudget)->toBe($overview['approvedBudget'])
         ->and($rows['DIPA']->approvalRate)->toBe($overview['approvalRate'])

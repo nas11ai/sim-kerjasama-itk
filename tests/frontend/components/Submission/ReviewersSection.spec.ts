@@ -24,7 +24,7 @@ describe('ReviewersSection', () => {
     it('[IAM-DEACT-11] reviewer berakun nonaktif ditandai perlu diganti, tombol Ganti tetap ada', () => {
         const wrapper = mountSection([reviewer({ accountActive: false })])
 
-        expect(wrapper.text()).toContain('Akun nonaktif — perlu diganti')
+        expect(wrapper.text()).toContain('Akun nonaktif, perlu diganti')
         expect(wrapper.findAll('button').some((b) => b.text() === 'Ganti')).toBe(true)
     })
 

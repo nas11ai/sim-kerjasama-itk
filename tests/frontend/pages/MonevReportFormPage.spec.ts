@@ -103,7 +103,7 @@ describe('Monev/ReportFormPage', () => {
         expect(text).toContain('Smart Farming Hidroponik Kampus · Penelitian Mandiri')
         expect(text).toContain('Deadline')
         expect(text).toContain(
-            'Setiap siklus monev hanya menerima satu laporan. Setelah batas waktu terlewat, form ditutup — hubungi Operator LPPM bila membutuhkan perpanjangan.'
+            'Setiap siklus monev hanya menerima satu laporan. Setelah batas waktu terlewat, form ditutup, hubungi Operator LPPM bila membutuhkan perpanjangan.'
         )
         expect(text).toContain('Laporan Kemajuan')
         expect(text).toContain('Ringkasan Kemajuan')

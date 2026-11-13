@@ -32,7 +32,7 @@ const selected = computed(() =>
 )
 const outgoingInfo = computed(() => [
     { label: 'Reviewer Lama', value: props.outgoing.name },
-    { label: 'NIDN', value: props.outgoing.nidn ?? '—' },
+    { label: 'NIDN', value: props.outgoing.nidn ?? '-' },
     { label: 'Evaluasi', value: props.outgoing.evaluationLabel },
 ])
 const errors = computed(() =>
@@ -84,7 +84,7 @@ const send = () =>
             id="replace-note"
             v-model="form.note"
             label="Catatan Penggantian"
-            placeholder="Opsional — tercatat di riwayat sistem."
+            placeholder="Opsional, tercatat di riwayat sistem."
             :error="form.errors.note"
         />
         <AppBanner v-for="message in errors" :key="message" tone="denial">{{ message }}</AppBanner>

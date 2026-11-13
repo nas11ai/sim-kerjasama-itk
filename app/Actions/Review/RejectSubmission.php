@@ -49,7 +49,7 @@ class RejectSubmission
         // Yang menolak adalah orang, dengan nama dan alasan.
         if ($reason === '') {
             throw ValidationException::withMessages([
-                'reason' => 'Alasan penolakan wajib diisi — peneliti berhak tahu dasar keputusannya.',
+                'reason' => 'Alasan penolakan wajib diisi, peneliti berhak tahu dasar keputusannya.',
             ]);
         }
 

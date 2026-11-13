@@ -48,7 +48,7 @@ class OrganizationMembers implements ChangesNoState
         return [
             'value' => (string) $user->id,
             'label' => $user->name,
-            'hint' => ($organization->name ?? '—').' · '.($user->is_active ? 'Aktif' : 'Nonaktif'),
+            'hint' => ($organization->name ?? '-').' · '.($user->is_active ? 'Aktif' : 'Nonaktif'),
             'organizationId' => $organization->id ?? 0,
         ];
     }

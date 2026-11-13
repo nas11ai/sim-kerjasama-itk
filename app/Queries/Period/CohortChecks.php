@@ -65,8 +65,8 @@ final class CohortChecks implements ChangesNoState
 
         return match (true) {
             $blocking => "{$label} belum diatur.",
-            $type === DeadlineType::Evaluation => "{$label} belum diatur — evaluasi {$stepLabel} tak bertenggat sampai tanggalnya diatur.",
-            default => "{$label} belum diatur — langkah {$stepLabel} tertutup sampai tanggalnya diatur.",
+            $type === DeadlineType::Evaluation => "{$label} belum diatur, evaluasi {$stepLabel} tak bertenggat sampai tanggalnya diatur.",
+            default => "{$label} belum diatur, langkah {$stepLabel} tertutup sampai tanggalnya diatur.",
         };
     }
 

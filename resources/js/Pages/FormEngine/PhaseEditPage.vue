@@ -23,7 +23,7 @@ const libraryHref = computed(() =>
 
 const creating = computed(() => props.phase.id === null)
 const title = computed(() =>
-    creating.value ? 'Buat Tahap Baru' : `Edit Phase — ${props.phase.title}`
+    creating.value ? 'Buat Tahap Baru' : `Edit Phase: ${props.phase.title}`
 )
 
 // Trap S2b — editor lahir ulang saat draf dibuang/dibuat atau versi baru terbit.

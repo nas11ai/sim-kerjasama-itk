@@ -81,7 +81,7 @@ describe('AuditPage', () => {
 
         expect(wrapper.text()).toContain('Audit Log')
         expect(wrapper.text()).toContain(
-            'Catatan seluruh aktivitas sistem — bersifat permanen dan tidak dapat dihapus.'
+            'Catatan seluruh aktivitas sistem, bersifat permanen dan tidak dapat dihapus.'
         )
         expect(wrapper.find('input[type="search"]').attributes('placeholder')).toBe(
             'Cari subjek / pelaku...'

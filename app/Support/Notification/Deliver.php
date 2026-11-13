@@ -50,7 +50,7 @@ final class Deliver
             // Gagal boleh, gagal tanpa suara tidak. `$context` dari pemanggil —
             // id period, id pengajuan — melengkapi catatan yang tanpa itu benar
             // tapi tak bisa ditelusuri ke kejadian mana pun.
-            Log::error('Pengiriman notifikasi gagal — proses bisnis tetap dilanjutkan (BR-NOT-03)', $context + [
+            Log::error('Pengiriman notifikasi gagal, proses bisnis tetap dilanjutkan (BR-NOT-03)', $context + [
                 'notification' => $notification::class,
                 'event_type' => defined($notification::class.'::EVENT_TYPE')
                     ? constant($notification::class.'::EVENT_TYPE')

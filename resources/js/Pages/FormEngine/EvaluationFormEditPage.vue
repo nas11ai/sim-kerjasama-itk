@@ -16,7 +16,7 @@ import type { EvaluationFormEditPageProps } from '@/types/form-engine'
 const props = defineProps<EvaluationFormEditPageProps>()
 
 const title = computed(() =>
-    props.form === null ? 'Buat Form Evaluasi' : `Edit Form Evaluasi — ${props.form.title}`
+    props.form === null ? 'Buat Form Evaluasi' : `Edit Form Evaluasi: ${props.form.title}`
 )
 
 // Trap S2b — editor lahir ulang saat draf dibuang/dibuat atau versi baru terbit.

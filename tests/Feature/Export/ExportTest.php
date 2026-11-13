@@ -368,8 +368,8 @@ it('ekspor audit peneliti ter-scope AuditScope', function () {
     $job = RequestExport::run($budi, exportOf(ExportType::AUDIT_LOG));
     $subjects = array_column(array_slice(exportedSheet($job), 1), 1);
 
-    expect($subjects)->toContain('Submission — Biochar Kaltim')
-        ->not->toContain('Submission — Smart Farming')
+    expect($subjects)->toContain('Submission · Biochar Kaltim')
+        ->not->toContain('Submission · Smart Farming')
         ->and(AuditEntry::query()->where('description', 'Ekspor diminta')->count())->toBe(1);
 });
 

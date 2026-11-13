@@ -31,7 +31,7 @@ import type { FormIndexPageProps, FormRowData } from '@/types/form-engine'
 
 const formRow = (overrides: Partial<FormRowData> = {}): FormRowData => ({
     id: 3,
-    title: 'Form Proposal Penelitian — LPPM ITK',
+    title: 'Form Proposal Penelitian: LPPM ITK',
     typeName: 'Penelitian',
     fieldCount: 18,
     activeSubmissionCount: 42,
@@ -97,12 +97,12 @@ describe('FormEngine/FormIndexPage', () => {
 
         expect(text).toContain('Form Builder')
         expect(text).toContain(
-            'Kelola form pengajuan & monev — susunan field dapat diubah sewaktu-waktu.'
+            'Kelola form pengajuan & monev, susunan field dapat diubah sewaktu-waktu.'
         )
         for (const column of ['Nama Form', 'Tipe', 'Field Aktif', 'Pengajuan Aktif', 'Status']) {
             expect(text).toContain(column)
         }
-        expect(text).toContain('Form Proposal Penelitian — LPPM ITK')
+        expect(text).toContain('Form Proposal Penelitian: LPPM ITK')
         // W76 — Form yang dipakai dinonaktifkan, bukan dihapus (BR-FE-19).
         expect(text).toContain('Form yang pernah dipakai pengajuan tidak dapat dihapus')
         expect(text).toContain('Menonaktifkan form memerlukan konfirmasi.')

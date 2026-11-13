@@ -100,7 +100,7 @@ class SubmitFormSubmission
 
         if (!$status instanceof SubmissionStatus) {
             throw new RuntimeException(
-                "FormSubmission {$submission->id} tidak punya status — tidak bisa disubmit."
+                "FormSubmission {$submission->id} tidak punya status, tidak bisa disubmit."
             );
         }
 

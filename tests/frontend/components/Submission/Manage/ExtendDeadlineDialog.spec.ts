@@ -40,7 +40,7 @@ const closedPhase: PhaseAccess = {
 }
 
 const target: OverrideTarget = {
-    phaseLabel: 'Pengajuan — Batas Submit',
+    phaseLabel: 'Pengajuan: Batas Submit',
     affectedReviewers: ['Sari', 'Andi'],
 }
 
@@ -94,7 +94,7 @@ describe('ExtendDeadlineDialog', () => {
     it('[FE-OVERRIDE-03] perpanjangan dikirim berlaku sampai akhir hari', async () => {
         await open()
 
-        expect(text()).toContain('Pengajuan — Batas Submit')
+        expect(text()).toContain('Pengajuan: Batas Submit')
         expect(text()).toContain('terlewat')
         await fill('#extend-date', '2026-12-31')
         await fill('#extend-reason', 'Reviewer sakit dua minggu.')

@@ -25,7 +25,7 @@ trait SettlesThroughUnderReview
         }
 
         if (!$status instanceof SubmissionStatus) {
-            throw new RuntimeException("FormSubmission {$submission->id} tidak punya status — keputusan tidak bisa dicatat.");
+            throw new RuntimeException("FormSubmission {$submission->id} tidak punya status, keputusan tidak bisa dicatat.");
         }
 
         $status->transitionTo($target);

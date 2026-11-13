@@ -66,10 +66,10 @@ beforeEach(() => {
 
 describe('Dashboard/IndexPage', () => {
     it('menyapa pengguna dengan nama dan subtitle backend', () => {
-        const text = mountPage({ subtitle: 'FTI — Teknik Mesin' }).text()
+        const text = mountPage({ subtitle: 'FTI: Teknik Mesin' }).text()
 
         expect(text).toContain('Selamat datang, Dr. Budi Santoso!')
-        expect(text).toContain('FTI — Teknik Mesin')
+        expect(text).toContain('FTI: Teknik Mesin')
     })
 
     it('merender section sesuai sections, tanpa memeriksa peran', () => {

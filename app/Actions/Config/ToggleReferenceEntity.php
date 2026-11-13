@@ -29,7 +29,7 @@ class ToggleReferenceEntity
     {
         if (!$entity->deactivatable) {
             throw ValidationException::withMessages([
-                'is_active' => "\"{$entity->label}\" tidak mengenal status aktif — tabelnya tidak menyimpannya.",
+                'is_active' => "\"{$entity->label}\" tidak mengenal status aktif, tabelnya tidak menyimpannya.",
             ]);
         }
 

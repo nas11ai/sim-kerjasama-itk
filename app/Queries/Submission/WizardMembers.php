@@ -71,7 +71,7 @@ class WizardMembers implements ChangesNoState
 
         return new WizardMemberRowData(
             id: $member->id,
-            name: $profile->user->name ?? '—',
+            name: $profile->user->name ?? '-',
             role: $member->role,
             roleLabel: ResearchMember::ROLE_LABELS[$member->role] ?? ResearchMember::ROLE_LABELS[ResearchMember::ROLE_MEMBER],
             unit: $profile->organization?->name,

@@ -13,7 +13,7 @@ const props = defineProps<{
 const MONEY_KEYS = ['total', 'unit_price']
 
 const display = (key: string, value: AuditValue | undefined): string => {
-    if (value === undefined || value === null || value === '') return '—'
+    if (value === undefined || value === null || value === '') return '-'
     if (typeof value === 'number' && MONEY_KEYS.includes(key)) return formatRupiah(value)
     return String(value)
 }

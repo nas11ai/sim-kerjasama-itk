@@ -43,17 +43,17 @@ const has = (...states: string[]) =>
 <template>
     <div class="flex flex-col gap-3">
         <AppBanner v-if="has('queued', 'processing')" tone="info">
-            Ekspor dijadwalkan. Anda akan diberi tahu saat berkasnya siap — layar ini boleh ditutup.
+            Ekspor dijadwalkan. Anda akan diberi tahu saat berkasnya siap, layar ini boleh ditutup.
         </AppBanner>
         <AppBanner v-if="has('linkExpired')" tone="warning">
-            Tautan unduhan sudah kedaluwarsa. Minta tautan baru — berkasnya belum terhapus.
+            Tautan unduhan sudah kedaluwarsa. Minta tautan baru, berkasnya belum terhapus.
         </AppBanner>
         <AppBanner v-if="has('gone')" tone="denial">
             Berkas ekspor sudah dihapus setelah 24 jam. Jalankan ekspor ulang untuk mendapatkannya
             kembali.
         </AppBanner>
         <AppBanner v-if="has('failed')" tone="denial">
-            Export gagal — coba lagi. Sistem tidak akan mengulang sendiri; jalankan ulang secara
+            Export gagal, coba lagi. Sistem tidak akan mengulang sendiri; jalankan ulang secara
             manual.
         </AppBanner>
         <DataTable :rows="rows" :columns="columns">
@@ -61,7 +61,7 @@ const has = (...states: string[]) =>
             <template #cell-parameters="{ row }">{{ row.job.parameters }}</template>
             <template #cell-status="{ row }"><ExportJobStatus :state="row.state" /></template>
             <template #cell-time="{ row }">{{
-                row.job.requested_at ? formatDateTime(row.job.requested_at) : '—'
+                row.job.requested_at ? formatDateTime(row.job.requested_at) : '-'
             }}</template>
             <template #cell-actions="{ row }">
                 <ExportJobActions

@@ -48,7 +48,7 @@ const card = (overrides: Partial<VerificationCardData> = {}): VerificationCardDa
     name: 'Dr. Maya Sari',
     email: 'maya.sari@itk.ac.id',
     nidn: '0654321098',
-    organization: 'FSTI — Matematika',
+    organization: 'FSTI: Matematika',
     registeredAt: '2026-07-01T08:00:00+08:00',
     rejectedAt: null,
     rejectionReason: null,
@@ -121,7 +121,7 @@ describe('VerificationIndexPage', () => {
 
         expect(text).toContain('Dr. Maya Sari')
         expect(text).toContain('maya.sari@itk.ac.id')
-        expect(text).toContain('NIDN: 0654321098 · FSTI — Matematika · daftar 01 Jul 2026')
+        expect(text).toContain('NIDN: 0654321098 · FSTI: Matematika · daftar 01 Jul 2026')
         expect(buttons(wrapper, 'Tolak')).toHaveLength(1)
 
         await buttons(wrapper, 'Verifikasi')[0]?.trigger('click')
@@ -190,7 +190,7 @@ describe('VerificationIndexPage', () => {
         const text = mountPage().text()
 
         expect(text).toContain(
-            'Menolak pendaftaran wajib menyertakan alasan — alasan dikirimkan ke pendaftar.'
+            'Menolak pendaftaran wajib menyertakan alasan, alasan dikirimkan ke pendaftar.'
         )
         expect(text).toContain(
             'Antrian ini hanya memuat pendaftar jalur mandiri. Peneliti yang masuk lewat undangan tidak punya NIDN untuk diperiksa dan akunnya sudah aktif sejak mendaftar.'

@@ -34,8 +34,8 @@ const columns = [
             </Link>
         </template>
         <template #cell-leadName="{ row }">{{ row.leadName }}</template>
-        <template #cell-organization="{ row }">{{ row.organization ?? '—' }}</template>
-        <template #cell-scheme="{ row }">{{ row.scheme ?? '—' }}</template>
+        <template #cell-organization="{ row }">{{ row.organization ?? '-' }}</template>
+        <template #cell-scheme="{ row }">{{ row.scheme ?? '-' }}</template>
         <template #cell-status="{ row }"><StatusBadge :status="row.status" /></template>
         <template #cell-submittedAt="{ row }">{{ formatDate(row.submittedAt) }}</template>
         <template #cell-reviewerCount="{ row }">{{ row.reviewerCount }}</template>

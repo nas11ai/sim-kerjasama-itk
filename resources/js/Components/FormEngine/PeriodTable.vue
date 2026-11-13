@@ -41,7 +41,7 @@ const columns = [
                     {{ date.label }}: {{ formatDateTime(date.at) }}
                 </li>
             </ul>
-            <span v-else class="text-muted-foreground">—</span>
+            <span v-else class="text-muted-foreground">-</span>
         </template>
         <!-- W69 — induk yang terkirim, sama dengan Semua Pengajuan -->
         <template #cell-submitted="{ row }">

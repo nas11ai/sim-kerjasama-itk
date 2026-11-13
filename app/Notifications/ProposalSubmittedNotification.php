@@ -38,7 +38,7 @@ class ProposalSubmittedNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Pengajuan Baru — SIMPAS')
+            ->subject('Pengajuan Baru | SIMPAS')
             ->line("Pengajuan #{$this->submission->id} telah disubmit.")
             ->action('Lihat Detail', url("/submissions/{$this->submission->id}"));
     }

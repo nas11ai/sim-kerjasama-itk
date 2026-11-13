@@ -28,7 +28,7 @@ const form = computed(
 const periodOptions = computed(() =>
     props.options.map((p) => ({
         value: String(p.id),
-        label: p.closesAt ? `${p.name} — dibuka s.d. ${formatDate(p.closesAt)}` : p.name,
+        label: p.closesAt ? `${p.name}, dibuka s.d. ${formatDate(p.closesAt)}` : p.name,
     }))
 )
 const formOptions = computed(() =>
@@ -61,11 +61,11 @@ const start = () => {
 </script>
 
 <template>
-    <SectionCard title="Step 1 — Pilih Form & Periode">
+    <SectionCard title="Step 1: Pilih Form & Periode">
         <template v-if="submission">
             <InfoGrid
                 :items="[
-                    { label: 'Periode Pengajuan', value: submission.period ?? '—' },
+                    { label: 'Periode Pengajuan', value: submission.period ?? '-' },
                     { label: 'Form Pengajuan', value: submission.form },
                 ]"
             />

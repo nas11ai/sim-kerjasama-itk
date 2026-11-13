@@ -84,7 +84,7 @@ final class MonevAccessGate
         $blocking = self::unfinishedPredecessor($parent, $cycles->takeWhile(fn (FormPhaseDetail $c): bool => $c->id !== $detail->id));
 
         // BR-MON-02 — urutan siklus: turunan keadaan lewat `canProceed()`, bukan kolom.
-        return $blocking === null ? null : ['form_phase_detail_id', 'Selesaikan "'.MonevCycles::nameOf($blocking).'" lebih dulu — '
+        return $blocking === null ? null : ['form_phase_detail_id', 'Selesaikan "'.MonevCycles::nameOf($blocking).'" lebih dulu: '
             .'tahapannya berurutan.'];
     }
 

@@ -24,8 +24,8 @@ const form = useForm<{ phone: string; expertise: string; photo: File | null }>({
 
 const registration = computed(() => [
     { label: 'Nama', value: props.profile.name },
-    { label: 'NIDN', value: props.profile.nidn ?? '—' },
-    { label: 'Organisasi', value: props.profile.organization ?? '—' },
+    { label: 'NIDN', value: props.profile.nidn ?? '-' },
+    { label: 'Organisasi', value: props.profile.organization ?? '-' },
 ])
 const missingCount = computed(() => props.profile.missing.length)
 const hasPhoto = computed(() => props.profile.photoUrl !== null)

@@ -24,7 +24,7 @@ const summary = computed(() => [
     { label: 'Status Saat Ini', value: props.submission.status.label },
     {
         label: 'Reviewer Aktif',
-        value: `${props.activeReviewerCount} — evaluasi akan dihentikan`,
+        value: `${props.activeReviewerCount}, evaluasi akan dihentikan`,
     },
 ])
 </script>
@@ -52,7 +52,7 @@ const summary = computed(() => [
             id="reject-reason"
             v-model="form.reason"
             label="Penjelasan Detail"
-            placeholder="Dikirimkan ke researcher via notifikasi — tulis dengan jelas."
+            placeholder="Dikirimkan ke researcher via notifikasi, tulis dengan jelas."
             required
             :error="form.errors.reason"
         />

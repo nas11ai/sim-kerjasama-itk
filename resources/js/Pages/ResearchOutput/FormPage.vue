@@ -52,7 +52,7 @@ const cancelHref = computed(() =>
                 :error="errors.output_type"
                 @change="changeType"
             />
-            <SectionCard v-if="definition" :title="`Langkah 2 — Detail ${definition.name}`">
+            <SectionCard v-if="definition" :title="`Langkah 2: Detail ${definition.name}`">
                 <OutputMetadataFields
                     v-model="form.metadata"
                     :fields="definition.fields"

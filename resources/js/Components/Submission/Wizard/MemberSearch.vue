@@ -71,7 +71,7 @@ const add = (candidate: MemberCandidate) =>
                 <div class="flex items-center justify-between gap-3">
                     <span class="text-sm">
                         {{ candidate.name }}
-                        <span class="text-muted-foreground">{{ candidate.nidn ?? '—' }}</span>
+                        <span class="text-muted-foreground">{{ candidate.nidn ?? '-' }}</span>
                     </span>
                     <Button
                         size="sm"

@@ -101,8 +101,8 @@ const revoke = (permission: string) => {
             </ul>
         </div>
         <p class="text-xs text-muted-foreground">
-            Hak akses dari role dan hak akses langsung berdiri sendiri — mencabut salah satunya
-            tidak mencabut yang lain. Perubahan role dan hak akses hanya dapat dilakukan oleh Admin.
+            Hak akses dari role dan hak akses langsung berdiri sendiri, mencabut salah satunya tidak
+            mencabut yang lain. Perubahan role dan hak akses hanya dapat dilakukan oleh Admin.
         </p>
     </SectionCard>
 </template>

@@ -44,7 +44,7 @@ const selects = computed((): FilterSelectSpec<Exclude<keyof UserIndexFilters, 's
     <AppLayout>
         <PageHeader
             title="Daftar User"
-            subtitle="Semua user sistem — kelola status, role, dan verifikasi."
+            subtitle="Semua user sistem, kelola status, role, dan verifikasi."
         >
             <template #actions>
                 <Button v-if="can.manageInvitations" as-child variant="outline">

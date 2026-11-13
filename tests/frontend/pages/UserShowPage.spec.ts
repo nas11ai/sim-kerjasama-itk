@@ -56,7 +56,7 @@ const props = (overrides: Partial<UserShowPageProps> = {}): UserShowPageProps =>
         email: 'rina.wijaya@itk.ac.id',
         nidn: '0987654321',
         phone: '0813-9876-5432',
-        organization: 'FSTI — Sistem Informasi',
+        organization: 'FSTI: Sistem Informasi',
         expertise: 'Data Science',
         registeredAt: '2025-09-03T08:00:00+08:00',
         status: {
@@ -280,7 +280,7 @@ describe('UserShowPage', () => {
         expect(text).toContain('Membuat pengajuan')
         expect(text).toContain('Mengekspor laporan')
         expect(text).toContain(
-            'Hak akses dari role dan hak akses langsung berdiri sendiri — mencabut salah satunya tidak mencabut yang lain. Perubahan role dan hak akses hanya dapat dilakukan oleh Admin.'
+            'Hak akses dari role dan hak akses langsung berdiri sendiri, mencabut salah satunya tidak mencabut yang lain. Perubahan role dan hak akses hanya dapat dilakukan oleh Admin.'
         )
     })
 

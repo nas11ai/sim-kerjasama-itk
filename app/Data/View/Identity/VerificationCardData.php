@@ -24,8 +24,8 @@ final class VerificationCardData extends Data
     {
         return new self(
             profileId: $profile->id,
-            name: $profile->user->name ?? '—',
-            email: $profile->user->email ?? '—',
+            name: $profile->user->name ?? '-',
+            email: $profile->user->email ?? '-',
             nidn: $profile->nidn,
             organization: $profile->organization?->name,
             registeredAt: $profile->created_at?->toIso8601String(),

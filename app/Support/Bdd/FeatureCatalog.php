@@ -49,7 +49,7 @@ final class FeatureCatalog
 
                 if (preg_match(self::ID_PATTERN, $title, $matches) !== 1) {
                     throw new RuntimeException(
-                        "Skenario tanpa ID di {$file}:{$scenario->getLine()} — "
+                        "Skenario tanpa ID di {$file}:{$scenario->getLine()}: "
                         ."judul harus diawali [AREA-TOPIK-NN], ditemukan: \"{$title}\""
                     );
                 }

@@ -11,7 +11,7 @@ import type { SubmissionBudget } from '@/types/submission-page'
 const props = defineProps<{ budget: SubmissionBudget }>()
 
 // BR-BUD-02 — terkunci bagi siapa pun; BR-BUD-09 — anggota biasa hanya membaca.
-const lockLabels = { terminal: 'Terkunci — hanya baca', read_only: 'Hanya baca' }
+const lockLabels = { terminal: 'Terkunci, hanya baca', read_only: 'Hanya baca' }
 
 const summary = computed(() => [
     { label: 'Total Anggaran', value: formatRupiah(props.budget.total) },

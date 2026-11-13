@@ -48,7 +48,7 @@ const mountDialog = async () => {
             open: true,
             candidates,
             parentOptions: [
-                { value: '2', label: 'FTI — beserta unit di bawahnya' },
+                { value: '2', label: 'FTI, beserta unit di bawahnya' },
                 { value: '3', label: 'Informatika' },
                 { value: '5', label: 'Fakultas Sains' },
             ],

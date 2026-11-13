@@ -237,7 +237,7 @@ describe('FormEngine/FormGeneralTab', () => {
         await click('Terbitkan')
 
         expect(dialogText()).toContain(
-            '1 field baru wajib — berlaku untuk pengajuan yang dibuat sesudah ini. 2 peneliti dengan draf berjalan tidak terpengaruh. Label "Judul" diubah pada field yang sudah dijawab 3 pengajuan. 1 field dihapus — jawaban lamanya tetap tersimpan.'
+            '1 field baru wajib, berlaku untuk pengajuan yang dibuat sesudah ini. 2 peneliti dengan draf berjalan tidak terpengaruh. Label "Judul" diubah pada field yang sudah dijawab 3 pengajuan. 1 field dihapus, jawaban lamanya tetap tersimpan.'
         )
     })
 

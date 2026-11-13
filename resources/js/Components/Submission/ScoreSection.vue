@@ -12,7 +12,7 @@ withDefaults(defineProps<{ scores: ReviewerScores; note?: string }>(), {
 })
 
 const answersOf = (score: ReviewerScore) =>
-    score.answers.map((answer) => ({ label: answer.label, value: answer.value ?? '—' }))
+    score.answers.map((answer) => ({ label: answer.label, value: answer.value ?? '-' }))
 </script>
 
 <template>

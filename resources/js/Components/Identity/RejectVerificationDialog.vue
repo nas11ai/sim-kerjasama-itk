@@ -16,7 +16,7 @@ const form = useForm({ reason: '' })
 
 const summary = computed(() => [
     { label: 'Pendaftar', value: props.card.name },
-    { label: 'NIDN diajukan', value: props.card.nidn ?? '—' },
+    { label: 'NIDN diajukan', value: props.card.nidn ?? '-' },
 ])
 
 const send = () =>

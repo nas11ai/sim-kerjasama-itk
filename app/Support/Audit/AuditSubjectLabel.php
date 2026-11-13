@@ -78,14 +78,14 @@ final class AuditSubjectLabel
 
         if ($subject instanceof FormSubmission && $subject->parent !== null && $subject->formPhaseDetail !== null) {
             // E2E-06 — laporan monev dinamai siklusnya, bukan "Submission".
-            return MonevCycles::nameOf($subject->formPhaseDetail).' — '.$subject->parent->displayTitle();
+            return MonevCycles::nameOf($subject->formPhaseDetail).' · '.$subject->parent->displayTitle();
         }
 
         $type = $entry->subject_type ?? '';
         $context = self::CONTEXTS[$type] ?? class_basename($type);
         $name = self::name($subject);
 
-        return $name === null ? "{$context} #{$entry->subject_id}" : "{$context} — {$name}";
+        return $name === null ? "{$context} #{$entry->subject_id}" : "{$context} · {$name}";
     }
 
     /**

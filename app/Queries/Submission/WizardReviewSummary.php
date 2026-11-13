@@ -32,7 +32,7 @@ class WizardReviewSummary implements ChangesNoState
 
         return new WizardReviewData(
             scheme: $submission->scheme?->name,
-            trl: $trl === null ? null : "TKT {$trl->level} — {$trl->name}",
+            trl: $trl === null ? null : "TKT {$trl->level} · {$trl->name}",
             // Ketua ikut dihitung, sama dengan daftar anggota di layar detail.
             memberCount: 1 + $submission->researchMembers()->where('status', 'active')->count(),
             targetOutputCount: $submission->targetOutputs()->count(),

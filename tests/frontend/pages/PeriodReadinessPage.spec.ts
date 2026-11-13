@@ -72,7 +72,7 @@ describe('FormEngine/PeriodReadinessPage', () => {
 
         expect(wrapper.text()).toContain('Kesiapan Angkatan')
         expect(wrapper.text()).toContain(
-            'Periode 2026 — daftar cek tiap tahap sebelum menerima pengajuan baru.'
+            'Periode 2026, daftar cek tiap tahap sebelum menerima pengajuan baru.'
         )
         expect(wrapper.find('a[href="/admin.submission-periods.index"]').exists()).toBe(true)
     })
@@ -90,7 +90,7 @@ describe('FormEngine/PeriodReadinessPage', () => {
 
         expect(badge(0)).toBe('Siap')
         expect(note(0).exists()).toBe(false)
-        expect(badge(1)).toBe('Siap — ada yang menyusul')
+        expect(badge(1)).toBe('Siap, ada yang menyusul')
         expect(note(1).text()).toBe('Pengajuan baru diterima. Lengkapi sebelum langkahnya dimulai.')
         expect(badge(2)).toBe('Belum siap')
         expect(note(2).text()).toBe('Pengajuan baru di tahap ini ditolak sampai semua cek lolos.')
@@ -114,7 +114,7 @@ describe('FormEngine/PeriodReadinessPage', () => {
                         issues: [
                             {
                                 message:
-                                    'Batas Laporan Monev I belum diatur — langkah Laporan Monev I tertutup sampai tanggalnya diatur.',
+                                    'Batas Laporan Monev I belum diatur, langkah Laporan Monev I tertutup sampai tanggalnya diatur.',
                                 blocking: false,
                             },
                         ],

@@ -23,7 +23,7 @@ const submit = () => form.post(route('password.email'))
     <AuthLayout>
         <AuthHeading
             title="Lupa Password"
-            subtitle="Masukkan email akun Anda — kami kirimkan link reset password."
+            subtitle="Masukkan email akun Anda, kami kirimkan link reset password."
         />
 
         <form class="space-y-4" @submit.prevent="submit">

@@ -198,7 +198,7 @@ describe('FormEngine/FormFieldDialog', () => {
             expect(text()).not.toContain(RELABEL_WARNING)
             await setLabel('Judul Penelitian')
             expect(text()).toContain(
-                'Hanya untuk memperbaiki ketikan. Kalau pertanyaannya berbeda, tambahkan field baru — jawaban lama tetap tercatat di field lama.'
+                'Hanya untuk memperbaiki ketikan. Kalau pertanyaannya berbeda, tambahkan field baru, jawaban lama tetap tercatat di field lama.'
             )
             await setLabel('Judul')
             expect(text()).not.toContain(RELABEL_WARNING)

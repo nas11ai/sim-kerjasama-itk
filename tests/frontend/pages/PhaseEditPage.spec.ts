@@ -103,7 +103,7 @@ const props = (
     accessOptions: [
         {
             value: '41',
-            label: 'Form Proposal — Pengaju — Fakultas Sains',
+            label: 'Form Proposal · Pengaju · Fakultas Sains',
             formId: 7,
             formTitle: 'Form Proposal',
         },
@@ -182,10 +182,10 @@ describe('FormEngine/PhaseEditPage', () => {
     it('judul, lencana versi, dan back ke pustaka Fase', () => {
         const wrapper = page(props([detail()]))
 
-        expect(wrapper.find('h1').text()).toBe('Edit Phase — Tahap Proposal')
+        expect(wrapper.find('h1').text()).toBe('Edit Phase: Tahap Proposal')
         expect(wrapper.text()).toContain('Versi 1')
         expect(wrapper.find('a[href="/admin.phases.index"]').text()).toContain('Fase')
-        expect(wrapper.findAll('li')[0].text()).toContain('Isi Proposal — Form Proposal')
+        expect(wrapper.findAll('li')[0].text()).toContain('Isi Proposal · Form Proposal')
         expect(wrapper.findAll('li')[0].text()).toContain('Akses: Pengaju · Fakultas Sains')
         expect(wrapper.findAll('li')[0].text()).toContain('Jenis: Pengajuan')
     })
@@ -219,7 +219,7 @@ describe('FormEngine/PhaseEditPage', () => {
     it('langkah yang direview memuat bagian pemasangan Form Evaluasi (BR-FE-30)', () => {
         const wrapper = page(props([detail({ needsReview: true })]))
 
-        expect(wrapper.text()).toContain('Form evaluasi untuk Isi Proposal — Form Proposal')
+        expect(wrapper.text()).toContain('Form evaluasi untuk Isi Proposal · Form Proposal')
         expect(wrapper.text()).toContain('Pasang Form Evaluasi')
     })
 
@@ -390,7 +390,7 @@ describe('FormEngine/PhaseEditPage', () => {
 
             expect(wrapper.find('h1').text()).toBe('Buat Tahap Baru')
             expect(wrapper.findAll('ul.divide-y > li')).toHaveLength(1)
-            expect(wrapper.text()).toContain('Isi Proposal — Form Proposal')
+            expect(wrapper.text()).toContain('Isi Proposal · Form Proposal')
             expect(wrapper.text()).toContain('Baru')
             expect(wrapper.text()).not.toContain('Simpan draf')
         })

@@ -24,14 +24,14 @@ const current = computed(() => [
     { label: 'Ketua', value: props.submission.leadName },
     {
         label: 'Anggota Inti Aktif',
-        value: props.candidates.map((candidate) => candidate.name).join(', ') || '—',
+        value: props.candidates.map((candidate) => candidate.name).join(', ') || '-',
     },
 ])
 
 const options = computed(() =>
     props.candidates.map((candidate) => ({
         value: String(candidate.userId),
-        label: [candidate.name, candidate.organization].filter(Boolean).join(' — '),
+        label: [candidate.name, candidate.organization].filter(Boolean).join(' · '),
     }))
 )
 
@@ -76,13 +76,13 @@ const send = () =>
             id="transfer-reason"
             v-model="form.reason"
             label="Alasan Pengalihan"
-            placeholder="Wajib diisi — tercatat di riwayat sistem."
+            placeholder="Wajib diisi, tercatat di riwayat sistem."
             required
             :error="form.errors.reason"
         />
         <AppBanner tone="info">
-            Setelah pengalihan, peran ketua pengaju berpindah — ketua lama tetap menjadi anggota
-            tim. Aksi ini tercatat di riwayat sistem.
+            Setelah pengalihan, peran ketua pengaju berpindah, ketua lama tetap menjadi anggota tim.
+            Aksi ini tercatat di riwayat sistem.
         </AppBanner>
     </ActionDialog>
 </template>

@@ -55,7 +55,7 @@ const view = (entry: AuditEntryRow) => {
     <AppLayout>
         <PageHeader
             title="Audit Log"
-            subtitle="Catatan seluruh aktivitas sistem — bersifat permanen dan tidak dapat dihapus."
+            subtitle="Catatan seluruh aktivitas sistem, bersifat permanen dan tidak dapat dihapus."
         >
             <template #actions>
                 <Button as-child variant="outline">

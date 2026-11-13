@@ -120,7 +120,7 @@ it('reviewer tanpa penugasan', function () {
 
     expect($cards['pending']->value)->toBe('0')
         ->and($cards['done']->value)->toBe('0')
-        ->and($cards['nearest']->value)->toBe('—')
+        ->and($cards['nearest']->value)->toBe('-')
         ->and($cards['nearest']->meta)->toBeNull()
         ->and($result['deadlines'])->toBe([]);
 });

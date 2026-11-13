@@ -14,7 +14,7 @@ const rejected = computed(() => props.card.rejectedAt !== null)
 
 const meta = computed(() =>
     [
-        `NIDN: ${props.card.nidn ?? '—'}`,
+        `NIDN: ${props.card.nidn ?? '-'}`,
         props.card.organization,
         rejected.value
             ? `ditolak ${formatDate(props.card.rejectedAt)}`

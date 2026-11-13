@@ -40,7 +40,7 @@ class WithdrawSubmission
 
         if (!$status instanceof SubmissionStatus) {
             throw new RuntimeException(
-                "FormSubmission {$submission->id} tidak punya status — tidak bisa ditarik."
+                "FormSubmission {$submission->id} tidak punya status, tidak bisa ditarik."
             );
         }
 

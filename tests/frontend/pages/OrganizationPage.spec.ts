@@ -103,7 +103,7 @@ describe('OrganizationPage', () => {
 
         expect(text).toContain('Struktur Organisasi')
         expect(text).toContain(
-            'Susun unit kerja secara berjenjang — klik untuk membuka atau menutup cabang.'
+            'Susun unit kerja secara berjenjang, klik untuk membuka atau menutup cabang.'
         )
     })
 
@@ -139,7 +139,7 @@ describe('OrganizationPage', () => {
         const text = mountPage(unit()).text()
 
         expect(text).toContain('Program Studi')
-        expect(text).toContain('14 — seluruhnya aktif')
+        expect(text).toContain('14, seluruhnya aktif')
         expect(text).toContain(
             'Nonaktifkan dan Hapus adalah dua operasi dengan ambang berbeda: nonaktif melihat user aktif, hapus melihat profil apa pun.'
         )

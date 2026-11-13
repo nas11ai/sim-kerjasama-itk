@@ -71,7 +71,7 @@ it('statistik kosong tidak membagi nol', function () {
 
     expect(collect($result['byStatus'])->pluck('count')->unique()->all())->toBe([0])
         ->and(collect($result['byStatus'])->pluck('share')->unique()->all())->toBe([0.0])
-        ->and(kpi($result, 'approvalRate')['value'])->toBe('—')
+        ->and(kpi($result, 'approvalRate')['value'])->toBe('-')
         ->and(kpi($result, 'approvedBudget')['value'])->toBe('Rp 0')
         ->and($result['byFaculty'])->toBe([])
         ->and($result['byOutputType'])->toBe([])

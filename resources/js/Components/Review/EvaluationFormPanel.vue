@@ -31,11 +31,11 @@ const editing = computed(
 const assignment = computed(() => String(props.form.assignmentId))
 
 const shown = (field: WizardField) =>
-    field.options.find((option) => option.value === field.value)?.label ?? field.value ?? '—'
+    field.options.find((option) => option.value === field.value)?.label ?? field.value ?? '-'
 
 const sheet = computed(() => [
     ...props.form.fields.map((field) => ({ label: field.label, value: shown(field) })),
-    { label: 'Catatan Kualitatif', value: props.form.finalNotes ?? '—' },
+    { label: 'Catatan Kualitatif', value: props.form.finalNotes ?? '-' },
     { label: 'Disubmit', value: formatDate(props.form.submittedAt) },
 ])
 
@@ -138,7 +138,7 @@ const submit = () =>
                 </Button>
             </div>
             <p v-if="!preview" class="text-xs text-muted-foreground">
-                Setelah evaluasi disubmit, isian tidak dapat diubah lagi — pastikan skor dan catatan
+                Setelah evaluasi disubmit, isian tidak dapat diubah lagi, pastikan skor dan catatan
                 sudah final.
             </p>
         </form>

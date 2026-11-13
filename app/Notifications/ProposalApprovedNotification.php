@@ -26,7 +26,7 @@ class ProposalApprovedNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Pengajuan disetujui — SIMPAS')
+            ->subject('Pengajuan disetujui | SIMPAS')
             ->line($this->message());
     }
 

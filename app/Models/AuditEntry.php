@@ -24,14 +24,14 @@ class AuditEntry extends Activity
         // lebih berbahaya: hasilnya tetap tampak sah.
         static::updating(function (): never {
             throw new AppendOnlyViolation(
-                'Entri audit tidak dapat disunting — jejak audit bersifat append-only (BR-RPT-04). '
+                'Entri audit tidak dapat disunting, jejak audit bersifat append-only (BR-RPT-04). '
                 .'Koreksi dicatat sebagai tindakan baru, bukan dengan mengubah entri lama.'
             );
         });
 
         static::deleting(function (): never {
             throw new AppendOnlyViolation(
-                'Entri audit tidak dapat dihapus — jejak audit bersifat append-only (BR-RPT-04).'
+                'Entri audit tidak dapat dihapus, jejak audit bersifat append-only (BR-RPT-04).'
             );
         });
     }

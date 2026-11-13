@@ -24,7 +24,7 @@ const statuses: Record<
 > = {
     ready: { label: 'Siap', note: null, variant: 'success' },
     pending: {
-        label: 'Siap — ada yang menyusul',
+        label: 'Siap, ada yang menyusul',
         note: 'Pengajuan baru diterima. Lengkapi sebelum langkahnya dimulai.',
         variant: 'secondary',
     },
@@ -59,7 +59,7 @@ const icons: Record<ReadinessCheck['state'], { icon: typeof CircleCheck; tone: s
     <AppLayout>
         <PageHeader
             title="Kesiapan Angkatan"
-            :subtitle="`Periode ${period.name} — daftar cek tiap tahap sebelum menerima pengajuan baru.`"
+            :subtitle="`Periode ${period.name}, daftar cek tiap tahap sebelum menerima pengajuan baru.`"
             :back-href="route('admin.submission-periods.index')"
             back-label="Periode Pengajuan"
         />

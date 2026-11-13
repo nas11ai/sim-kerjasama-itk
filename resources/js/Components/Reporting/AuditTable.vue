@@ -34,7 +34,7 @@ const columns = computed(() => [
         <template #cell-action="{ row }">{{ row.action }}</template>
         <template #cell-actor="{ row }">{{ row.actor }}</template>
         <template #cell-ipAddress="{ row }">
-            <span class="font-mono text-xs">{{ row.ipAddress ?? '—' }}</span>
+            <span class="font-mono text-xs">{{ row.ipAddress ?? '-' }}</span>
         </template>
         <template #cell-view="{ row }">
             <Button variant="ghost" size="sm" @click="emit('view', row)">Lihat</Button>

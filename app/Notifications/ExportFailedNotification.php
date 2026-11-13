@@ -30,7 +30,7 @@ class ExportFailedNotification extends Notification
         return (new MailMessage)
             ->subject('Ekspor gagal')
             ->line(ExportType::label($this->job->type).' yang Anda minta gagal diproses.')
-            ->line('Sistem tidak akan mengulangnya sendiri — jalankan ekspor ulang dari layar Export Data.');
+            ->line('Sistem tidak akan mengulangnya sendiri, jalankan ekspor ulang dari layar Export Data.');
     }
 
     /** @return array<string, int|string|null> */
@@ -38,7 +38,7 @@ class ExportFailedNotification extends Notification
     {
         return (new NotificationPayload(
             type: 'export_failed',
-            title: 'Export gagal — coba lagi',
+            title: 'Export gagal, coba lagi',
             message: ExportType::label($this->job->type).' gagal setelah '.$this->job->attempts.' percobaan. '
                 .'Sistem tidak akan mengulang sendiri.',
             context: ['export_job_id' => $this->job->id],

@@ -24,7 +24,7 @@ class ReviewThreadOpenedNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Ulir review baru — SIMPAS')
+            ->subject('Ulir review baru | SIMPAS')
             ->line($this->message());
     }
 

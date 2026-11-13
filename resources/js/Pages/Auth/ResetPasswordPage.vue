@@ -29,7 +29,7 @@ const submit = () =>
     <Head title="Reset Password" />
     <AuthLayout>
         <AuthHeading title="Reset Password">
-            Buat password baru untuk akun <strong>{{ email ?? '—' }}</strong>
+            Buat password baru untuk akun <strong>{{ email ?? '-' }}</strong>
         </AuthHeading>
 
         <form class="space-y-4" @submit.prevent="submit">

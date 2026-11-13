@@ -81,7 +81,7 @@ describe('SubmissionActions', () => {
         expect(wrapper.find('a').exists()).toBe(false)
         expect(wrapper.find('button').attributes('disabled')).toBeDefined()
         expect(wrapper.text()).toContain(
-            'Draft dari periode yang sudah ditutup — tidak dapat diedit lagi.'
+            'Draft dari periode yang sudah ditutup, tidak dapat diedit lagi.'
         )
     })
 

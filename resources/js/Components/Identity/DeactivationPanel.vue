@@ -63,7 +63,7 @@ const deactivate = () => {
                     variant="outline"
                 >
                     <Link :href="blocker.manageUrl">
-                        <Users class="size-4" /> Alihkan Kepemilikan — {{ blocker.title }}
+                        <Users class="size-4" /> Alihkan Kepemilikan: {{ blocker.title }}
                     </Link>
                 </Button>
                 <AppBanner v-else-if="!blocker.hasActiveCoInvestigator" tone="warning">

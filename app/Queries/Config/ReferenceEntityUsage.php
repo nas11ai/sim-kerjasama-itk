@@ -50,7 +50,7 @@ final class ReferenceEntityUsage implements ChangesNoState
         foreach ($entity->usageRelations() as $name) {
             if (!$instance->{$name}() instanceof Relation) {
                 throw new RuntimeException(
-                    "Relasi \"{$name}\" pada {$entity->model} bukan relasi Eloquent — "
+                    "Relasi \"{$name}\" pada {$entity->model} bukan relasi Eloquent: "
                     .'cakupan BR-SC-01 tidak bisa dihitung.'
                 );
             }

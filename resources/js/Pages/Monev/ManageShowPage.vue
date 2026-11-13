@@ -50,7 +50,7 @@ const nodes = computed(() => phaseNodes(props.cycles.map((managed) => managed.cy
                 <AppBanner tone="info">
                     Mengaktifkan siklus memberi tahu peneliti dan reviewer yang ditugaskan pada
                     siklus itu. Selama siklus belum diaktifkan, tidak ada pemberitahuan yang
-                    terkirim — jadwal monev berjarak bulanan, dan tenggatnya bisa terlanjur berjalan
+                    terkirim, jadwal monev berjarak bulanan, dan tenggatnya bisa terlanjur berjalan
                     tanpa ada yang tahu.
                 </AppBanner>
             </div>

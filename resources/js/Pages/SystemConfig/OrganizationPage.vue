@@ -41,7 +41,7 @@ function select(id: number) {
     <AppLayout>
         <PageHeader
             title="Struktur Organisasi"
-            subtitle="Susun unit kerja secara berjenjang — klik untuk membuka atau menutup cabang."
+            subtitle="Susun unit kerja secara berjenjang, klik untuk membuka atau menutup cabang."
         >
             <template #actions>
                 <Button @click="openDialog('root')"

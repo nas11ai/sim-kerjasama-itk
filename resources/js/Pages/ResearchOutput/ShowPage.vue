@@ -48,7 +48,7 @@ defineProps<ResearchOutputShowPageProps>()
             <!-- BR-RO-06/07 -->
             <AppBanner tone="lock">
                 Di dalam tim penelitian, hanya ketua dan co-investigator yang dapat mengubah luaran
-                ini — anggota biasa dan reviewer membaca saja. Operator LPPM tetap dapat mengoreksi
+                ini, anggota biasa dan reviewer membaca saja. Operator LPPM tetap dapat mengoreksi
                 datanya. Luaran dari pengajuan yang sudah ditarik tetap tersimpan sebagai arsip
                 baca-saja.
             </AppBanner>

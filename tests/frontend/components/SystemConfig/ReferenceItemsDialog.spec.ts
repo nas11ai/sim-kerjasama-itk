@@ -91,7 +91,7 @@ describe('ReferenceItemsDialog', () => {
         await flushPromises()
 
         expect(bodyText()).toContain(
-            'Tipe Submission hanya dapat diubah lewat seeder. Bukan kekurangan antarmuka — nilainya mengikat empat context sekaligus.'
+            'Tipe Submission hanya dapat diubah lewat seeder. Bukan kekurangan antarmuka, nilainya mengikat empat context sekaligus.'
         )
         for (const label of ['Ganti Nama', 'Nonaktifkan', 'Hapus']) {
             expect(bodyButton(label)).toBeUndefined()

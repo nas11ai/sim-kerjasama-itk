@@ -59,7 +59,7 @@ const props = (overrides: Partial<InvitationIndexPageProps> = {}): InvitationInd
     invitations: [row()],
     organizationOptions: [
         { value: '21', label: 'Pusat Studi Energi' },
-        { value: '22', label: 'FTI — Teknik Mesin' },
+        { value: '22', label: 'FTI: Teknik Mesin' },
     ],
     presetOptions: [preset],
     ...overrides,
@@ -95,7 +95,7 @@ describe('InvitationIndexPage', () => {
 
         expect(wrapper.find('h1').text()).toBe('Undangan Registrasi')
         expect(text).toContain(
-            'Undang peneliti eksternal lewat link registrasi — akun langsung aktif tanpa verifikasi NIDN.'
+            'Undang peneliti eksternal lewat link registrasi, akun langsung aktif tanpa verifikasi NIDN.'
         )
         for (const label of [
             'Buat Undangan Baru',
@@ -183,7 +183,7 @@ describe('InvitationIndexPage', () => {
             invitations: [
                 row({
                     id: 5,
-                    organization: 'FTI — Teknik Mesin',
+                    organization: 'FTI: Teknik Mesin',
                     organizationId: 22,
                     usedCount: 5,
                     remainingUses: 0,

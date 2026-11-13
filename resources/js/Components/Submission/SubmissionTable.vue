@@ -35,12 +35,12 @@ const columns = [
                 v-if="!row.isLead"
                 variant="outline"
                 class="ml-2"
-                title="Anda anggota tim pada pengajuan ini — hanya ketua yang dapat mengubah."
+                title="Anda anggota tim pada pengajuan ini, hanya ketua yang dapat mengubah."
             >
                 Anggota Tim
             </Badge>
         </template>
-        <template #cell-scheme="{ row }">{{ row.scheme ?? '—' }}</template>
+        <template #cell-scheme="{ row }">{{ row.scheme ?? '-' }}</template>
         <template #cell-status="{ row }">
             <div class="flex flex-wrap items-center gap-2">
                 <StatusBadge :status="row.status" />
@@ -48,7 +48,7 @@ const columns = [
                 <Badge
                     v-if="row.isArchived"
                     variant="outline"
-                    title="Draft dari periode yang sudah ditutup — tidak dapat diedit lagi."
+                    title="Draft dari periode yang sudah ditutup, tidak dapat diedit lagi."
                 >
                     Diarsipkan
                 </Badge>

@@ -54,7 +54,7 @@ describe('ExportHistoryTable', () => {
 
         expect(wrapper.text()).toContain('Antrian')
         expect(wrapper.text()).toContain(
-            'Ekspor dijadwalkan. Anda akan diberi tahu saat berkasnya siap — layar ini boleh ditutup.'
+            'Ekspor dijadwalkan. Anda akan diberi tahu saat berkasnya siap, layar ini boleh ditutup.'
         )
     })
 
@@ -78,7 +78,7 @@ describe('ExportHistoryTable', () => {
 
         expect(wrapper.find('a[href^="https://simpas.test"]').exists()).toBe(false)
         expect(wrapper.text()).toContain(
-            'Tautan unduhan sudah kedaluwarsa. Minta tautan baru — berkasnya belum terhapus.'
+            'Tautan unduhan sudah kedaluwarsa. Minta tautan baru, berkasnya belum terhapus.'
         )
         await button(wrapper, 'Minta Tautan Baru')?.trigger('click')
         expect(wrapper.emitted('refreshLinks')).toHaveLength(1)
@@ -96,7 +96,7 @@ describe('ExportHistoryTable', () => {
         expect(wrapper.text()).toContain('Gagal')
         expect(wrapper.text()).toContain('3 dari 3')
         expect(wrapper.text()).toContain(
-            'Export gagal — coba lagi. Sistem tidak akan mengulang sendiri; jalankan ulang secara manual.'
+            'Export gagal, coba lagi. Sistem tidak akan mengulang sendiri; jalankan ulang secara manual.'
         )
         await button(wrapper, 'Coba Lagi')?.trigger('click')
         expect(wrapper.emitted('rerun')?.[0]).toEqual([job])

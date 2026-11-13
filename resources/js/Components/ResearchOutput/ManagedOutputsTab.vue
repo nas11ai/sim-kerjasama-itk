@@ -39,7 +39,7 @@ const extending = ref(false)
         <div v-if="phaseAccess" class="flex flex-wrap items-center justify-between gap-2 text-sm">
             <span class="text-muted-foreground">
                 Batas Akhir: {{ formatDate(phaseAccess.deadline) }}
-                <template v-if="!phaseAccess.is_open"> — terlewat</template>
+                <template v-if="!phaseAccess.is_open">, terlewat</template>
             </span>
             <Button v-if="canExtend" variant="outline" size="sm" @click="extending = true">
                 <CalendarClock class="size-4" /> Perpanjang Batas Unggah Luaran

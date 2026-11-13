@@ -121,9 +121,9 @@ it('label subjek dan pelaku', function () {
 
     $rows = auditListProps($agus)['entries']['data'];
 
-    expect($rows[1]['subject'])->toBe('Submission — Biochar Kaltim')
+    expect($rows[1]['subject'])->toBe('Submission · Biochar Kaltim')
         ->and($rows[1]['actor'])->toBe('Dr. Budi Santoso (Peneliti)')
-        ->and($rows[0]['subject'])->toBe('Skema — DIPA')
+        ->and($rows[0]['subject'])->toBe('Skema · DIPA')
         // Urutan RoleCatalog, bukan urutan penetapan peran.
         ->and($rows[0]['actor'])->toBe('Agus Prasetyo (Operator, Admin)');
 });
@@ -196,8 +196,8 @@ it('[E2E-06] subjek laporan monev memakai nama siklus dan judul induk', function
 
     $rows = auditListProps(auditListOperator())['entries']['data'];
 
-    expect($rows[0]['subject'])->toBe(MonevCycles::nameOf($fx['monev1']).' — Smart Farming')
-        ->and($rows[0]['subject'])->toBe('Monev I — Smart Farming');
+    expect($rows[0]['subject'])->toBe(MonevCycles::nameOf($fx['monev1']).' · Smart Farming')
+        ->and($rows[0]['subject'])->toBe('Monev I · Smart Farming');
 });
 
 it('[E2E-07] pencarian mencocokkan nama subjek non-pengajuan', function (Closure $subject, string $search) {

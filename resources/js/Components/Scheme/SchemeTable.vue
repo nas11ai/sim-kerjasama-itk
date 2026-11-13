@@ -34,7 +34,7 @@ const columns = [
             <span class="font-medium">{{ row.name }}</span>
         </template>
         <template #cell-code="{ row }">{{ row.code }}</template>
-        <template #cell-type="{ row }">{{ row.submissionType ?? '—' }}</template>
+        <template #cell-type="{ row }">{{ row.submissionType ?? '-' }}</template>
         <template #cell-budget="{ row }">{{ formatRupiah(row.maxBudget) }}</template>
         <template #cell-members="{ row }">{{ row.maxMembers }}</template>
         <template #cell-duration="{ row }">{{ row.durationMonths }} bln</template>

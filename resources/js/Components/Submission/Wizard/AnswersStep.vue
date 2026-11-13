@@ -27,7 +27,7 @@ const requiredFiles = computed(() =>
 </script>
 
 <template>
-    <SectionCard :title="`Step ${step} — ${label}`">
+    <SectionCard :title="`Step ${step} · ${label}`">
         <WizardFieldList
             :fields="fields"
             :values="values"

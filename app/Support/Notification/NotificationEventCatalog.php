@@ -82,7 +82,7 @@ final class NotificationEventCatalog
 
             if (!$reflection->hasConstant('EVENT_TYPE')) {
                 throw new RuntimeException(
-                    "{$class} tidak menyatakan EVENT_TYPE — channel-nya tidak bisa dikonfigurasi (BR-NOT-06)."
+                    "{$class} tidak menyatakan EVENT_TYPE, channel-nya tidak bisa dikonfigurasi (BR-NOT-06)."
                 );
             }
 

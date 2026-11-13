@@ -51,7 +51,7 @@ beforeEach(() => {
 
 describe('BudgetStep', () => {
     it('[SM-WIZARD-04] tanpa skema hanya menampilkan alasan', async () => {
-        const reason = 'Pilih skema di langkah 3 lebih dulu — batas anggaran berasal dari skema.'
+        const reason = 'Pilih skema di langkah 3 lebih dulu, batas anggaran berasal dari skema.'
         const wrapper = mountStep({ blockedReason: reason })
 
         expect(wrapper.text()).toContain(reason)

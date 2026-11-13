@@ -22,7 +22,7 @@ const { form, confirming, denials, send } = useConfirmedReason(
 const summary = computed(() => [
     { label: 'Judul', value: props.submission.title },
     { label: 'Ketua', value: props.submission.leadName },
-    { label: 'Skema', value: props.submission.scheme ?? '—' },
+    { label: 'Skema', value: props.submission.scheme ?? '-' },
     { label: 'Luaran Terdaftar', value: String(props.outputCount) },
 ])
 </script>

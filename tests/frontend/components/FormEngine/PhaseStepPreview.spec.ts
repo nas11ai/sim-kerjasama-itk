@@ -6,7 +6,7 @@ import type { PreviewStep } from '@/lib/phaseDefinition'
 
 const step = (overrides: Partial<PreviewStep> = {}): PreviewStep => ({
     key: 'step-0',
-    title: 'Isi Proposal — Form Proposal',
+    title: 'Isi Proposal: Form Proposal',
     access: 'Pengaju · Fakultas Sains',
     deadlineLabel: 'Pengajuan',
     needsReview: true,
@@ -38,7 +38,7 @@ describe('FormEngine/PhaseStepPreview', () => {
                     step(),
                     step({
                         key: 'step-1',
-                        title: 'Laporan — Form Monev',
+                        title: 'Laporan: Form Monev',
                         deadlineLabel: 'Laporan Monev I',
                         needsReview: false,
                     }),

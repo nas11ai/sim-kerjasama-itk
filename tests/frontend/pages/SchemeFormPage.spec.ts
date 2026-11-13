@@ -117,7 +117,7 @@ describe('Scheme/FormPage', () => {
     it('judul mengikuti mode buat dan sunting', () => {
         expect(mountPage(null).text()).toContain('Buat Skema Baru')
         const edit = mountPage(scheme()).text()
-        expect(edit).toContain('Edit Skema — Penelitian DIPA')
+        expect(edit).toContain('Edit Skema: Penelitian DIPA')
         expect(edit).toContain(
             'Atur ketentuan skema: batasan utama, aturan tambahan, dan TKT yang diizinkan.'
         )
@@ -190,7 +190,7 @@ describe('Scheme/FormPage', () => {
 
         expect(chip('TRL 3')?.attributes('aria-pressed')).toBe('true')
         expect(chip('TRL 4')?.attributes('aria-pressed')).toBe('false')
-        expect(wrapper.text()).toContain('Klik untuk memilih — tanda penuh berarti terpilih.')
+        expect(wrapper.text()).toContain('Klik untuk memilih, tanda penuh berarti terpilih.')
 
         await chip('TRL 4')?.trigger('click')
         await chip('TRL 3')?.trigger('click')

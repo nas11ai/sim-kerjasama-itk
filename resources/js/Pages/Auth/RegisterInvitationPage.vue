@@ -17,8 +17,8 @@ const props = defineProps<RegisterInvitationPageProps>()
 
 // Belum ada peta label permission (W4); nama mentahnya tetap lebih jujur daripada kosong.
 const invitation = computed(() => [
-    { label: 'Organisasi', value: props.organization ?? '—' },
-    { label: 'Hak Akses', value: props.permissions.join(', ') || '—' },
+    { label: 'Organisasi', value: props.organization ?? '-' },
+    { label: 'Hak Akses', value: props.permissions.join(', ') || '-' },
 ])
 
 const form = useForm({ name: '', email: '', password: '', password_confirmation: '' })
@@ -53,7 +53,7 @@ const submit = () =>
             <FormField
                 id="email"
                 label="Email"
-                hint="Email bebas — tidak harus @itk.ac.id"
+                hint="Email bebas, tidak harus @itk.ac.id"
                 :error="form.errors.email"
                 required
             >
@@ -80,7 +80,7 @@ const submit = () =>
         </form>
 
         <p class="mt-6 text-center text-sm text-muted-foreground">
-            Akun Anda langsung aktif setelah mendaftar — tanpa perlu verifikasi NIDN.
+            Akun Anda langsung aktif setelah mendaftar, tanpa perlu verifikasi NIDN.
         </p>
     </AuthLayout>
 </template>

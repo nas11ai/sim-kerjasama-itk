@@ -64,7 +64,7 @@ class ResubmitFormSubmission
 
         if (!$status instanceof SubmissionStatus) {
             throw new RuntimeException(
-                "FormSubmission {$submission->id} tidak punya status — tidak bisa di-resubmit."
+                "FormSubmission {$submission->id} tidak punya status, tidak bisa di-resubmit."
             );
         }
 

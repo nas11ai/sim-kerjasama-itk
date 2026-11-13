@@ -29,10 +29,10 @@ const update = (fieldId: number, value: WizardFieldValue) => {
 </script>
 
 <template>
-    <SectionCard title="Langkah 3 — Skema & TKT">
+    <SectionCard title="Langkah 3: Skema & TKT">
         <!-- BR-SCH-04 -->
         <AppBanner v-if="fields.length === 0" tone="info">
-            Form ini tidak memakai skema — batas anggaran tidak berlaku.
+            Form ini tidak memakai skema, batas anggaran tidak berlaku.
         </AppBanner>
         <template v-else>
             <WizardFieldList :fields="fields" :values="values" :errors="errors" @update="update" />

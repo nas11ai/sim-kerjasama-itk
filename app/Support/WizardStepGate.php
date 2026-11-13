@@ -78,7 +78,7 @@ final class WizardStepGate
             return null;
         }
 
-        return 'Pilih skema di langkah 3 lebih dulu — batas anggaran berasal dari skema.';
+        return 'Pilih skema di langkah 3 lebih dulu, batas anggaran berasal dari skema.';
     }
 
     /** Langkah tempat draft dilanjutkan. */

@@ -24,7 +24,7 @@ function metaOf(cycle: MonevCycle, previous: string): string {
         case 'done':
             return `Disubmit ${formatDate(cycle.submittedAt)}`
         case 'closed':
-            return 'Ditutup — deadline lewat'
+            return 'Ditutup, deadline lewat'
         case 'locked':
             return `Terbuka setelah ${previous} selesai`
         case 'frozen':

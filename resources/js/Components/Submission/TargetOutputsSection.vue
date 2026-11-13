@@ -58,7 +58,7 @@ const lockMessage = computed(() => {
 
         <!-- BR-SM-15 -->
         <AppBanner v-if="canManage && submission.status.key === 'approved'" tone="info">
-            Target luaran masih dapat diubah meski pengajuan sudah disetujui — target menyesuaikan
+            Target luaran masih dapat diubah meski pengajuan sudah disetujui, target menyesuaikan
             jalannya kegiatan.
         </AppBanner>
 

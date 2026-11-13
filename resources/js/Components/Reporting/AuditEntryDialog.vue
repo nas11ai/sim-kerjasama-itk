@@ -26,7 +26,7 @@ const items = computed(() => {
         { label: 'Subjek', value: entry.subject },
         { label: 'Pelaku', value: entry.actor },
         { label: 'Waktu', value: formatDateTime(entry.createdAt) },
-        ...(props.seesEverything ? [{ label: 'IP Address', value: entry.ipAddress ?? '—' }] : []),
+        ...(props.seesEverything ? [{ label: 'IP Address', value: entry.ipAddress ?? '-' }] : []),
     ]
 })
 </script>

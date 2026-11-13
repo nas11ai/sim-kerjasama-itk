@@ -14,7 +14,7 @@ const labels = [
     'Review & Submit',
 ]
 
-const reason = 'Pilih skema di langkah 3 lebih dulu — batas anggaran berasal dari skema.'
+const reason = 'Pilih skema di langkah 3 lebih dulu, batas anggaran berasal dari skema.'
 
 const steps: WizardStep[] = labels.map((label, index) => ({
     number: index + 1,

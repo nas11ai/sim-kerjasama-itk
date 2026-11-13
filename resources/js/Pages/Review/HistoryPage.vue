@@ -46,7 +46,7 @@ const variants: Record<ReviewHistoryRow['status'], BadgeVariant> = {
     <AppLayout>
         <PageHeader
             title="Riwayat Review"
-            subtitle="Semua evaluasi yang pernah Anda kerjakan — read-only, termasuk siklus monev sebelumnya."
+            subtitle="Semua evaluasi yang pernah Anda kerjakan, read-only, termasuk siklus monev sebelumnya."
         />
         <div class="mb-4 flex flex-col gap-2 sm:flex-row">
             <Input
@@ -67,8 +67,8 @@ const variants: Record<ReviewHistoryRow['status'], BadgeVariant> = {
             <template #cell-title="{ row }">
                 <span class="font-medium">{{ row.title }}</span>
             </template>
-            <template #cell-scheme="{ row }">{{ row.scheme ?? '—' }}</template>
-            <template #cell-context="{ row }">{{ row.context ?? '—' }}</template>
+            <template #cell-scheme="{ row }">{{ row.scheme ?? '-' }}</template>
+            <template #cell-context="{ row }">{{ row.context ?? '-' }}</template>
             <template #cell-completedAt="{ row }">{{ formatDate(row.completedAt) }}</template>
             <template #cell-status="{ row }">
                 <Badge :variant="variants[row.status]">{{ row.statusLabel }}</Badge>

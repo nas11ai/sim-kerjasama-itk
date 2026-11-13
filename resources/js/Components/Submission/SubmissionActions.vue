@@ -17,7 +17,7 @@ const props = defineProps<{
 // BR-SM-04 — Submit tidak ditawarkan di sini: ia tindakan ketua di langkah akhir wizard.
 const editHint = computed(() => {
     if (props.submission.isArchived) {
-        return 'Draft dari periode yang sudah ditutup — tidak dapat diedit lagi.'
+        return 'Draft dari periode yang sudah ditutup, tidak dapat diedit lagi.'
     }
     return props.can.resubmit
         ? 'Tersedia saat status Perlu Revisi.'

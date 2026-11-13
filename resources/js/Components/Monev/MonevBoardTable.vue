@@ -27,8 +27,8 @@ const columns = [
             <span class="font-medium">{{ row.title }}</span>
         </template>
         <template #cell-leader="{ row }">{{ row.leader }}</template>
-        <template #cell-scheme="{ row }">{{ row.scheme ?? '—' }}</template>
-        <template #cell-currentCycle="{ row }">{{ row.currentCycle ?? '—' }}</template>
+        <template #cell-scheme="{ row }">{{ row.scheme ?? '-' }}</template>
+        <template #cell-currentCycle="{ row }">{{ row.currentCycle ?? '-' }}</template>
         <template #cell-status="{ row }">
             <Badge :variant="BOARD_STATUS[row.status].variant" class="gap-1.5">
                 <span

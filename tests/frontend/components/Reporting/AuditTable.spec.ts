@@ -25,8 +25,8 @@ describe('AuditTable', () => {
             'IP Address',
         ])
         expect(wrapper.text()).toContain('03 Jul 2026 09.41')
-        expect(wrapper.text()).toContain('Submission — Biochar Kaltim')
-        expect(wrapper.findAll('tbody tr')[1].text()).toContain('—')
+        expect(wrapper.text()).toContain('Submission: Biochar Kaltim')
+        expect(wrapper.findAll('tbody tr')[1].text()).toContain('-')
     })
 
     it('tanpa cakupan penuh tidak ada kolom IP', () => {

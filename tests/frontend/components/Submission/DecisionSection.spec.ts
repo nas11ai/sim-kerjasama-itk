@@ -28,7 +28,7 @@ describe('DecisionSection', () => {
         const wrapper = render({ decidedBy: null, decidedAt: null })
 
         expect(wrapper.text()).toContain('Pengajuan ini ditolak Operator LPPM.')
-        expect(wrapper.findAll('dd').map((dd) => dd.text())).toEqual(['—', '—'])
+        expect(wrapper.findAll('dd').map((dd) => dd.text())).toEqual(['-', '-'])
     })
 
     it('tidak merender alasan sebagai HTML', () => {

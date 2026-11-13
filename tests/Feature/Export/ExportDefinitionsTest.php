@@ -178,7 +178,7 @@ it('baris Audit Log', function () {
     $rows = ExportType::definition(ExportType::AUDIT_LOG)->rows(definitionsOperator(), new ExportFilters(yearFrom: 2026, yearTo: 2026));
 
     // Terbaru dulu; label subjek dan pelaku sama dengan layar Audit Log (W155).
-    expect($rows[0])->toBe(['2026-03-01 09:15:00', 'Submission — Biochar Kaltim', 'Ekspor diminta', 'Budi', null])
+    expect($rows[0])->toBe(['2026-03-01 09:15:00', 'Submission · Biochar Kaltim', 'Ekspor diminta', 'Budi', null])
         ->and(array_column($rows, 2))->toBe(['Ekspor diminta', 'Pengajuan disubmit']);
 });
 

@@ -76,7 +76,7 @@ describe('OrganizationUnitPanel', () => {
 
         expect(bodyButton('Nonaktifkan')?.disabled).toBe(true)
         expect(bodyText()).toContain(
-            'Terhalang 14 user aktif — pindahkan atau nonaktifkan orangnya lebih dulu.'
+            'Terhalang 14 user aktif, pindahkan atau nonaktifkan orangnya lebih dulu.'
         )
     })
 
@@ -101,7 +101,7 @@ describe('OrganizationUnitPanel', () => {
 
         expect(bodyButton('Hapus Unit')?.disabled).toBe(true)
         expect(bodyText()).toContain(
-            'Terhalang 14 profil user. Penghapusan menuntut subtree benar-benar kosong — termasuk profil yang user-nya sudah nonaktif.'
+            'Terhalang 14 profil user. Penghapusan menuntut subtree benar-benar kosong, termasuk profil yang user-nya sudah nonaktif.'
         )
     })
 

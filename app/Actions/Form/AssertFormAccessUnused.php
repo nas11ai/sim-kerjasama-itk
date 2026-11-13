@@ -41,7 +41,7 @@ class AssertFormAccessUnused implements ChangesNoState
         $blockers = $controls->load(['form', 'organization'])
             ->filter(fn (FormAccessControl $control): bool => $usage->has($control->id))
             ->map(fn (FormAccessControl $control): string => sprintf(
-                '%s — %s — %s (%d tahap)',
+                '%s · %s · %s (%d tahap)',
                 $control->form?->title,
                 $control->permission,
                 $control->organization?->name,

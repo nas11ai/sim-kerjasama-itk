@@ -130,7 +130,7 @@ describe('WizardPage', () => {
             },
         })
 
-        expect(wrapper.text()).toContain('Step 4 — Anggota Penelitian')
+        expect(wrapper.text()).toContain('Step 4: Anggota Penelitian')
 
         await wrapper.setProps({
             ...editProps(5, []),
@@ -145,7 +145,7 @@ describe('WizardPage', () => {
             },
         })
 
-        expect(wrapper.text()).toContain('Step 5 — Rencana Anggaran')
+        expect(wrapper.text()).toContain('Step 5: Rencana Anggaran')
         expect(wrapper.text()).not.toContain('irisan berikutnya')
     })
 })

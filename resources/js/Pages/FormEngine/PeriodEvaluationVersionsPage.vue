@@ -71,7 +71,7 @@ const apply = () => {
     <AppLayout>
         <PageHeader
             title="Versi Form Evaluasi"
-            :subtitle="`Periode ${period.name} — versi lembar penilaian yang dipakai tiap angkatan.`"
+            :subtitle="`Periode ${period.name}, versi lembar penilaian yang dipakai tiap angkatan.`"
             :back-href="route('admin.submission-periods.index')"
             back-label="Periode Pengajuan"
         />
@@ -88,7 +88,7 @@ const apply = () => {
                 <template #cell-version="{ row }">
                     <!-- BR-REV-18 — belum ada draf penilaian, jadi belum ada yang dipaku -->
                     <span v-if="row.pinnedLabel === null" class="text-sm text-muted-foreground"
-                        >Belum mulai dinilai — memakai {{ row.latestLabel }}</span
+                        >Belum mulai dinilai, memakai {{ row.latestLabel }}</span
                     >
                     <div v-else class="flex flex-wrap items-center gap-2">
                         <Badge variant="outline">{{ row.pinnedLabel }}</Badge>

@@ -59,7 +59,7 @@ class ExportController extends Controller
         return back()->with(
             'success',
             $job->status === ExportJob::STATUS_COMPLETED
-                ? 'Ekspor selesai — berkasnya siap diunduh.'
+                ? 'Ekspor selesai, berkasnya siap diunduh.'
                 : 'Ekspor dijadwalkan. Anda akan diberi tahu saat berkasnya siap.',
         );
     }

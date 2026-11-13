@@ -32,12 +32,12 @@ const budget = computed(() => {
 })
 const summary = computed(() => [
     { label: 'Judul', value: props.submission.title },
-    { label: 'Skema', value: props.review.scheme ?? '—' },
-    { label: 'TKT', value: props.review.trl ?? '—' },
+    { label: 'Skema', value: props.review.scheme ?? '-' },
+    { label: 'TKT', value: props.review.trl ?? '-' },
     { label: 'Anggota', value: `${props.review.memberCount} orang` },
     { label: 'Target Luaran', value: `${props.review.targetOutputCount} target` },
     { label: 'Total Anggaran', value: budget.value },
-    { label: 'Berkas', value: props.review.fileNames.join(', ') || '—' },
+    { label: 'Berkas', value: props.review.fileNames.join(', ') || '-' },
 ])
 // BR-SM-03 — revisi dikirim lewat tindakan tersendiri, bukan Submit.
 const mode = computed(() => (props.can.resubmit ? 'resubmit' : props.can.submit ? 'submit' : null))
@@ -63,7 +63,7 @@ const send = () => {
 </script>
 
 <template>
-    <SectionCard title="Step 7 — Periksa Sebelum Mengirim">
+    <SectionCard title="Step 7: Periksa Sebelum Mengirim">
         <InfoGrid :items="summary" />
     </SectionCard>
     <SectionCard title="Pemeriksaan Kelengkapan" class="mt-6">
@@ -80,7 +80,7 @@ const send = () => {
                     :key="missing.fieldId"
                     class="flex items-center justify-between gap-3 p-3"
                 >
-                    <span>{{ missing.label }} — {{ missing.message }}</span>
+                    <span>{{ missing.label }} · {{ missing.message }}</span>
                     <Button
                         variant="outline"
                         size="sm"

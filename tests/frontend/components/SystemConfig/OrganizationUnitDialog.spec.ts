@@ -75,7 +75,7 @@ const mountDialog = async (mode: 'root' | 'child' | 'edit') => {
                 { value: 'unit', label: 'Unit Kerja' },
             ],
             parentOptions: [
-                { value: '1', label: 'ITK — beserta unit di bawahnya' },
+                { value: '1', label: 'ITK, beserta unit di bawahnya' },
                 { value: '2', label: 'FTI' },
                 { value: '3', label: 'Informatika' },
             ],

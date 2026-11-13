@@ -33,6 +33,6 @@ final class KpiDefinitions implements ChangesNoState
     {
         $decided = $approved + $rejected;
 
-        return $decided === 0 ? '—' : round($approved / $decided * 100).'%';
+        return $decided === 0 ? '-' : round($approved / $decided * 100).'%';
     }
 }

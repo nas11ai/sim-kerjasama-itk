@@ -25,9 +25,9 @@ const columns = [
 <template>
     <DataTable :rows="rows" :columns="columns">
         <template #cell-organization="{ row }">
-            <span class="font-medium">{{ row.organization ?? '—' }}</span>
+            <span class="font-medium">{{ row.organization ?? '-' }}</span>
         </template>
-        <template #cell-preset="{ row }">{{ row.preset?.label ?? '—' }}</template>
+        <template #cell-preset="{ row }">{{ row.preset?.label ?? '-' }}</template>
         <!-- BR-IAM-07 — token multi-pakai dengan kuota (IAM-REG-09) -->
         <template #cell-usage="{ row }">{{ row.usedCount }} / {{ row.maxUses ?? '∞' }}</template>
         <template #cell-expiresAt="{ row }">{{ formatDate(row.expiresAt) }}</template>

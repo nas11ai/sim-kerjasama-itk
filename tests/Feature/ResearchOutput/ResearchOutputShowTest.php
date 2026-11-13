@@ -71,8 +71,8 @@ it('kontrak detail luaran', function () {
                     ['label' => 'Nama Jurnal', 'value' => 'Jurnal Teknologi Pertanian Indonesia'],
                     ['label' => 'Tipe Jurnal', 'value' => 'Nasional Terakreditasi'],
                     ['label' => 'Tahun Terbit', 'value' => '2026'],
-                    ['label' => 'DOI', 'value' => '—'],
-                    ['label' => 'URL', 'value' => '—'],
+                    ['label' => 'DOI', 'value' => '-'],
+                    ['label' => 'URL', 'value' => '-'],
                 ])
                 ->has('files', 1)
                 ->where('files.0.name', 'bukti-1.pdf')

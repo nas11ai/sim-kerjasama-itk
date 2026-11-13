@@ -37,7 +37,7 @@ const selects = computed((): FilterSelectSpec<Exclude<keyof ManageIndexFilters, 
     <AppLayout>
         <PageHeader
             title="Semua Pengajuan"
-            subtitle="Seluruh submission di sistem — filter lanjutan tersedia."
+            subtitle="Seluruh submission di sistem, filter lanjutan tersedia."
         >
             <template #actions>
                 <Button as-child variant="outline">

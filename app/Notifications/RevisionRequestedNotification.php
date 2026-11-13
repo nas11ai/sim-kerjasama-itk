@@ -27,7 +27,7 @@ class RevisionRequestedNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Pengajuan perlu revisi — SIMPAS')
+            ->subject('Pengajuan perlu revisi | SIMPAS')
             ->line($this->message());
     }
 

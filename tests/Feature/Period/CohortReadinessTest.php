@@ -261,8 +261,8 @@ it('[FE-READY-07] tanggal dan Form Evaluasi langkah monev yang belum diatur tida
     expect($cohort->status())->toBe('pending')
         ->and(checkOf($cohort, ReadinessCheck::MissingDate)->state())->toBe('warning')
         ->and(issuesOf($cohort, ReadinessCheck::MissingDate))->toBe([
-            ['message' => 'Batas Laporan Monev I belum diatur — langkah Laporan Monev I tertutup sampai tanggalnya diatur.', 'blocking' => false],
-            ['message' => 'Batas Evaluasi Monev I belum diatur — evaluasi Laporan Monev I tak bertenggat sampai tanggalnya diatur.', 'blocking' => false],
+            ['message' => 'Batas Laporan Monev I belum diatur, langkah Laporan Monev I tertutup sampai tanggalnya diatur.', 'blocking' => false],
+            ['message' => 'Batas Evaluasi Monev I belum diatur, evaluasi Laporan Monev I tak bertenggat sampai tanggalnya diatur.', 'blocking' => false],
         ])
         ->and(checkOf($cohort, ReadinessCheck::RequiredEvaluationForm)->state())->toBe('warning');
 
@@ -298,7 +298,7 @@ it('mendaftar tanggal kerja yang hilang, tetapi tidak Batas Evaluasi langkah yan
     $period = schedulePeriod($phase, 'Periode B');
 
     expect(issuesOf(readinessOf($period, $phase), ReadinessCheck::MissingDate))->toBe([[
-        'message' => 'Batas Laporan Monev I belum diatur — langkah Laporan Monev I tertutup sampai tanggalnya diatur.',
+        'message' => 'Batas Laporan Monev I belum diatur, langkah Laporan Monev I tertutup sampai tanggalnya diatur.',
         'blocking' => false,
     ]]);
 });

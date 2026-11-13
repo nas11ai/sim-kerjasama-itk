@@ -52,7 +52,7 @@ const revoke = () => {
     <AppLayout>
         <PageHeader
             title="Undangan Registrasi"
-            subtitle="Undang peneliti eksternal lewat link registrasi — akun langsung aktif tanpa verifikasi NIDN."
+            subtitle="Undang peneliti eksternal lewat link registrasi, akun langsung aktif tanpa verifikasi NIDN."
             :back-href="route('admin.users.index')"
             back-label="Daftar User"
         />

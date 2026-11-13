@@ -61,7 +61,7 @@ const remove = () => {
 
 <template>
     <div class="flex flex-col gap-6">
-        <SectionCard title="Step 4 — Anggota Penelitian">
+        <SectionCard title="Step 4: Anggota Penelitian">
             <AppBanner v-if="page.props.errors?.id" tone="denial">
                 {{ page.props.errors.id }}
             </AppBanner>
@@ -70,8 +70,8 @@ const remove = () => {
                 <template #cell-role="{ row }">
                     <Badge variant="outline">{{ row.roleLabel }}</Badge>
                 </template>
-                <template #cell-unit="{ row }">{{ row.unit ?? '—' }}</template>
-                <template #cell-nidn="{ row }">{{ row.nidn ?? '—' }}</template>
+                <template #cell-unit="{ row }">{{ row.unit ?? '-' }}</template>
+                <template #cell-nidn="{ row }">{{ row.nidn ?? '-' }}</template>
                 <template #cell-actions="{ row }">
                     <Button
                         v-if="row.removable"
@@ -86,7 +86,7 @@ const remove = () => {
             </DataTable>
             <!-- BR-SM-18 -->
             <p class="text-xs text-muted-foreground">
-                Jumlah anggota dibatasi skema terpilih. Ketua tidak dapat dihapus — gunakan Alihkan
+                Jumlah anggota dibatasi skema terpilih. Ketua tidak dapat dihapus, gunakan Alihkan
                 Kepemilikan lewat Operator.
             </p>
             <!-- BR-SM-08, BR-SCH-03 -->

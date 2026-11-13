@@ -39,7 +39,7 @@ class AssignReviewer
 
         if (!$candidate instanceof User) {
             throw new RuntimeException(
-                "Reviewer {$reviewer->id} tidak tertaut ke User — penugasan dibatalkan."
+                "Reviewer {$reviewer->id} tidak tertaut ke User, penugasan dibatalkan."
             );
         }
 
@@ -140,7 +140,7 @@ class AssignReviewer
 
         if (!$status instanceof SubmissionStatus) {
             throw new RuntimeException(
-                "FormSubmission {$submission->id} tidak punya status — penugasan reviewer tidak bisa memindahkannya."
+                "FormSubmission {$submission->id} tidak punya status, penugasan reviewer tidak bisa memindahkannya."
             );
         }
 

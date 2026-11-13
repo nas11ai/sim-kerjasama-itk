@@ -81,6 +81,6 @@ class DashboardOverview implements ChangesNoState
 
         return $program['faculty']['name'] === ''
             ? $program['name']
-            : "{$program['faculty']['name']} — {$program['name']}";
+            : "{$program['faculty']['name']} · {$program['name']}";
     }
 }

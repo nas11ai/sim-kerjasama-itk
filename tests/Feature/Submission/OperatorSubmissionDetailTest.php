@@ -284,7 +284,7 @@ it('target perpanjangan menyebut fase dan reviewer yang evaluasinya lewat tengga
 
     showOperatorPage(detailOperator(), $submission)
         ->assertInertia(fn (Assert $page) => $page
-            ->where('overrideTarget.phaseLabel', $detail->formPhase->title.' — '.stepDate($detail)->label())
+            ->where('overrideTarget.phaseLabel', $detail->formPhase->title.' · '.stepDate($detail)->label())
             ->where('overrideTarget.affectedReviewers', ['Reviewer Telat']));
 });
 

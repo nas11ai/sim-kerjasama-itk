@@ -135,7 +135,7 @@ class SaveOrganization
         // yang tak bersalah, jauh dari sebabnya.
         if (in_array($parentId, OrganizationSubtree::run($organization->id), true)) {
             throw ValidationException::withMessages([
-                'parent_id' => 'Unit ini tidak bisa dipindah ke bawah turunannya sendiri — '
+                'parent_id' => 'Unit ini tidak bisa dipindah ke bawah turunannya sendiri: '
                     .'pohon organisasi akan menjadi lingkaran dan penelusuran akses tidak pernah berhenti.',
             ]);
         }

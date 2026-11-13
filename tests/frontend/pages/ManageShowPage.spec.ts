@@ -83,7 +83,7 @@ const props = (
             manageTargetOutput: false,
             discussReview: false,
         },
-        organization: 'FTI — Teknik Mesin',
+        organization: 'FTI: Teknik Mesin',
         reviewers: [],
         activeReviewerCount: 0,
         minimumReviewers: 2,
@@ -91,7 +91,7 @@ const props = (
         evaluationSheets: [],
         threads: [],
         ownershipCandidates: [],
-        overrideTarget: { phaseLabel: 'Fase Proposal — Batas Submit', affectedReviewers: [] },
+        overrideTarget: { phaseLabel: 'Fase Proposal: Batas Submit', affectedReviewers: [] },
         operatorCan: {
             assignReviewers: true,
             replaceReviewer: true,
@@ -269,7 +269,7 @@ describe('ManageShowPage', () => {
 
     it('subjudul memuat skema, ketua, dan organisasi', () => {
         expect(mountPage(props()).text()).toContain(
-            'Penelitian DIPA 2026 · Ketua: Dr. Budi Santoso · FTI — Teknik Mesin'
+            'Penelitian DIPA 2026 · Ketua: Dr. Budi Santoso · FTI: Teknik Mesin'
         )
     })
 

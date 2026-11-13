@@ -10,10 +10,10 @@ const props = defineProps<{ user: UserDetailData }>()
 const items = computed(() => [
     { label: 'Nama', value: props.user.name },
     { label: 'Email', value: props.user.email },
-    { label: 'NIDN', value: props.user.nidn ?? '—' },
-    { label: 'Telepon', value: props.user.phone ?? '—' },
-    { label: 'Organisasi', value: props.user.organization ?? '—' },
-    { label: 'Bidang Keahlian', value: props.user.expertise ?? '—' },
+    { label: 'NIDN', value: props.user.nidn ?? '-' },
+    { label: 'Telepon', value: props.user.phone ?? '-' },
+    { label: 'Organisasi', value: props.user.organization ?? '-' },
+    { label: 'Bidang Keahlian', value: props.user.expertise ?? '-' },
 ])
 </script>
 

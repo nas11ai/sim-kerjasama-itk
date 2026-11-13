@@ -270,7 +270,7 @@ describe('ReviewerIndexPage', () => {
 
     it('banner bawah tabel frame tampil', () => {
         expect(mountPage().text()).toContain(
-            'Menambah reviewer memilih user yang sudah terdaftar — tidak ada jalur registrasi mandiri untuk reviewer. Reviewer eksternal harus diundang lebih dulu lewat Undangan Registrasi.'
+            'Menambah reviewer memilih user yang sudah terdaftar, tidak ada jalur registrasi mandiri untuk reviewer. Reviewer eksternal harus diundang lebih dulu lewat Undangan Registrasi.'
         )
     })
 })

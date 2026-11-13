@@ -43,7 +43,7 @@ describe('AuditEntryDialog', () => {
         expect(text()).toMatch(/Rp\s4\.000\.000 → Rp\s6\.500\.000/)
         expect(text()).toContain('Sewa alat → Sewa peralatan')
         // Kunci yang baru muncul tidak punya nilai lama.
-        expect(text()).toContain('— → 2')
+        expect(text()).toContain('- → 2')
     })
 
     it('entri tanpa nilai lama/baru', async () => {
@@ -55,7 +55,7 @@ describe('AuditEntryDialog', () => {
     it('entri tanpa IP tampil tanda pisah bagi Operator', async () => {
         await open(auditEntry({ ipAddress: null }))
 
-        expect(text()).toMatch(/IP Address\s*—/)
+        expect(text()).toMatch(/IP Address\s*-/)
     })
 
     it('tanpa cakupan penuh baris IP tidak digambar', async () => {

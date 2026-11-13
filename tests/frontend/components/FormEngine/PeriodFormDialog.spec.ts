@@ -123,7 +123,7 @@ describe('PeriodFormDialog', () => {
         expect(
             document.querySelector<HTMLButtonElement>('[aria-label="Buang tenggat 1"]')?.disabled
         ).toBe(true)
-        expect(text()).toContain('Dipakai 1 detail tahap — tidak bisa dibuang.')
+        expect(text()).toContain('Dipakai 1 detail tahap, tidak bisa dibuang.')
     })
 
     it('[SCH-RULE-11] menyebut jumlah pemilik draft saat menyunting', async () => {

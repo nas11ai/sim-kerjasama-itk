@@ -19,7 +19,7 @@ const opening = computed(() => {
 })
 
 const details = computed(() => [
-    { label: 'Diputuskan oleh', value: props.decision.decidedBy ?? '—' },
+    { label: 'Diputuskan oleh', value: props.decision.decidedBy ?? '-' },
     { label: 'Tanggal', value: formatDate(props.decision.decidedAt) },
 ])
 </script>
@@ -28,7 +28,7 @@ const details = computed(() => [
     <!-- BR-REV-05 — persetujuan selalu keputusan manual Operator (ADR 0018) -->
     <div v-if="approved" class="flex flex-col gap-4">
         <AppBanner tone="success">
-            {{ opening }} Persetujuan selalu merupakan keputusan manual — tidak pernah terjadi
+            {{ opening }} Persetujuan selalu merupakan keputusan manual, tidak pernah terjadi
             otomatis dari hasil penilaian reviewer.
         </AppBanner>
         <SectionCard title="Keputusan">
@@ -38,13 +38,13 @@ const details = computed(() => [
     <div v-else class="flex flex-col gap-4">
         <!-- BR-REV-07 — penolakan selalu keputusan manual, tidak pernah otomatis dari skor -->
         <AppBanner tone="denial">
-            {{ opening }} Penolakan selalu merupakan keputusan manual — tidak pernah terjadi
-            otomatis dari hasil penilaian reviewer.
+            {{ opening }} Penolakan selalu merupakan keputusan manual, tidak pernah terjadi otomatis
+            dari hasil penilaian reviewer.
         </AppBanner>
         <SectionCard title="Alasan Penolakan">
             <InfoGrid :items="details" />
             <p class="text-sm whitespace-pre-line text-muted-foreground">
-                {{ decision.reason ?? '—' }}
+                {{ decision.reason ?? '-' }}
             </p>
         </SectionCard>
         <SectionCard title="Yang Dapat Anda Lakukan">

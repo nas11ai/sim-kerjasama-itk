@@ -36,7 +36,7 @@ class DocumentPrintController extends Controller
             'success',
             $job->status === ExportJob::STATUS_COMPLETED
                 ? PrintableDocument::label($document).' siap diunduh.'
-                : PrintableDocument::label($document).' sedang diproses — Anda diberi tahu saat selesai.',
+                : PrintableDocument::label($document).' sedang diproses: Anda diberi tahu saat selesai.',
         );
     }
 }

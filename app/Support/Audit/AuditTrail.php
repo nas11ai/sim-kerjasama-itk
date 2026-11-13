@@ -54,7 +54,7 @@ final class AuditTrail
         // diam-diam kosong.
         if (!$activity instanceof Activity) {
             throw new AuditDisabledException(
-                "Jejak audit dimatikan saat mencatat \"{$description}\" — cakupan audit (BR-RPT-09) tidak lagi utuh."
+                "Jejak audit dimatikan saat mencatat \"{$description}\", cakupan audit (BR-RPT-09) tidak lagi utuh."
             );
         }
 

@@ -16,7 +16,7 @@ const props = defineProps<SubmissionWizardPageProps>()
 
 const label = computed(() => props.steps.find((s) => s.number === props.step)?.label ?? '')
 const title = computed(() =>
-    props.submission ? `Buat Pengajuan — ${label.value}` : 'Buat Pengajuan'
+    props.submission ? `Buat Pengajuan: ${label.value}` : 'Buat Pengajuan'
 )
 </script>
 
@@ -51,7 +51,7 @@ const title = computed(() =>
         <template v-else>
             <PageHeader
                 :title="title"
-                subtitle="Isi pengajuan Anda tahap demi tahap — kemajuan tersimpan setiap berpindah langkah."
+                subtitle="Isi pengajuan Anda tahap demi tahap, kemajuan tersimpan setiap berpindah langkah."
             />
             <!-- ADR 0012 — langkah lain terbuka setelah langkah 1 melahirkan draft -->
             <div class="grid gap-6 lg:grid-cols-[14rem_1fr]">

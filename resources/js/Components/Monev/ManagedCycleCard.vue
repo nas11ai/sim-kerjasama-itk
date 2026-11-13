@@ -57,7 +57,7 @@ const openCycle = () =>
 </script>
 
 <template>
-    <SectionCard :title="`${c.name} — ${heading}`">
+    <SectionCard :title="`${c.name} · ${heading}`">
         <template v-if="cycle.canExtend && cycle.phaseAccess && cycle.overrideTarget" #actions>
             <Button variant="outline" size="sm" @click="extending = true">
                 <Clock class="size-4" /> Perpanjang Tenggat

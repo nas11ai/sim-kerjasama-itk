@@ -162,7 +162,7 @@ describe('Monev/IndexPage', () => {
         expect(badge.attributes('title')).toBe(
             'Batas waktu terlewat. Hubungi Operator LPPM bila membutuhkan perpanjangan.'
         )
-        expect(wrapper.text()).toContain('Ditutup — deadline lewat')
+        expect(wrapper.text()).toContain('Ditutup, deadline lewat')
     })
 
     it('anggota tim melihat siapa yang mengisi laporan', () => {
@@ -205,11 +205,11 @@ describe('Monev/IndexPage', () => {
 
     it('error gerbang tampil sebagai banner di atas daftar', () => {
         page.props.errors = {
-            form_phase_detail_id: 'Selesaikan "Monev I" lebih dulu — tahapannya berurutan.',
+            form_phase_detail_id: 'Selesaikan "Monev I" lebih dulu, tahapannya berurutan.',
         }
 
         expect(mountPage([submission()]).text()).toContain(
-            'Selesaikan "Monev I" lebih dulu — tahapannya berurutan.'
+            'Selesaikan "Monev I" lebih dulu, tahapannya berurutan.'
         )
     })
 })

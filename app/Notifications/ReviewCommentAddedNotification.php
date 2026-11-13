@@ -27,7 +27,7 @@ class ReviewCommentAddedNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Komentar baru pada ulir review — SIMPAS')
+            ->subject('Komentar baru pada ulir review | SIMPAS')
             ->line($this->message());
     }
 

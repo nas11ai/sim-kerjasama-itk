@@ -47,7 +47,7 @@ class PhaseAccessOptions implements ChangesNoState
             foreach ($rules[$candidate->id] ?? [] as $rule) {
                 $options[] = [
                     'value' => (string) $rule->id,
-                    'label' => implode(' — ', [$candidate->title, $rule->permissionLabel, $rule->organizationLabel]),
+                    'label' => implode(' · ', [$candidate->title, $rule->permissionLabel, $rule->organizationLabel]),
                     'formId' => $candidate->id,
                     'formTitle' => $candidate->title,
                 ];

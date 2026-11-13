@@ -15,7 +15,7 @@ const pick = (value: string | null) => emit('change', value ?? '')
 </script>
 
 <template>
-    <SectionCard title="Langkah 1 — Pilih Tipe Luaran">
+    <SectionCard title="Langkah 1: Pilih Tipe Luaran">
         <FormField
             id="output-type"
             label="Tipe Luaran"

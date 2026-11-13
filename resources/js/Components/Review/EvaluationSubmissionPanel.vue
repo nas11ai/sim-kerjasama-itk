@@ -14,8 +14,8 @@ const props = defineProps<{ submission: EvaluationSubmission; answers: Submissio
 const summary = computed(() => [
     { label: 'Judul', value: props.submission.title },
     { label: 'Ketua', value: props.submission.leadName },
-    { label: 'Skema', value: props.submission.scheme ?? '—' },
-    { label: 'Periode', value: props.submission.period ?? '—' },
+    { label: 'Skema', value: props.submission.scheme ?? '-' },
+    { label: 'Periode', value: props.submission.period ?? '-' },
     { label: 'Anggota', value: `${props.submission.memberCount} orang` },
 ])
 </script>

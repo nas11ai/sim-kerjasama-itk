@@ -160,12 +160,12 @@ export function stepHeading(
     const stored = saved.find((s) => s.formAccessControlId === detail.formAccessControlId)
     if (stored)
         return {
-            title: [typeName ?? stored.phaseTypeName, stored.formTitle].filter(Boolean).join(' — '),
+            title: [typeName ?? stored.phaseTypeName, stored.formTitle].filter(Boolean).join(' · '),
             access: stored.accessLabel,
         }
     const access = accessOptions.find((o) => o.value === String(detail.formAccessControlId))
     return {
-        title: [typeName, access?.formTitle].filter(Boolean).join(' — '),
+        title: [typeName, access?.formTitle].filter(Boolean).join(' · '),
         access: access?.label ?? '',
     }
 }

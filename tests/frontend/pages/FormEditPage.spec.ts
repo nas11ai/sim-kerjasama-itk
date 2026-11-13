@@ -148,7 +148,7 @@ describe('FormEngine/FormEditPage', () => {
     it('mode sunting: judul, badge status, tab Phases menaut ke pustaka bertapis (R2-W4)', () => {
         const wrapper = mountPage(editing())
 
-        expect(wrapper.find('h1').text()).toBe('Edit Form — Form Proposal Penelitian')
+        expect(wrapper.find('h1').text()).toBe('Edit Form: Form Proposal Penelitian')
         expect(heading(wrapper)).toContain('Nonaktif')
         expect(tab(wrapper, 'General & Fields')?.attributes('href')).toBe('/admin.forms.edit/7')
         expect(tab(wrapper, 'Phases')?.attributes('href')).toBe('/admin.phases.index/7')

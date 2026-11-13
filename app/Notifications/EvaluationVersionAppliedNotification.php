@@ -33,7 +33,7 @@ class EvaluationVersionAppliedNotification extends Notification implements Shoul
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Penilaian perlu diisi ulang — SIMPAS')
+            ->subject('Penilaian perlu diisi ulang | SIMPAS')
             ->line($this->message());
     }
 

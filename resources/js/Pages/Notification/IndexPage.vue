@@ -105,7 +105,7 @@ function remove() {
             </SectionCard>
             <SectionCard title="Bagaimana Notifikasi Bekerja">
                 <AppBanner tone="info">
-                    Notifikasi ditandai sudah dibaca saat Anda membukanya — bukan saat halaman ini
+                    Notifikasi ditandai sudah dibaca saat Anda membukanya, bukan saat halaman ini
                     dibuka. Penghitung "belum dibaca" karenanya tetap akurat.
                 </AppBanner>
                 <AppBanner tone="info">

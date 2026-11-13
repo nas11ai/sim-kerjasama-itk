@@ -54,7 +54,7 @@ it('subtitle = fakultas — program studi bila ada', function () {
     $user = ovUser('submissions.view-own');
     UserProfile::factory()->create(['user_id' => $user->id, 'organization_id' => $prodi->id]);
 
-    expect(DashboardOverview::run($user->refresh())->subtitle)->toBe('Fakultas Teknologi Industri — Teknik Mesin')
+    expect(DashboardOverview::run($user->refresh())->subtitle)->toBe('Fakultas Teknologi Industri · Teknik Mesin')
         ->and(DashboardOverview::run(ovUser())->subtitle)->toBeNull();
 });
 

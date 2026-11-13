@@ -55,7 +55,7 @@ final class AccountStateGuard
         }
 
         throw ValidationException::withMessages([
-            'profile' => 'Lengkapi profil Anda — nomor telepon, bidang keahlian, dan foto — '
+            'profile' => 'Lengkapi profil Anda (nomor telepon, bidang keahlian, dan foto) '
                 .'sebelum membuat pengajuan.',
         ]);
     }

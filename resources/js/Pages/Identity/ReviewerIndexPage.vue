@@ -65,7 +65,7 @@ const revise = (row: ReviewerRowData) => {
         <div class="mt-4">
             <!-- BR-IAM-11 — tidak ada registrasi mandiri reviewer -->
             <AppBanner tone="warning">
-                Menambah reviewer memilih user yang sudah terdaftar — tidak ada jalur registrasi
+                Menambah reviewer memilih user yang sudah terdaftar, tidak ada jalur registrasi
                 mandiri untuk reviewer. Reviewer eksternal harus diundang lebih dulu lewat Undangan
                 Registrasi.
             </AppBanner>

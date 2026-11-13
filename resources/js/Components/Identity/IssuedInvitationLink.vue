@@ -18,7 +18,7 @@ const copy = async () => {
     <AppBanner tone="success" title="Undangan diterbitkan">
         <div class="flex flex-col gap-2">
             <span
-                >Salin tautan ini sekarang — tautan tidak ditampilkan lagi setelah halaman ini
+                >Salin tautan ini sekarang, tautan tidak ditampilkan lagi setelah halaman ini
                 ditinggalkan.</span
             >
             <div class="flex flex-wrap items-center gap-2">

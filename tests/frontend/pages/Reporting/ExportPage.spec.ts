@@ -67,7 +67,7 @@ describe('ExportPage', () => {
 
         expect(text).toContain('Export Data')
         expect(text).toContain(
-            'Ekspor diproses di latar belakang — Anda diberi tahu saat file siap diunduh.'
+            'Ekspor diproses di latar belakang: Anda diberi tahu saat file siap diunduh.'
         )
         expect(text).toContain('Riwayat Export')
         expect(text).toContain(

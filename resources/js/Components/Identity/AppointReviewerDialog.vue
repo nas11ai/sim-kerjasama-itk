@@ -92,7 +92,7 @@ const send = () =>
                     >
                         <span class="font-medium">{{ candidate.name }}</span>
                         <span class="block text-xs text-muted-foreground"
-                            >{{ candidate.email }} · {{ candidate.organization ?? '—' }}</span
+                            >{{ candidate.email }} · {{ candidate.organization ?? '-' }}</span
                         >
                     </button>
                 </li>

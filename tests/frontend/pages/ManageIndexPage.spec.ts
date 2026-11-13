@@ -36,7 +36,7 @@ const row: OperatorSubmissionRow = {
     id: 42,
     title: 'Analisis Potensi Biochar di Kalimantan Timur',
     leadName: 'Dr. Budi Santoso',
-    organization: 'FTI — Teknik Mesin',
+    organization: 'FTI: Teknik Mesin',
     scheme: 'Penelitian DIPA 2026',
     status: { key: 'under_review', label: 'Direview', variant: 'default' },
     submittedAt: '2026-01-12T08:00:00+08:00',
@@ -88,7 +88,7 @@ describe('ManageIndexPage', () => {
 
         expect(wrapper.find('a[href="/admin.submissions.show/42"]').exists()).toBe(true)
         expect(wrapper.text()).toContain('Dr. Budi Santoso')
-        expect(wrapper.text()).toContain('FTI — Teknik Mesin')
+        expect(wrapper.text()).toContain('FTI: Teknik Mesin')
     })
 
     it('filter skema meminta ulang ke server', async () => {
