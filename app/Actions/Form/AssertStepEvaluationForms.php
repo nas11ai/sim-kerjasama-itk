@@ -10,7 +10,7 @@ use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * BR-FE-30 — pemasangan hanya Form Evaluasi terbit, sekali per langkah; langkah berform evaluasi
+ * BR-FE-30 — pemasangan hanya Formulir Evaluasi terbit, sekali per langkah; langkah berform evaluasi
  * aktif tetap direview. Dijalankan saat simpan draf dan lagi saat terbit (BR-FE-33). Hanya
  * membaca dan menolak, **tanpa audit (BR-RPT-09).**
  *
@@ -59,7 +59,7 @@ class AssertStepEvaluationForms implements ChangesNoState
             ]);
         }
 
-        // B12 — draf tidak ber-FK, jadi Form Evaluasi bisa dihapus dari pustaka sesudah draf disimpan.
+        // B12 — draf tidak ber-FK, jadi Formulir Evaluasi bisa dihapus dari pustaka sesudah draf disimpan.
         if (array_diff($ids, $existing) !== []) {
             throw ValidationException::withMessages([
                 "phase_details.{$index}.evaluation_forms" => 'Form evaluasi yang terpasang di langkah ini sudah dihapus dari pustaka. Lepaskan lalu simpan draf.',

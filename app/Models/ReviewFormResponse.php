@@ -63,7 +63,7 @@ class ReviewFormResponse extends Model
     }
 
     /**
-     * BR-REV-19 — jawaban berlaku atas Form Evaluasi pin itu dari kursi aktif angkatan × langkahnya:
+     * BR-REV-19 — jawaban berlaku atas Formulir Evaluasi pin itu dari kursi aktif angkatan × langkahnya:
      * yang dibuka ulang saat versi baru diterapkan. Lembar reviewer yang digantikan sudah menjadi
      * riwayat (BR-REV-10) dan tidak diisi ulang siapa pun.
      *

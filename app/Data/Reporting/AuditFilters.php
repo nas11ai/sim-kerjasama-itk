@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Spatie\LaravelData\Data;
 
 /**
- * W155 — filter Audit Log seperti frame OPERATOR-07-03: cari, Waktu (bawaan 7 hari), Tipe Aksi,
+ * W155 — filter Log Audit seperti frame OPERATOR-07-03: cari, Waktu (bawaan 7 hari), Tipe Aksi,
  * Pelaku (peran DDD atau Sistem). Nilai di luar pilihan kembali ke bawaan.
  */
 final class AuditFilters extends Data

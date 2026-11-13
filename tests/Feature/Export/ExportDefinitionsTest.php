@@ -68,12 +68,12 @@ it('kolom tiap jenis ekspor mengikuti W154', function (string $type, array $head
     'Detail Anggaran' => [ExportType::BUDGET, ['ID Pengajuan', 'Judul', 'Komponen', 'Item', 'Volume', 'Satuan', 'Harga Satuan', 'Total']],
     'Daftar Luaran' => [ExportType::RESEARCH_OUTPUTS, ['ID Pengajuan', 'Judul Pengajuan', 'Tipe Luaran', 'Judul Luaran', 'Dibuat']],
     'Rekap Monev' => [ExportType::MONEV, ['ID Pengajuan', 'Judul', 'Siklus', 'Status Siklus']],
-    'Audit Log' => [ExportType::AUDIT_LOG, ['Waktu', 'Subjek', 'Aksi', 'Pelaku', 'IP Address']],
+    'Log Audit' => [ExportType::AUDIT_LOG, ['Waktu', 'Subjek', 'Aksi', 'Pelaku', 'IP Address']],
 ]);
 
 it('label kelima jenis ekspor mengikuti tabel DDD', function () {
     expect(array_map(ExportType::label(...), ExportType::all()))
-        ->toBe(['Rekap Submission', 'Detail Anggaran', 'Daftar Luaran', 'Rekap Monev', 'Audit Log']);
+        ->toBe(['Rekap Submission', 'Detail Anggaran', 'Daftar Luaran', 'Rekap Monev', 'Log Audit']);
 });
 
 it('baris Rekap Submission', function () {
@@ -169,7 +169,7 @@ it('menghitung siklus ekspor rekap dari langkah, bukan tanggal', function () {
         ->and(count(MonevCycles::details($parent)))->toBe(2);
 });
 
-it('baris Audit Log', function () {
+it('baris Log Audit', function () {
     $submission = biocharSubmission();
     $this->travelTo('2026-03-01 09:15:00');
     AuditTrail::record('Ekspor diminta', $submission, $submission->submittedBy);
@@ -177,12 +177,12 @@ it('baris Audit Log', function () {
 
     $rows = ExportType::definition(ExportType::AUDIT_LOG)->rows(definitionsOperator(), new ExportFilters(yearFrom: 2026, yearTo: 2026));
 
-    // Terbaru dulu; label subjek dan pelaku sama dengan layar Audit Log (W155).
+    // Terbaru dulu; label subjek dan pelaku sama dengan layar Log Audit (W155).
     expect($rows[0])->toBe(['2026-03-01 09:15:00', 'Submission · Biochar Kaltim', 'Ekspor diminta', 'Budi', null])
         ->and(array_column($rows, 2))->toBe(['Ekspor diminta', 'Pengajuan disubmit']);
 });
 
-it('[E2E-08] Audit Log menulis nama pelaku yang sudah soft-delete', function () {
+it('[E2E-08] Log Audit menulis nama pelaku yang sudah soft-delete', function () {
     $submission = biocharSubmission();
     AuditTrail::record('Ekspor diminta', $submission, $submission->submittedBy);
     // BR-IAM-19 melarang menghapus akun; baris ber-deleted_at hanya warisan data lama.
@@ -193,7 +193,7 @@ it('[E2E-08] Audit Log menulis nama pelaku yang sudah soft-delete', function () 
     expect($rows[0][3])->toBe('Budi');
 });
 
-it('Audit Log memuat IP hanya bagi pembaca seluruh sistem', function () {
+it('Log Audit memuat IP hanya bagi pembaca seluruh sistem', function () {
     $submission = biocharSubmission();
     Context::addHidden(AuditTrail::IP_CONTEXT, '10.10.2.14');
     AuditTrail::record('Ekspor diminta', $submission, $submission->submittedBy);
@@ -205,7 +205,7 @@ it('Audit Log memuat IP hanya bagi pembaca seluruh sistem', function () {
         ->and($definition->rows($submission->submittedBy, new ExportFilters)[0][4])->toBeNull();
 });
 
-it('Audit Log tanpa pelaku ditulis Sistem', function () {
+it('Log Audit tanpa pelaku ditulis Sistem', function () {
     $submission = reportedSubmission();
     AuditTrail::record('Berkas ekspor dihapus', $submission);
 
@@ -227,7 +227,7 @@ it('filter rentang tahun, skema, dan status pada jenis berbasis pengajuan', func
     expect(array_column($rows, 0))->toBe([$cocok->id]);
 });
 
-it('filter rentang tahun Audit Log memakai waktu entri', function () {
+it('filter rentang tahun Log Audit memakai waktu entri', function () {
     $submission = reportedSubmission([], '2024-06-01 08:00:00');
     $this->travelTo('2026-01-05 08:00:00');
     AuditTrail::record('Ekspor diminta', $submission);
@@ -239,7 +239,7 @@ it('filter rentang tahun Audit Log memakai waktu entri', function () {
     expect(array_column($rows, 2))->toBe(['Ekspor diminta']);
 });
 
-it('jenis Audit Log hanya menerima filter tahun', function () {
+it('jenis Log Audit hanya menerima filter tahun', function () {
     expect(ExportType::definition(ExportType::AUDIT_LOG)->filterKeys())->toBe(['year'])
         ->and(ExportType::definition(ExportType::SUBMISSIONS)->filterKeys())->toBe(['year', 'scheme', 'status']);
 });

@@ -2,7 +2,7 @@
 
 // tests/Feature/Export/ExportPageTest.php
 //
-// OPERATOR-07-02 — layar Export Data. Satu layar untuk Operator dan peneliti (BR-RPT-10):
+// OPERATOR-07-02 — layar Ekspor Data. Satu layar untuk Operator dan peneliti (BR-RPT-10):
 // yang membedakan isi berkasnya adalah SubmissionVisibility, bukan pintunya.
 
 use App\Actions\Export\RequestExport;
@@ -30,7 +30,7 @@ function exportPageOperator(): User
     return $operator;
 }
 
-it('Operator membuka layar Export Data dengan kelima jenis', function () {
+it('Operator membuka layar Ekspor Data dengan kelima jenis', function () {
     $this->actingAs(exportPageOperator())
         ->get(route('reporting.exports.index'))
         ->assertOk()
@@ -38,7 +38,7 @@ it('Operator membuka layar Export Data dengan kelima jenis', function () {
             ->component('Reporting/ExportPage')
             ->has('options.types', 5)
             ->where('options.types.0', ['value' => ExportType::SUBMISSIONS, 'label' => 'Rekap Submission', 'filterKeys' => ['year', 'scheme', 'status']])
-            ->where('options.types.4', ['value' => ExportType::AUDIT_LOG, 'label' => 'Audit Log', 'filterKeys' => ['year']])
+            ->where('options.types.4', ['value' => ExportType::AUDIT_LOG, 'label' => 'Log Audit', 'filterKeys' => ['year']])
             ->where('options.formats', [['value' => 'xlsx', 'label' => 'Excel'], ['value' => 'csv', 'label' => 'CSV']])
             ->where('threshold', ExportThreshold::SYNCHRONOUS_ROWS)
             ->where('retentionHours', ExportRetention::HOURS)

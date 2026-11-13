@@ -200,7 +200,7 @@ describe('FormEngine/EvaluationFormEditPage', () => {
     it('mode buat hanya meminta judul dan deskripsi', () => {
         mountPage(null)
 
-        expect(wrapper.text()).toContain('Buat Form Evaluasi')
+        expect(wrapper.text()).toContain('Buat Formulir Evaluasi')
         expect(document.querySelector('[role="tab"]')).toBeNull()
         button('Simpan').click()
         expect(submitted).toHaveBeenCalledWith('post', '/admin.evaluation-forms.store', {

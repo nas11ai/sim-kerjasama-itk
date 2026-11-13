@@ -33,7 +33,7 @@ import type { ExportTypeOption } from '@/types/reporting'
 
 const types: ExportTypeOption[] = [
     { value: 'submissions', label: 'Rekap Submission', filterKeys: ['year', 'scheme', 'status'] },
-    { value: 'audit-log', label: 'Audit Log', filterKeys: ['year'] },
+    { value: 'audit-log', label: 'Log Audit', filterKeys: ['year'] },
 ]
 const route = (name: string) =>
     name === 'reporting.exports.store' ? '/reporting/export' : `/${name}`

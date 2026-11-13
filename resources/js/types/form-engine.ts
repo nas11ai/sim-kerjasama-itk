@@ -137,7 +137,7 @@ export interface FormIndexPageProps {
 }
 
 // Sumber: App\Queries\Form\FieldTypeOptions — `value` id tipe sebagai string; `limitType` batas W103;
-// `name` = nama FieldType, dipakai Pratinjau Form Evaluasi untuk merender field seperti reviewer.
+// `name` = nama FieldType, dipakai Pratinjau Formulir Evaluasi untuk merender field seperti reviewer.
 export interface FieldTypeOption {
     value: string
     name: WizardFieldType
@@ -359,7 +359,7 @@ export interface StepEvaluationFormData {
     isActive: boolean
 }
 
-// Sumber: App\Queries\Review\PublishedEvaluationFormOptions — `value` id Form Evaluasi terbit.
+// Sumber: App\Queries\Review\PublishedEvaluationFormOptions — `value` id Formulir Evaluasi terbit.
 export interface EvaluationOption extends FilterOption {
     versionLabel: string
 }
@@ -369,7 +369,7 @@ export interface PhaseEditPageProps {
     phase: PhaseEditData
     accessOptions: PhaseAccessOption[]
     phaseTypeOptions: FilterOption[]
-    // BR-FE-30 — Form Evaluasi terbit, urut judul; tiap langkah menyaring yang sudah terpasang.
+    // BR-FE-30 — Formulir Evaluasi terbit, urut judul; tiap langkah menyaring yang sudah terpasang.
     evaluationOptions: EvaluationOption[]
     // B5 — id Form tapis pustaka asal; Kembali/Batalkan/simpan kembali ke pustaka bertapis itu.
     returnForm: number | null

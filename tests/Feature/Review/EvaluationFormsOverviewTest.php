@@ -13,7 +13,7 @@ use App\Queries\Review\EvaluationFormsOverview;
 
 function overviewEvaluationForm(FormPhaseDetail $detail, int $order): ReviewEvaluationForm
 {
-    return evaluationFormOn($detail, [], title: "Form Evaluasi {$order}");
+    return evaluationFormOn($detail, [], title: "Formulir Evaluasi {$order}");
 }
 
 function overviewAssignment(FormSubmission $submission, ReviewEvaluationForm $form, string $responseStatus): void

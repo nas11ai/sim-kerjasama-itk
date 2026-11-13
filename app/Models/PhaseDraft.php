@@ -5,7 +5,7 @@ namespace App\Models;
 use App\Data\Request\PhaseDraftInput;
 
 /**
- * BR-FE-33 — draf struktur tahap: langkah beserta Form Evaluasi terpasangnya.
+ * BR-FE-33 — draf struktur tahap: langkah beserta Formulir Evaluasi terpasangnya.
  *
  * @phpstan-import-type PhaseDraftPayload from PhaseDraftInput
  *

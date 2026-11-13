@@ -5,7 +5,7 @@ namespace App\Models;
 use App\Data\Request\EvaluationDraftInput;
 
 /**
- * BR-FE-31 — draf isi Form Evaluasi.
+ * BR-FE-31 — draf isi Formulir Evaluasi.
  *
  * @phpstan-import-type DraftPayload from EvaluationDraftInput
  *

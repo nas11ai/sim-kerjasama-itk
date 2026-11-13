@@ -11,7 +11,7 @@ use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * Menghapus Form Evaluasi dari pustaka beserta versi (cascade) dan drafnya, satu transaksi.
+ * Menghapus Formulir Evaluasi dari pustaka beserta versi (cascade) dan drafnya, satu transaksi.
  * BR-FE-22 — penjaga model menolak form yang pernah ditugaskan atau masih terpasang di langkah.
  *
  * @method static void run(ReviewEvaluationForm $form, User $actor)

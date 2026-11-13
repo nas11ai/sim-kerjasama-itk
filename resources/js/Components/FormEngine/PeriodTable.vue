@@ -66,10 +66,10 @@ const columns = [
         </template>
         <template #cell-action="{ row }">
             <div class="flex justify-end gap-2">
-                <!-- BR-REV-19, G2-W5 — versi Form Evaluasi tiap angkatan periode ini -->
+                <!-- BR-REV-19, G2-W5 — versi Formulir Evaluasi tiap angkatan periode ini -->
                 <Button as-child size="sm" variant="ghost">
                     <Link :href="route('admin.submission-periods.evaluation-versions', row.id)"
-                        ><ClipboardList class="size-4" />Versi Form Evaluasi</Link
+                        ><ClipboardList class="size-4" />Versi Formulir Evaluasi</Link
                     >
                 </Button>
                 <!-- BR-FE-36 — daftar cek kesiapan tiap angkatan periode ini -->

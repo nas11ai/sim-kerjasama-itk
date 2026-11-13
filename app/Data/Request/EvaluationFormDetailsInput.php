@@ -2,7 +2,7 @@
 
 namespace App\Data\Request;
 
-/** Nama pustaka Form Evaluasi: judul dan deskripsi, tak berversi (BR-REV-18). */
+/** Nama pustaka Formulir Evaluasi: judul dan deskripsi, tak berversi (BR-REV-18). */
 final class EvaluationFormDetailsInput
 {
     public function __construct(

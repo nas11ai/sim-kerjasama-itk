@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
- * Form Evaluasi pustaka (BR-REV-18): judul dan deskripsi tak berversi; isinya ada di
+ * Formulir Evaluasi pustaka (BR-REV-18): judul dan deskripsi tak berversi; isinya ada di
  * ReviewEvaluationFormVersion, dipasang ke langkah lewat StepEvaluationForm.
  *
  * @property int $id

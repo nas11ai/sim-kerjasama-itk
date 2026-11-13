@@ -11,7 +11,7 @@ import { Label } from '@/Components/ui/label'
 import { Switch } from '@/Components/ui/switch'
 import type { EvaluationOption, StepEvaluationFormData } from '@/types/form-engine'
 
-// BR-FE-30 + BR-FE-33 — Form Evaluasi satu langkah ber-needs_review, bagian isi draf: pasang, ubah,
+// BR-FE-30 + BR-FE-33 — Formulir Evaluasi satu langkah ber-needs_review, bagian isi draf: pasang, ubah,
 // dan lepas hanya mengubah daftar ini; semuanya tersimpan lewat Simpan draf, berlaku sejak terbit.
 const props = defineProps<{
     stepKey: string
@@ -56,7 +56,7 @@ const remove = (index: number) => (attached.value = attached.value.filter((_, i)
         <div class="flex flex-wrap items-center justify-between gap-2">
             <h3 class="text-sm font-semibold">Form evaluasi untuk {{ label }}</h3>
             <Link class="text-sm underline" :href="route('admin.evaluation-forms.index')"
-                >Kelola di Form Evaluasi</Link
+                >Kelola di Formulir Evaluasi</Link
             >
         </div>
         <ul v-if="attached.length > 0" class="space-y-2">
@@ -73,13 +73,17 @@ const remove = (index: number) => (attached.value = attached.value.filter((_, i)
             v-if="available.length > 0"
             class="flex flex-wrap items-end gap-3 rounded-lg border border-dashed p-3"
         >
-            <FormField :id="`${prefix}-form`" label="Pasang Form Evaluasi" class="min-w-56 flex-1">
+            <FormField
+                :id="`${prefix}-form`"
+                label="Pasang Formulir Evaluasi"
+                class="min-w-56 flex-1"
+            >
                 <template #default="{ describedBy }">
                     <OptionSelect
                         :id="`${prefix}-form`"
                         v-model="chosen"
                         :options="available"
-                        placeholder="Pilih Form Evaluasi terbit"
+                        placeholder="Pilih Formulir Evaluasi terbit"
                         :described-by="describedBy"
                     />
                 </template>
@@ -93,7 +97,8 @@ const remove = (index: number) => (attached.value = attached.value.filter((_, i)
             >
         </div>
         <p v-else-if="evaluationOptions.length === 0" class="text-sm text-muted-foreground">
-            Belum ada Form Evaluasi yang terbit. Susun dan terbitkan dulu di pustaka Form Evaluasi.
+            Belum ada Formulir Evaluasi yang terbit. Susun dan terbitkan dulu di pustaka Formulir
+            Evaluasi.
         </p>
     </section>
 </template>

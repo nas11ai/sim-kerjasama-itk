@@ -9,7 +9,7 @@ use Illuminate\Support\Carbon;
 use LogicException;
 
 /**
- * Versi Form Evaluasi yang terbit (BR-REV-18): tidak pernah berubah, jadi jawaban lama tetap
+ * Versi Formulir Evaluasi yang terbit (BR-REV-18): tidak pernah berubah, jadi jawaban lama tetap
  * ber-FK ke field yang persis diisinya. Hapus hanya lewat cascade saat formnya dihapus.
  *
  * @property int $id

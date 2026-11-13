@@ -5,7 +5,7 @@ namespace App\Data\View\FormEngine;
 use Spatie\LaravelData\Data;
 
 /**
- * BR-REV-18, BR-REV-19 — satu Form Evaluasi terpasang di satu langkah direview, dilihat dari satu
+ * BR-REV-18, BR-REV-19 — satu Formulir Evaluasi terpasang di satu langkah direview, dilihat dari satu
  * periode: versi pakuan angkatannya dan apakah versi terbaru boleh diterapkan. `pinId` null = belum
  * ada yang mulai menilai, jadi angkatan itu otomatis memakai `latestLabel`.
  */

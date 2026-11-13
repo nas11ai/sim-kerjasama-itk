@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * Isi editor pustaka Form Evaluasi: field draf bila ada, kalau tidak field versi terbit terakhir
+ * Isi editor pustaka Formulir Evaluasi: field draf bila ada, kalau tidak field versi terbit terakhir
  * (BR-FE-31); riwayat versi terbaru dulu; langkah yang memasangnya; dampak Terbitkan.
  *
  * @method static EvaluationFormEditPageData run(ReviewEvaluationForm $form)

@@ -41,10 +41,10 @@ const refreshLinks = () => router.reload({ only: ['jobs'] })
 </script>
 
 <template>
-    <Head title="Export Data" />
+    <Head title="Ekspor Data" />
     <AppLayout>
         <PageHeader
-            title="Export Data"
+            title="Ekspor Data"
             subtitle="Ekspor diproses di latar belakang: Anda diberi tahu saat file siap diunduh."
         />
         <div class="flex flex-col gap-6">

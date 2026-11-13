@@ -109,7 +109,7 @@ const history: StatisticsHistory = {
 const followUp: FollowUpList[] = [
     {
         key: 'awaitingReviewer',
-        title: 'Menunggu Penugasan Reviewer',
+        title: 'Menunggu Penugasan Penilai',
         hint: 'Tugaskan reviewer dari detail pengajuan.',
         count: 1,
         items: [{ id: 4, title: 'Sensor', leader: 'Budi', scheme: null, ageDays: 3, href: '/a/4' }],
@@ -223,7 +223,7 @@ describe('StatsPage', () => {
     it('tab Tindak Lanjut menampilkan kartu per daftar', () => {
         const wrapper = mountPage('follow-up')
 
-        expect(wrapper.text()).toContain('Menunggu Penugasan Reviewer')
+        expect(wrapper.text()).toContain('Menunggu Penugasan Penilai')
         expect(wrapper.find('a[href="/a/4"]').text()).toContain('3 hari sejak submit')
         expect(wrapper.text()).toContain('Tidak ada yang menunggu.')
     })

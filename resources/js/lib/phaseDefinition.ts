@@ -117,7 +117,7 @@ export function blankDetail(accessId: number, phaseTypeId: number): EditableDeta
     }
 }
 
-// BR-FE-33 — kiriman draf: langkah urut seperti di layar beserta Form Evaluasi terpasangnya.
+// BR-FE-33 — kiriman draf: langkah urut seperti di layar beserta Formulir Evaluasi terpasangnya.
 // Urutan langkah diturunkan backend dari Form (W96, NormalisePhaseDetailOrder).
 export function toStepsPayload(details: EditableDetail[]) {
     return {

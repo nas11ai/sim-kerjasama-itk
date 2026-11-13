@@ -53,7 +53,7 @@ beforeEach(function () {
 });
 
 /**
- * Baris `phase_details` kiriman editor: [aturan akses, siklus, needs_review, Form Evaluasi].
+ * Baris `phase_details` kiriman editor: [aturan akses, siklus, needs_review, Formulir Evaluasi].
  *
  * @param  list<array{0: int, 1: int|null, 2?: bool, 3?: list<array{review_evaluation_form_id: int, is_required: bool, is_active: bool}>}>  $steps
  * @return array{phase_details: list<array<string, mixed>>}

@@ -5,7 +5,7 @@ namespace App\Data\View\Reporting;
 use Spatie\LaravelData\Data;
 
 /**
- * Satu baris Audit Log (OPERATOR-07-03, W155). `ipAddress` null bagi pembaca tanpa cakupan
+ * Satu baris Log Audit (OPERATOR-07-03, W155). `ipAddress` null bagi pembaca tanpa cakupan
  * penuh (UX pattern 07: kolom IP hanya Operator/Admin); nilai bersarang `old`/`new` sudah teks.
  */
 final class AuditEntryRowData extends Data

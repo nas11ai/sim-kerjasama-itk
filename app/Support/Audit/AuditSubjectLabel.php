@@ -20,7 +20,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\Relation;
 
 /**
- * W155 — kolom Subjek Audit Log: "{konteks} — {nama}" seperti frame ("Submission — Biochar
+ * W155 — kolom Subjek Log Audit: "{konteks} — {nama}" seperti frame ("Submission — Biochar
  * Kaltim", "Monev I — Smart Farming"). Tanpa nama/terhapus → "{konteks} #{id}".
  */
 final class AuditSubjectLabel
@@ -33,7 +33,7 @@ final class AuditSubjectLabel
         SubmissionPeriod::class => 'Periode',
         Scheme::class => 'Skema',
         Form::class => 'Form',
-        SubmissionReviewer::class => 'Penugasan Reviewer',
+        SubmissionReviewer::class => 'Penugasan Penilai',
         ResearchOutput::class => 'Luaran',
         ExportJob::class => 'Ekspor',
         Announcement::class => 'Pengumuman',

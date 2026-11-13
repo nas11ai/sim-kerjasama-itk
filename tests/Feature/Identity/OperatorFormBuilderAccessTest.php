@@ -1,6 +1,6 @@
 <?php
 
-// Keputusan pemilik 2026-11-13 — Operator mengelola Form Builder, Form Evaluasi, Fase, dan Skema
+// Keputusan pemilik 2026-11-13 — Operator mengelola Pembuat Formulir, Formulir Evaluasi, Fase, dan Skema
 // lewat gerbang yang sama dengan admin (`schemes.manage`, W88).
 
 use App\Models\Form;
@@ -16,7 +16,7 @@ it('memberi peran operator schemes.manage', function () {
     expect(Role::findByName('operator', PermissionSeeder::GUARD)->hasPermissionTo('schemes.manage'))->toBeTrue();
 });
 
-it('membuka Form Builder, Form Evaluasi, Fase, Skema, dan Konfigurasi Umum untuk operator', function () {
+it('membuka Pembuat Formulir, Formulir Evaluasi, Fase, Skema, dan Konfigurasi Umum untuk operator', function () {
     $form = Form::factory()->create();
     $operator = User::factory()->create();
     $operator->assignRole('operator');

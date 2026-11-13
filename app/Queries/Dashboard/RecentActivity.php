@@ -11,7 +11,7 @@ use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
  * "Aktivitas Terbaru" (W44) — lima entri teratas jejak audit dalam cakupan pembacanya
- * (BR-RPT-05). Satu cakupan dengan layar Audit Log, tanpa aturan baru.
+ * (BR-RPT-05). Satu cakupan dengan layar Log Audit, tanpa aturan baru.
  *
  * @method static list<ActivityData> run(User $user)
  */

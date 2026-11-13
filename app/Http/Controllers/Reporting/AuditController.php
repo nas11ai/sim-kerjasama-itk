@@ -10,7 +10,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * OPERATOR-07-03 — Audit Log (W155). BR-RPT-04, BR-RPT-05 — satu controller untuk Operator dan
+ * OPERATOR-07-03 — Log Audit (W155). BR-RPT-04, BR-RPT-05 — satu controller untuk Operator dan
  * peneliti; yang membedakan keduanya cakupan `AuditScope`, bukan tampilan.
  */
 class AuditController extends Controller

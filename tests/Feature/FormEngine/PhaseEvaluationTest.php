@@ -1,6 +1,6 @@
 <?php
 
-// ADMIN-08-09 — Form Evaluasi reviewer di editor tahap: dipasang per langkah sebagai bagian draf
+// ADMIN-08-09 — Formulir Evaluasi reviewer di editor tahap: dipasang per langkah sebagai bagian draf
 // struktur (BR-FE-30, BR-FE-33), berlaku sejak versi yang diterbitkan.
 
 use App\Models\Form;
@@ -70,7 +70,7 @@ it('kontrak pemasangan form evaluasi di langkah', function () {
             ->component('FormEngine/PhaseEditPage')
             ->missing('fieldTypeOptions')
             ->missing('evaluation')
-            // BR-FE-30 — hanya Form Evaluasi terbit yang bisa dipasang, urut judul.
+            // BR-FE-30 — hanya Formulir Evaluasi terbit yang bisa dipasang, urut judul.
             ->where('evaluationOptions', [
                 ['value' => (string) $other->id, 'label' => 'Lembar Anggaran', 'versionLabel' => 'Versi 1'],
                 ['value' => (string) $evaluation->id, 'label' => 'Lembar Substansi', 'versionLabel' => 'Versi 2'],

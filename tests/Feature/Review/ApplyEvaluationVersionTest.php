@@ -1,6 +1,6 @@
 <?php
 
-// BR-REV-19 — Operator menerapkan versi terbaru Form Evaluasi ke satu angkatan × langkah. Jawaban
+// BR-REV-19 — Operator menerapkan versi terbaru Formulir Evaluasi ke satu angkatan × langkah. Jawaban
 // yang ada menjadi riwayat, reviewer-nya mengisi ulang dan diberi tahu (evaluation_version.feature).
 
 use App\Actions\Review\ApplyLatestEvaluationVersion;

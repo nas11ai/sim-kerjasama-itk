@@ -34,7 +34,7 @@ const accessProps = computed(() => (props.tab === 'access' ? props : null))
             :title="title"
             :subtitle="subtitle"
             :back-href="route('admin.forms.index')"
-            back-label="Form Builder"
+            back-label="Pembuat Formulir"
         >
             <template v-if="form" #badge>
                 <Badge :variant="form.isActive ? 'success' : 'outline'">{{

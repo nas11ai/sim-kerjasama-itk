@@ -25,7 +25,7 @@ const rows = computed(() => props.rows.map((row, index) => ({ ...row, id: index 
 
 const columns = [
     { key: 'step', label: 'Tahap & Langkah' },
-    { key: 'form', label: 'Form Evaluasi' },
+    { key: 'form', label: 'Formulir Evaluasi' },
     { key: 'version', label: 'Versi Angkatan' },
     { key: 'action', label: '' },
 ]
@@ -67,10 +67,10 @@ const apply = () => {
 </script>
 
 <template>
-    <Head title="Versi Form Evaluasi" />
+    <Head title="Versi Formulir Evaluasi" />
     <AppLayout>
         <PageHeader
-            title="Versi Form Evaluasi"
+            title="Versi Formulir Evaluasi"
             :subtitle="`Periode ${period.name}, versi lembar penilaian yang dipakai tiap angkatan.`"
             :back-href="route('admin.submission-periods.index')"
             back-label="Periode Pengajuan"
@@ -137,7 +137,7 @@ const apply = () => {
                 <template #empty>
                     <EmptyState
                         :icon="ClipboardList"
-                        title="Belum ada Form Evaluasi di tahap periode ini"
+                        title="Belum ada Formulir Evaluasi di tahap periode ini"
                     />
                 </template>
             </DataTable>

@@ -11,7 +11,7 @@ use App\Enums\DeadlineType;
  */
 final class FormPhaseDetailInput
 {
-    /** @param  list<StepEvaluationFormInput>  $evaluationForms  BR-FE-30 — Form Evaluasi terpasang, urut */
+    /** @param  list<StepEvaluationFormInput>  $evaluationForms  BR-FE-30 — Formulir Evaluasi terpasang, urut */
     public function __construct(
         public readonly ?int $id,
         public readonly int $formAccessControlId,

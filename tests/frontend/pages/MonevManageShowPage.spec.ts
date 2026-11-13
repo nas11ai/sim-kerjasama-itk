@@ -111,7 +111,7 @@ describe('MonevManageShowPage', () => {
     it('judul, subjudul, dan banner frame', () => {
         const text = mountPage([managed(), lockedSecond]).text()
 
-        expect(text).toContain('Aktivasi Siklus & Penugasan Reviewer')
+        expect(text).toContain('Aktivasi Siklus & Penugasan Penilai')
         expect(text).toContain('Smart Farming Hidroponik Kampus · Ir. Dewi Lestari')
         expect(text).toContain('Penugasan reviewer monev dilakukan manual per siklus.')
         expect(text).toContain(

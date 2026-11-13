@@ -87,7 +87,7 @@ const remove = (key: string) => (details.value = details.value.filter((d) => d.k
                         }}</Badge>
                     </FieldRowActions>
                 </div>
-                <!-- BR-FE-30 — Form Evaluasi hanya di langkah yang direview -->
+                <!-- BR-FE-30 — Formulir Evaluasi hanya di langkah yang direview -->
                 <EvaluationSection
                     v-if="detail.needsReview"
                     v-model="detail.evaluationForms"

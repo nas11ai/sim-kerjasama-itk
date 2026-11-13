@@ -65,7 +65,7 @@ describe('ExportPage', () => {
     it('judul, subjudul, kartu, dan catatan kaki frame', () => {
         const text = mountPage([]).text()
 
-        expect(text).toContain('Export Data')
+        expect(text).toContain('Ekspor Data')
         expect(text).toContain(
             'Ekspor diproses di latar belakang: Anda diberi tahu saat file siap diunduh.'
         )

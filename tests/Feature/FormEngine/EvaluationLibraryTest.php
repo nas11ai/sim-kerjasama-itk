@@ -1,6 +1,6 @@
 <?php
 
-// ADMIN-08-09 — pustaka Form Evaluasi (evaluation_library.feature): BR-FE-30 pemasangan ke langkah,
+// ADMIN-08-09 — pustaka Formulir Evaluasi (evaluation_library.feature): BR-FE-30 pemasangan ke langkah,
 // BR-FE-31 draf → Terbitkan.
 
 use App\Actions\Review\AssignEvaluationForm;
@@ -37,7 +37,7 @@ beforeEach(function () {
     $this->text = FieldType::firstOrCreate(['name' => 'text'])->id;
 });
 
-/** Form Evaluasi pustaka, terbit `$versions` kali (0 = belum pernah), belum terpasang. */
+/** Formulir Evaluasi pustaka, terbit `$versions` kali (0 = belum pernah), belum terpasang. */
 function libraryForm(string $title, int $versions = 1): ReviewEvaluationForm
 {
     $form = ReviewEvaluationForm::create(['title' => $title]);

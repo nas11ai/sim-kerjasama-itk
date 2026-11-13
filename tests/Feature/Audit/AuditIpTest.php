@@ -2,7 +2,7 @@
 
 // tests/Feature/Audit/AuditIpTest.php
 //
-// W155 — DDD Reporting: Audit Log mencatat "dari IP mana". IP diambil di middleware web dan
+// W155 — DDD Reporting: Log Audit mencatat "dari IP mana". IP diambil di middleware web dan
 // dibawa Context tersembunyi, jadi job yang di-dispatch dari request ikut mencatat IP peminta.
 
 use App\Actions\FormSubmission\StartSubmission;

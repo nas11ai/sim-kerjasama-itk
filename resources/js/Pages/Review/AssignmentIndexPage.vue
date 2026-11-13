@@ -25,10 +25,10 @@ const show = (filter: AssignmentIndexPageProps['filter']) =>
 </script>
 
 <template>
-    <Head title="Penugasan Review" />
+    <Head title="Penugasan Penilaian" />
     <AppLayout>
         <PageHeader
-            title="Penugasan Review"
+            title="Penugasan Penilaian"
             subtitle="Submission yang ditugaskan kepada Anda untuk dievaluasi."
         >
             <template #actions>

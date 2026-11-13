@@ -26,7 +26,7 @@ const actions = computed(() =>
 </script>
 
 <template>
-    <Head title="Dashboard" />
+    <Head title="Beranda" />
     <AppLayout>
         <WelcomeBanner :name="page.props.auth.user?.name ?? ''" :subtitle="subtitle" />
         <div class="flex flex-col gap-6">

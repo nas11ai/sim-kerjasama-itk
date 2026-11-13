@@ -50,7 +50,7 @@ export const navGroups: NavGroup[] = [
         label: null,
         items: [
             {
-                label: 'Dashboard',
+                label: 'Beranda',
                 icon: LayoutDashboard,
                 routeName: 'dashboard',
                 anyPermission: [],
@@ -91,17 +91,17 @@ export const navGroups: NavGroup[] = [
         ],
     },
     {
-        label: 'Review',
+        label: 'Penilaian',
         items: [
             {
-                label: 'Penugasan Review',
+                label: 'Penugasan Penilaian',
                 icon: ClipboardList,
                 routeName: 'reviewer.assignments.index',
                 activePattern: 'reviewer.assignments.*',
                 anyPermission: ['reviewers.evaluate'],
             },
             {
-                label: 'Riwayat Review',
+                label: 'Riwayat Penilaian',
                 icon: BookOpen,
                 routeName: 'reviewer.history.index',
                 anyPermission: ['reviewers.evaluate'],
@@ -167,14 +167,14 @@ export const navGroups: NavGroup[] = [
                 anyPermission: ['announcements.manage'],
             },
             {
-                label: 'Reviewer',
+                label: 'Penilai',
                 icon: Users,
                 routeName: 'admin.reviewers.index',
                 activePattern: 'admin.reviewers.*',
                 anyPermission: ['reviewers.assign'],
             },
             {
-                label: 'User & Verifikasi',
+                label: 'Pengguna & Verifikasi',
                 icon: User,
                 routeName: 'admin.users.index',
                 activePattern: 'admin.users.*',
@@ -194,13 +194,13 @@ export const navGroups: NavGroup[] = [
                 anyPermission: ['reporting.export', 'reporting.view-audit-log'],
             },
             {
-                label: 'Export Data',
+                label: 'Ekspor Data',
                 icon: Download,
                 routeName: 'reporting.exports.index',
                 anyPermission: ['reporting.export'],
             },
             {
-                label: 'Audit Log',
+                label: 'Log Audit',
                 icon: BookOpen,
                 routeName: 'reporting.audit.index',
                 anyPermission: ['reporting.view-audit-log'],
@@ -211,15 +211,15 @@ export const navGroups: NavGroup[] = [
         label: 'Konfigurasi',
         items: [
             {
-                label: 'Form Builder',
+                label: 'Pembuat Formulir',
                 icon: SquarePen,
                 routeName: 'admin.forms.index',
                 activePattern: 'admin.forms.*',
                 anyPermission: ['schemes.manage'],
             },
             {
-                // R3 — pustaka Form Evaluasi: lembar penilaian berversi yang dipasang di banyak tahap.
-                label: 'Form Evaluasi',
+                // R3 — pustaka Formulir Evaluasi: lembar penilaian berversi yang dipasang di banyak tahap.
+                label: 'Formulir Evaluasi',
                 icon: ClipboardCheck,
                 routeName: 'admin.evaluation-forms.index',
                 activePattern: 'admin.evaluation-forms.*',

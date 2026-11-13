@@ -45,13 +45,13 @@ const definitions: QuickActionDef[] = [
         permission: 'submissions.view-own',
     },
     {
-        label: 'Lihat Penugasan Review',
+        label: 'Lihat Penugasan Penilaian',
         routeName: 'reviewer.assignments.index',
         icon: ClipboardList,
         permission: 'reviewers.evaluate',
     },
     {
-        label: 'Riwayat Review',
+        label: 'Riwayat Penilaian',
         routeName: 'reviewer.history.index',
         icon: BookOpen,
         permission: 'reviewers.evaluate',
@@ -82,7 +82,7 @@ const definitions: QuickActionDef[] = [
         permission: 'schemes.manage',
     },
     {
-        label: 'Form Builder',
+        label: 'Pembuat Formulir',
         routeName: 'admin.forms.index',
         icon: SquarePen,
         permission: 'schemes.manage',

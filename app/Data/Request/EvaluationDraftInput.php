@@ -3,7 +3,7 @@
 namespace App\Data\Request;
 
 /**
- * BR-FE-31 — isi draf Form Evaluasi: field urut seperti di layar. Disimpan sebagai JSON di
+ * BR-FE-31 — isi draf Formulir Evaluasi: field urut seperti di layar. Disimpan sebagai JSON di
  * `configuration_drafts.payload` tanpa id field/opsi: Terbitkan menyalin baris baru (BR-REV-18),
  * jadi id lintas versi tidak bermakna. Payload hanya ditulis toPayload(), jadi bentuknya pasti.
  *

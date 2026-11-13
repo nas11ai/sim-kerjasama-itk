@@ -9,7 +9,7 @@ use Lorisleiva\Actions\Concerns\AsAction;
 /**
  * Pilihan tipe field di editor Form. `hasOptions` memberi tahu editor kapan opsi diminta dan
  * `limitType` batas mana yang ditawarkan (W103), supaya daftar tipe hanya hidup di FieldType. `name`
- * dipakai Pratinjau Form Evaluasi untuk merender field seperti layar reviewer (ReviewerEvaluation).
+ * dipakai Pratinjau Formulir Evaluasi untuk merender field seperti layar reviewer (ReviewerEvaluation).
  *
  * @phpstan-type FieldTypeOption array{value: string, name: string, label: string, hasOptions: bool, limitType: 'length'|'value'|null}
  *

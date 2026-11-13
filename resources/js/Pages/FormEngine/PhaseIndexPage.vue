@@ -16,7 +16,7 @@ import AppLayout from '@/Layouts/AppLayout.vue'
 import type { PhaseCardData, PhaseIndexPageProps } from '@/types/form-engine'
 
 // R2 — pustaka fase: tahap mandiri, bukan lagi tab di bawah satu Form. `filterForm` datang dari
-// tab Phases Form Builder (`?form=`): tahap yang langkah mana pun memakai Form itu.
+// tab Phases Pembuat Formulir (`?form=`): tahap yang langkah mana pun memakai Form itu.
 const props = defineProps<PhaseIndexPageProps>()
 
 const actions = usePhaseActions()

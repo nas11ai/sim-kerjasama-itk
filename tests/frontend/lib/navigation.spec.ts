@@ -53,7 +53,7 @@ const groupLabels = (groups: VisibleNavGroup[]) => groups.map((g) => g.label)
 describe('visibleNavGroups', () => {
     it('peneliti hanya melihat Dashboard, Pengumuman, Notifikasi, dan Daftar Pengajuan', () => {
         expect(labels(visibleNavGroups(navGroups, RESEARCHER, NO_FLAGS))).toEqual([
-            'Dashboard',
+            'Beranda',
             'Pengumuman',
             'Notifikasi',
             'Daftar Pengajuan',
@@ -72,18 +72,18 @@ describe('visibleNavGroups', () => {
         const permissions = [...RESEARCHER, ...REVIEWER_INTERNAL]
 
         expect(labels(visibleNavGroups(navGroups, permissions, NO_FLAGS))).toEqual([
-            'Dashboard',
+            'Beranda',
             'Pengumuman',
             'Notifikasi',
             'Daftar Pengajuan',
-            'Penugasan Review',
-            'Riwayat Review',
+            'Penugasan Penilaian',
+            'Riwayat Penilaian',
         ])
     })
 
-    it('User & Verifikasi tampil cukup dengan users.verify', () => {
+    it('Pengguna & Verifikasi tampil cukup dengan users.verify', () => {
         expect(labels(visibleNavGroups(navGroups, ['users.verify'], NO_FLAGS))).toContain(
-            'User & Verifikasi'
+            'Pengguna & Verifikasi'
         )
     })
 
@@ -99,7 +99,7 @@ describe('visibleNavGroups', () => {
         }
     })
 
-    it('Fase tampil sesudah Form Builder untuk schemes.manage dan aktif di layar tahap (R2)', () => {
+    it('Fase tampil sesudah Pembuat Formulir untuk schemes.manage dan aktif di layar tahap (R2)', () => {
         const items = visibleNavGroups(navGroups, ['schemes.manage'], NO_FLAGS).flatMap(
             (g) => g.items
         )
@@ -109,7 +109,7 @@ describe('visibleNavGroups', () => {
             pattern === 'admin.phases.edit' ||
             (pattern.endsWith('.*') && 'admin.phases.edit'.startsWith(pattern.slice(0, -1)))
 
-        expect(items[index - 2]?.label).toBe('Form Builder')
+        expect(items[index - 2]?.label).toBe('Pembuat Formulir')
         expect(items[index]?.routeName).toBe('admin.phases.index')
         expect(isNavItemActive(items[index], onEditor)).toBe(true)
         expect(isNavItemActive(items[index - 1], onEditor)).toBe(false)
@@ -118,22 +118,22 @@ describe('visibleNavGroups', () => {
         )
     })
 
-    it('Form Evaluasi tampil di antara Form Builder dan Fase untuk schemes.manage saja (R3)', () => {
+    it('Formulir Evaluasi tampil di antara Pembuat Formulir dan Fase untuk schemes.manage saja (R3)', () => {
         const items = visibleNavGroups(navGroups, ['schemes.manage'], NO_FLAGS).flatMap(
             (g) => g.items
         )
-        const index = items.findIndex((i) => i.label === 'Form Evaluasi')
+        const index = items.findIndex((i) => i.label === 'Formulir Evaluasi')
         const onEditor = (pattern: string) =>
             pattern === 'admin.evaluation-forms.edit' ||
             (pattern.endsWith('.*') &&
                 'admin.evaluation-forms.edit'.startsWith(pattern.slice(0, -1)))
 
-        expect(items[index - 1]?.label).toBe('Form Builder')
+        expect(items[index - 1]?.label).toBe('Pembuat Formulir')
         expect(items[index + 1]?.label).toBe('Fase')
         expect(items[index]?.routeName).toBe('admin.evaluation-forms.index')
         expect(isNavItemActive(items[index], onEditor)).toBe(true)
         expect(labels(visibleNavGroups(navGroups, ['periods.manage'], NO_FLAGS))).not.toContain(
-            'Form Evaluasi'
+            'Formulir Evaluasi'
         )
     })
 
@@ -250,7 +250,7 @@ describe('pengumuman (fe-v2-design §4.7, W6)', () => {
 
     it('Pengumuman tampil untuk semua pengguna login', () => {
         expect(labels(visibleNavGroups(navGroups, [], NO_FLAGS))).toEqual([
-            'Dashboard',
+            'Beranda',
             'Pengumuman',
             'Notifikasi',
         ])
@@ -282,15 +282,15 @@ describe('isNavItemActive', () => {
         expect(isNavItemActive(item!, (p) => p === 'user.submissions.*')).toBe(true)
     })
 
-    it('Penugasan Review aktif di halaman evaluasi', () => {
-        const review = visible.find((i) => i.label === 'Penugasan Review')
+    it('Penugasan Penilaian aktif di halaman evaluasi', () => {
+        const review = visible.find((i) => i.label === 'Penugasan Penilaian')
 
         expect(review).toBeDefined()
         expect(isNavItemActive(review!, (p) => p === 'reviewer.assignments.*')).toBe(true)
     })
 
-    it('Riwayat Review menaut ke halaman riwayat', () => {
-        const history = visible.find((i) => i.label === 'Riwayat Review')
+    it('Riwayat Penilaian menaut ke halaman riwayat', () => {
+        const history = visible.find((i) => i.label === 'Riwayat Penilaian')
 
         expect(history?.routeName).toBe('reviewer.history.index')
     })
@@ -336,16 +336,16 @@ describe('statistik (W148, W156)', () => {
 })
 
 describe('export data (W154)', () => {
-    it('Export Data membuka reporting.exports.index', () => {
-        const item = navGroups.flatMap((g) => g.items).find((i) => i.label === 'Export Data')
+    it('Ekspor Data membuka reporting.exports.index', () => {
+        const item = navGroups.flatMap((g) => g.items).find((i) => i.label === 'Ekspor Data')
 
         expect(item?.routeName).toBe('reporting.exports.index')
     })
 })
 
 describe('audit log (W155)', () => {
-    it('Audit Log membuka reporting.audit.index', () => {
-        const item = navGroups.flatMap((g) => g.items).find((i) => i.label === 'Audit Log')
+    it('Log Audit membuka reporting.audit.index', () => {
+        const item = navGroups.flatMap((g) => g.items).find((i) => i.label === 'Log Audit')
 
         expect(item?.routeName).toBe('reporting.audit.index')
     })

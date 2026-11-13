@@ -52,7 +52,7 @@ final class EvaluationAnswerWriter
             return;
         }
 
-        // B10 — layar yang dimuat sebelum Apply masih mengirim field versi lama Form Evaluasi yang sama.
+        // B10 — layar yang dimuat sebelum Apply masih mengirim field versi lama Formulir Evaluasi yang sama.
         $otherVersion = ReviewFormField::query()
             ->whereIn('id', $fieldIds)
             ->whereHas('reviewEvaluationFormVersion', fn (Builder $version) => $version

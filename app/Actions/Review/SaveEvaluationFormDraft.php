@@ -12,7 +12,7 @@ use App\Support\Audit\AuditTrail;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * BR-FE-31 — menyimpan isi Form Evaluasi sebagai draf (satu per form, ditimpa tiap simpan).
+ * BR-FE-31 — menyimpan isi Formulir Evaluasi sebagai draf (satu per form, ditimpa tiap simpan).
  * Draf tidak berlaku bagi reviewer; mereka tetap memakai versi terbit sampai Terbitkan.
  *
  * @method static EvaluationFormDraft run(ReviewEvaluationForm $form, EvaluationDraftInput $input, User $actor)

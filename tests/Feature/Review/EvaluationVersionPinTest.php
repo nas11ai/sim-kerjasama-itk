@@ -1,6 +1,6 @@
 <?php
 
-// BR-REV-18 — versi Form Evaluasi dipaku per angkatan × langkah × Form Evaluasi saat draf
+// BR-REV-18 — versi Formulir Evaluasi dipaku per angkatan × langkah × Formulir Evaluasi saat draf
 // penilaian pertama di sana tersimpan (evaluation_version.feature).
 
 use App\Actions\Review\AssignEvaluationForm;

@@ -7,7 +7,7 @@ use App\Models\SubmissionReviewer;
 use Spatie\LaravelData\Data;
 
 /**
- * Satu baris "Riwayat Reviewer" OPERATOR-08-03. BR-REV-10 — penugasan `replaced` adalah
+ * Satu baris "Riwayat Penilai" OPERATOR-08-03. BR-REV-10 — penugasan `replaced` adalah
  * sejarah, tetap terdaftar. `id` = penugasan, karena satu pengajuan bisa muncul dua kali.
  */
 final class UserReviewRowData extends Data

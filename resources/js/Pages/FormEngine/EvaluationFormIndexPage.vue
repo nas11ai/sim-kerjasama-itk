@@ -15,7 +15,7 @@ import AppLayout from '@/Layouts/AppLayout.vue'
 import { draftBannerText } from '@/lib/evaluationDefinition'
 import type { EvaluationFormCardData, EvaluationFormIndexPageProps } from '@/types/form-engine'
 
-// R3 — pustaka Form Evaluasi: lembar penilaian berversi yang dipasang di banyak tahap (BR-FE-30).
+// R3 — pustaka Formulir Evaluasi: lembar penilaian berversi yang dipasang di banyak tahap (BR-FE-30).
 defineProps<EvaluationFormIndexPageProps>()
 
 const target = ref<EvaluationFormCardData | null>(null)
@@ -47,16 +47,16 @@ const usage = (form: EvaluationFormCardData) =>
 </script>
 
 <template>
-    <Head title="Form Evaluasi" />
+    <Head title="Formulir Evaluasi" />
     <AppLayout>
         <PageHeader
-            title="Form Evaluasi"
+            title="Formulir Evaluasi"
             subtitle="Lembar penilaian reviewer yang bisa dipasang di banyak tahap."
         >
             <template #actions>
                 <Button as-child>
                     <Link :href="route('admin.evaluation-forms.create')"
-                        ><Plus class="size-4" />Buat Form Evaluasi</Link
+                        ><Plus class="size-4" />Buat Formulir Evaluasi</Link
                     >
                 </Button>
             </template>
@@ -65,7 +65,7 @@ const usage = (form: EvaluationFormCardData) =>
             <EmptyState
                 v-if="forms.length === 0"
                 :icon="ClipboardCheck"
-                title="Belum ada Form Evaluasi."
+                title="Belum ada Formulir Evaluasi."
                 description="Buat lembar penilaian, terbitkan, lalu pasang di langkah tahap yang direview."
             />
             <div v-else class="space-y-3">

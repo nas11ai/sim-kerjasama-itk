@@ -172,11 +172,11 @@ describe('FormEngine/PeriodIndexPage', () => {
         expect(plain.text()).toContain('42')
     })
 
-    it('[REV-VER-06] tiap baris menaut ke Versi Form Evaluasi periodenya', () => {
+    it('[REV-VER-06] tiap baris menaut ke Versi Formulir Evaluasi periodenya', () => {
         const link = mountPage([periodRow()]).find(
             'a[href="/admin.submission-periods.evaluation-versions/4"]'
         )
-        expect(link.text()).toContain('Versi Form Evaluasi')
+        expect(link.text()).toContain('Versi Formulir Evaluasi')
     })
 
     it('[FE-READY-06] tiap baris menaut ke Kesiapan periodenya', () => {

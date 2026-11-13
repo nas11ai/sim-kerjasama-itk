@@ -138,7 +138,7 @@ export interface StatsPageProps {
     followUp?: FollowUpList[]
 }
 
-// --- Export Data (OPERATOR-07-02), cermin ExportFormOptions dan ExportHistory (W154) ---
+// --- Ekspor Data (OPERATOR-07-02), cermin ExportFormOptions dan ExportHistory (W154) ---
 
 export type ExportFilterKey = 'year' | 'scheme' | 'status'
 
@@ -188,7 +188,7 @@ export interface ExportPageProps {
     jobs: ExportJobRow[]
 }
 
-// Audit Log (OPERATOR-07-03, W155). Sumber: AuditEntryRowData; nilai bersarang sudah teks.
+// Log Audit (OPERATOR-07-03, W155). Sumber: AuditEntryRowData; nilai bersarang sudah teks.
 export type AuditValue = string | number | boolean | null
 
 export interface AuditEntryRow {

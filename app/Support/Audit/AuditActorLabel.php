@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 /**
- * W155 — kolom Pelaku Audit Log: "{nama} ({semua peran DDD, urutan RoleCatalog})". Satu label
+ * W155 — kolom Pelaku Log Audit: "{nama} ({semua peran DDD, urutan RoleCatalog})". Satu label
  * pilihan salah separuh waktu bagi user dua peran. Tanpa aktor → "Sistem" (scheduler/CLI).
  */
 final class AuditActorLabel

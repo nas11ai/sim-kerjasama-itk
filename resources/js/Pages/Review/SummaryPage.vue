@@ -23,7 +23,7 @@ defineProps<SummaryPageProps>()
             title="Review Summary & Diskusi"
             :subtitle="submission.title"
             :back-href="route('reviewer.assignments.index')"
-            back-label="Penugasan Review"
+            back-label="Penugasan Penilaian"
         >
             <template #badge><StatusBadge :status="submission.status" /></template>
         </PageHeader>

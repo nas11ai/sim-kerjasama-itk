@@ -99,7 +99,7 @@ class FormPhaseDetail extends Model
         return $this->belongsTo(FormPhaseVersion::class);
     }
 
-    /** @return HasMany<StepEvaluationForm, $this> Form Evaluasi pustaka yang terpasang di langkah ini */
+    /** @return HasMany<StepEvaluationForm, $this> Formulir Evaluasi pustaka yang terpasang di langkah ini */
     public function stepEvaluationForms(): HasMany
     {
         return $this->hasMany(StepEvaluationForm::class);

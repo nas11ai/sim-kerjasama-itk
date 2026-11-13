@@ -166,12 +166,12 @@ describe('UserShowPage', () => {
         expect(text).toContain('Aktif')
     })
 
-    it('tab Profil, Riwayat Submission (n), Riwayat Reviewer (n); tab awal dari prop tab', () => {
+    it('tab Profil, Riwayat Submission (n), Riwayat Penilai (n); tab awal dari prop tab', () => {
         const tabs = mountPage()
             .findAll('button[role="tab"]')
             .map((t) => t.text())
 
-        expect(tabs).toEqual(['Profil', 'Riwayat Submission (2)', 'Riwayat Reviewer (1)'])
+        expect(tabs).toEqual(['Profil', 'Riwayat Submission (2)', 'Riwayat Penilai (1)'])
         expect(mountPage({ tab: 'reviews' }).text()).toContain('Kajian Mangrove')
         expect(mountPage().text()).not.toContain('Kajian Mangrove')
     })

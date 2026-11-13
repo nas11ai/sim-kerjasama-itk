@@ -146,6 +146,6 @@ describe('FormEngine/PeriodEvaluationVersionsPage', () => {
     it('tanpa langkah direview menampilkan keadaan kosong', () => {
         mountPage([])
 
-        expect(wrapper.text()).toContain('Belum ada Form Evaluasi di tahap periode ini')
+        expect(wrapper.text()).toContain('Belum ada Formulir Evaluasi di tahap periode ini')
     })
 })

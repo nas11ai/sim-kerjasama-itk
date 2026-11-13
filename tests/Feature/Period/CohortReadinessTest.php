@@ -67,7 +67,7 @@ function issuesOf(CohortReadinessData $cohort, ReadinessCheck $check): array
     return array_map(fn ($issue) => ['message' => $issue->message, 'blocking' => $issue->blocking], checkOf($cohort, $check)->issues);
 }
 
-/** Langkah 1 fixture wizard diganti salinan yang direview, dengan Form Evaluasi wajib bila `$withForm`. */
+/** Langkah 1 fixture wizard diganti salinan yang direview, dengan Formulir Evaluasi wajib bila `$withForm`. */
 function reviewedWizardStep(array $fx, bool $withForm = true, bool $required = true): FormPhaseDetail
 {
     $detail = restep($fx['detail'], ['needs_review' => true]);
@@ -202,7 +202,7 @@ it('[FE-READY-04] Batas Evaluasi sebelum Batas Submit menggagalkan cek urutan', 
         ->and($cohort->status())->toBe('blocked');
 });
 
-it('[FE-READY-05] langkah Pengajuan direview tanpa Form Evaluasi wajib aktif menggagalkan cek', function () {
+it('[FE-READY-05] langkah Pengajuan direview tanpa Formulir Evaluasi wajib aktif menggagalkan cek', function () {
     $fx = wizardFixture();
     $detail = reviewedWizardStep($fx, required: false);
     calendarDate($fx['period'], DeadlineType::Evaluation, now()->addWeeks(2));
@@ -210,7 +210,7 @@ it('[FE-READY-05] langkah Pengajuan direview tanpa Form Evaluasi wajib aktif men
     $cohort = readinessOf($fx['period'], $fx['phase']);
 
     expect(issuesOf($cohort, ReadinessCheck::RequiredEvaluationForm))->toBe([[
-        'message' => 'Langkah 1 (Pengajuan) direview, tapi belum punya Form Evaluasi wajib yang aktif.',
+        'message' => 'Langkah 1 (Pengajuan) direview, tapi belum punya Formulir Evaluasi wajib yang aktif.',
         'blocking' => true,
     ]])
         ->and(checkOf($cohort, ReadinessCheck::MissingDate)->state())->toBe('passed')
@@ -240,7 +240,7 @@ it('[FE-READY-06] Operator melihat daftar cek per angkatan; tabel periode menghi
             ->where('cohorts.0.checks.0.issues.0', ['message' => 'Batas Evaluasi belum diatur.', 'blocking' => true])
             ->where('cohorts.0.checks.1.title', 'Urutan tanggal masuk akal')
             ->where('cohorts.0.checks.1.state', 'passed')
-            ->where('cohorts.0.checks.2.title', 'Langkah yang direview punya Form Evaluasi wajib')
+            ->where('cohorts.0.checks.2.title', 'Langkah yang direview punya Formulir Evaluasi wajib')
             ->where('cohorts.1.phaseTitle', 'Hibah Mandiri')
             ->where('cohorts.1.status', 'ready'));
 
@@ -252,7 +252,7 @@ it('[FE-READY-06] Operator melihat daftar cek per angkatan; tabel periode menghi
             ->where('periods.data.0.unreadyCohortCount', 1));
 });
 
-it('[FE-READY-07] tanggal dan Form Evaluasi langkah monev yang belum diatur tidak menahan pengajuan baru', function () {
+it('[FE-READY-07] tanggal dan Formulir Evaluasi langkah monev yang belum diatur tidak menahan pengajuan baru', function () {
     $fx = wizardFixture();
     $monev = wizardStepAt($fx, order: 3, cycle: 1, needsReview: true);
 
@@ -384,7 +384,7 @@ it('warns, not blocks, on a monev step without a required evaluation form', func
     $cohort = readinessOf($fx['period'], $fx['phase']);
 
     expect(issuesOf($cohort, ReadinessCheck::RequiredEvaluationForm))->toBe([[
-        'message' => 'Langkah 3 (Laporan Monev I) direview, tapi belum punya Form Evaluasi wajib yang aktif.',
+        'message' => 'Langkah 3 (Laporan Monev I) direview, tapi belum punya Formulir Evaluasi wajib yang aktif.',
         'blocking' => false,
     ]])
         ->and(checkOf($cohort, ReadinessCheck::MissingDate)->state())->toBe('passed')

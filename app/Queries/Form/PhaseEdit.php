@@ -21,7 +21,7 @@ use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
  * Isi editor tahap ADMIN-08-09. BR-FE-33 — langkah dibaca dari draf bila ada, selain itu dari
- * versi terbaru (BR-FE-32); label Form, aturan akses, tipe, dan Form Evaluasi dimuat sekali untuk
+ * versi terbaru (BR-FE-32); label Form, aturan akses, tipe, dan Formulir Evaluasi dimuat sekali untuk
  * semua langkah, tanpa kueri per langkah.
  *
  * @method static PhaseEditData run(?FormPhase $phase)

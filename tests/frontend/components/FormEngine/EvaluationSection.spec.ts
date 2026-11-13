@@ -82,7 +82,7 @@ describe('FormEngine/EvaluationSection', () => {
     })
 
     // BR-FE-30 — hanya Form terbit (pilihan dari backend) yang belum terpasang di langkah ini.
-    it('menawarkan hanya Form Evaluasi terbit yang belum terpasang', () => {
+    it('menawarkan hanya Formulir Evaluasi terbit yang belum terpasang', () => {
         mountSection([attached()])
 
         expect(wrapper.getComponent(OptionSelect).props('options')).toEqual([

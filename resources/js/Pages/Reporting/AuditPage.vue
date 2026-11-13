@@ -51,16 +51,16 @@ const view = (entry: AuditEntryRow) => {
 </script>
 
 <template>
-    <Head title="Audit Log" />
+    <Head title="Log Audit" />
     <AppLayout>
         <PageHeader
-            title="Audit Log"
+            title="Log Audit"
             subtitle="Catatan seluruh aktivitas sistem, bersifat permanen dan tidak dapat dihapus."
         >
             <template #actions>
                 <Button as-child variant="outline">
                     <Link :href="route('reporting.exports.index', { type: 'audit-log' })">
-                        <Download class="size-4" /> Export Audit Log
+                        <Download class="size-4" /> Export Log Audit
                     </Link>
                 </Button>
             </template>

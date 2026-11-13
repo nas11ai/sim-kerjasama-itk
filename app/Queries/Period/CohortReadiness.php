@@ -101,7 +101,7 @@ class CohortReadiness implements ChangesNoState
     }
 
     /**
-     * Langkah yang punya Form Evaluasi wajib aktif (BR-FE-30), satu kueri untuk semua angkatan.
+     * Langkah yang punya Formulir Evaluasi wajib aktif (BR-FE-30), satu kueri untuk semua angkatan.
      *
      * @param  Collection<int, FormPhaseDetail>  $steps
      * @return array<int, true>

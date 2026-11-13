@@ -42,10 +42,10 @@ const variants: Record<ReviewHistoryRow['status'], BadgeVariant> = {
 </script>
 
 <template>
-    <Head title="Riwayat Review" />
+    <Head title="Riwayat Penilaian" />
     <AppLayout>
         <PageHeader
-            title="Riwayat Review"
+            title="Riwayat Penilaian"
             subtitle="Semua evaluasi yang pernah Anda kerjakan, read-only, termasuk siklus monev sebelumnya."
         />
         <div class="mb-4 flex flex-col gap-2 sm:flex-row">

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Context;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * W155 — DDD Reporting: Audit Log "dari IP mana". Context tersembunyi ikut terbawa ke job
+ * W155 — DDD Reporting: Log Audit "dari IP mana". Context tersembunyi ikut terbawa ke job
  * yang di-dispatch dari request ini, tetapi tidak ikut tercetak di log aplikasi.
  */
 final class CaptureAuditIp

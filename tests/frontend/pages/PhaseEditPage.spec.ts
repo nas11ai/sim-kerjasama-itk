@@ -216,11 +216,11 @@ describe('FormEngine/PhaseEditPage', () => {
         expect(button('Terbitkan').disabled).toBe(true)
     })
 
-    it('langkah yang direview memuat bagian pemasangan Form Evaluasi (BR-FE-30)', () => {
+    it('langkah yang direview memuat bagian pemasangan Formulir Evaluasi (BR-FE-30)', () => {
         const wrapper = page(props([detail({ needsReview: true })]))
 
         expect(wrapper.text()).toContain('Form evaluasi untuk Isi Proposal · Form Proposal')
-        expect(wrapper.text()).toContain('Pasang Form Evaluasi')
+        expect(wrapper.text()).toContain('Pasang Formulir Evaluasi')
     })
 
     it('Simpan draf mengirim langkah beserta pemasangannya ke route draf', () => {
@@ -426,9 +426,9 @@ describe('FormEngine/PhaseEditPage', () => {
             const wrapper = page(creating([]))
 
             expect(wrapper.text()).toContain(
-                'Belum ada Form aktif yang punya aturan akses. Buat aturan akses di Form Builder lebih dulu.'
+                'Belum ada Form aktif yang punya aturan akses. Buat aturan akses di Pembuat Formulir lebih dulu.'
             )
-            const banner = wrapper.findAll('a').find((a) => a.text() === 'Buka Form Builder')
+            const banner = wrapper.findAll('a').find((a) => a.text() === 'Buka Pembuat Formulir')
             expect(banner?.attributes('href')).toBe('/admin.forms.index')
             expect(button('Buat Tahap').disabled).toBe(true)
         })

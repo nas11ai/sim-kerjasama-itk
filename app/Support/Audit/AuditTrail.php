@@ -42,7 +42,7 @@ final class AuditTrail
             // aktor; jangan ditambal aktor palsu.
             ->causedBy($causer ?? Auth::user())
             ->withProperties($properties)
-            // W155 — DDD Reporting: Audit Log "dari IP mana". Scheduler/CLI tanpa request → null.
+            // W155 — DDD Reporting: Log Audit "dari IP mana". Scheduler/CLI tanpa request → null.
             ->tap(function (AuditEntry $entry): void {
                 $ip = Context::getHidden(self::IP_CONTEXT);
                 $entry->ip_address = is_string($ip) ? $ip : null;

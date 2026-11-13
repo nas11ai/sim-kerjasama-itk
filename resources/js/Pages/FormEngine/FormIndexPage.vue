@@ -33,10 +33,10 @@ const selects = computed((): FilterSelectSpec<Exclude<keyof FormIndexFilters, 's
 </script>
 
 <template>
-    <Head title="Form Builder" />
+    <Head title="Pembuat Formulir" />
     <AppLayout>
         <PageHeader
-            title="Form Builder"
+            title="Pembuat Formulir"
             subtitle="Kelola form pengajuan & monev, susunan field dapat diubah sewaktu-waktu."
         >
             <template #actions>

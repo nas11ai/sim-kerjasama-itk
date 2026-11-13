@@ -24,7 +24,7 @@ const emit = defineEmits<{ select: [key: K, value: string] }>()
             :aria-label="searchLabel"
             class="sm:max-w-xs"
         />
-        <!-- Kontrol tanpa pilihan "semua", mis. rentang Waktu Audit Log (W155). -->
+        <!-- Kontrol tanpa pilihan "semua", mis. rentang Waktu Log Audit (W155). -->
         <slot />
         <FilterSelect
             v-for="select in selects"

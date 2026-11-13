@@ -44,7 +44,7 @@ const cohort = (overrides: Partial<CohortReadiness> = {}): CohortReadiness => ({
         check({ check: 'date_order', title: 'Urutan tanggal masuk akal' }),
         check({
             check: 'required_evaluation_form',
-            title: 'Langkah yang direview punya Form Evaluasi wajib',
+            title: 'Langkah yang direview punya Formulir Evaluasi wajib',
         }),
     ],
     ...overrides,
@@ -121,7 +121,7 @@ describe('FormEngine/PeriodReadinessPage', () => {
                     }),
                     check({
                         check: 'required_evaluation_form',
-                        title: 'Langkah yang direview punya Form Evaluasi wajib',
+                        title: 'Langkah yang direview punya Formulir Evaluasi wajib',
                     }),
                 ],
             }),
@@ -140,7 +140,7 @@ describe('FormEngine/PeriodReadinessPage', () => {
             'Batas Laporan Monev I belum diatur'
         )
         expect(rows[2].find('[data-issue]').exists()).toBe(false)
-        expect(rows[2].text()).toBe('Langkah yang direview punya Form Evaluasi wajib Lolos')
+        expect(rows[2].text()).toBe('Langkah yang direview punya Formulir Evaluasi wajib Lolos')
         // Keadaan baris terbaca pembaca layar, bukan hanya lewat ikon dan warna.
         expect(rows[0].find('.sr-only').text()).toBe('Gagal')
         expect(rows[1].find('.sr-only').text()).toBe('Peringatan')

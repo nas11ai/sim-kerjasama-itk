@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * BR-REV-18 — versi yang dipakai satu angkatan × langkah × Form Evaluasi, dipaku saat draf
+ * BR-REV-18 — versi yang dipakai satu angkatan × langkah × Formulir Evaluasi, dipaku saat draf
  * penilaian pertama di sana tersimpan. Unik per (periode, langkah, form).
  *
  * @property int $id

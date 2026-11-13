@@ -12,7 +12,7 @@ use App\Models\ReviewEvaluationForm;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
-/** BR-FE-31 — draf isi Form Evaluasi: simpan, buang, terbitkan menjadi versi berikutnya. */
+/** BR-FE-31 — draf isi Formulir Evaluasi: simpan, buang, terbitkan menjadi versi berikutnya. */
 class EvaluationFormDraftController extends Controller
 {
     use ResolvesActor;

@@ -8,7 +8,7 @@ use App\Models\ReviewFormFieldOption;
 use Spatie\LaravelData\Data;
 
 /**
- * Satu field di editor pustaka Form Evaluasi, dari draf (BR-FE-31) atau versi terbit terakhir.
+ * Satu field di editor pustaka Formulir Evaluasi, dari draf (BR-FE-31) atau versi terbit terakhir.
  * Tanpa id: Terbitkan menyalin baris baru (BR-REV-18), jadi tipe field tidak perlu dikunci —
  * jawaban lama tetap menunjuk field versinya.
  */

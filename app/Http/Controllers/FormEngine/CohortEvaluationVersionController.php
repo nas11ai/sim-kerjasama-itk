@@ -14,7 +14,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * BR-REV-19, G2-W5 — Versi Form Evaluasi per angkatan, dibuka dari baris tabel Periode
+ * BR-REV-19, G2-W5 — Versi Formulir Evaluasi per angkatan, dibuka dari baris tabel Periode
  * (OPERATOR-09-01). Route dijaga `can:periods.manage`.
  */
 class CohortEvaluationVersionController extends Controller

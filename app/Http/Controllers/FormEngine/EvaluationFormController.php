@@ -18,7 +18,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Pustaka Form Evaluasi (ADMIN-08-09, BR-FE-30): daftar, buat, ubah nama, hapus. Isinya disunting
+ * Pustaka Formulir Evaluasi (ADMIN-08-09, BR-FE-30): daftar, buat, ubah nama, hapus. Isinya disunting
  * lewat draf di EvaluationFormDraftController (BR-FE-31). Route dijaga `can:schemes.manage` (W88).
  */
 class EvaluationFormController extends Controller

@@ -10,7 +10,7 @@ use App\Support\Audit\AuditTrail;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * Form Evaluasi baru di pustaka, belum terbit dan belum terpasang di langkah mana pun.
+ * Formulir Evaluasi baru di pustaka, belum terbit dan belum terpasang di langkah mana pun.
  *
  * @method static ReviewEvaluationForm run(EvaluationFormDetailsInput $input, User $actor)
  */

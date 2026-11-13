@@ -153,7 +153,7 @@ describe('FormEngine/FormEditPage', () => {
         expect(tab(wrapper, 'General & Fields')?.attributes('href')).toBe('/admin.forms.edit/7')
         expect(tab(wrapper, 'Phases')?.attributes('href')).toBe('/admin.phases.index/7')
         expect(tab(wrapper, 'Phases')?.attributes('aria-current')).toBeUndefined()
-        expect(wrapper.find('a[href="/admin.forms.index"]').text()).toContain('Form Builder')
+        expect(wrapper.find('a[href="/admin.forms.index"]').text()).toContain('Pembuat Formulir')
     })
 
     it('[FE-CHANGE-01] field aktif dan field terarsip terbaca', () => {

@@ -9,7 +9,7 @@ use App\Support\Audit\AuditTrail;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * BR-FE-31 — membuang draf Form Evaluasi tanpa meninggalkan versi. Tanpa draf, tidak ada yang
+ * BR-FE-31 — membuang draf Formulir Evaluasi tanpa meninggalkan versi. Tanpa draf, tidak ada yang
  * dibuang dan tidak ada audit.
  *
  * @method static void run(ReviewEvaluationForm $form, User $actor)

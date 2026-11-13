@@ -5,7 +5,7 @@ namespace App\Data\View\FormEngine;
 use Spatie\LaravelData\Data;
 
 /**
- * Editor pustaka Form Evaluasi. `fields` = isi draf bila ada, kalau tidak isi versi terbit
+ * Editor pustaka Formulir Evaluasi. `fields` = isi draf bila ada, kalau tidak isi versi terbit
  * terakhir (BR-FE-31). `impact` = kalimat konfirmasi Terbitkan (§4.5).
  */
 final class EvaluationFormEditPageData extends Data

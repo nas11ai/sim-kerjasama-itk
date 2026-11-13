@@ -5,7 +5,7 @@ namespace App\Http\Requests\Review;
 use App\Data\Request\EvaluationFormDetailsInput;
 use Illuminate\Foundation\Http\FormRequest;
 
-/** Buat dan ubah nama pustaka Form Evaluasi: judul dan deskripsi, tak berversi (BR-FE-31). */
+/** Buat dan ubah nama pustaka Formulir Evaluasi: judul dan deskripsi, tak berversi (BR-FE-31). */
 class EvaluationFormRequest extends FormRequest
 {
     public function authorize(): bool

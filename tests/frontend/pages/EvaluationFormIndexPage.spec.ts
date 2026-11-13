@@ -45,7 +45,7 @@ describe('FormEngine/EvaluationFormIndexPage', () => {
     it('judul, subjudul, dan tombol buat', () => {
         const wrapper = mountPage([card()])
 
-        expect(wrapper.text()).toContain('Form Evaluasi')
+        expect(wrapper.text()).toContain('Formulir Evaluasi')
         expect(wrapper.text()).toContain(
             'Lembar penilaian reviewer yang bisa dipasang di banyak tahap.'
         )
@@ -76,6 +76,6 @@ describe('FormEngine/EvaluationFormIndexPage', () => {
     })
 
     it('kosong menampilkan EmptyState', () => {
-        expect(mountPage([]).text()).toContain('Belum ada Form Evaluasi.')
+        expect(mountPage([]).text()).toContain('Belum ada Formulir Evaluasi.')
     })
 })

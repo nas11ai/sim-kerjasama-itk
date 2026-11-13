@@ -92,7 +92,7 @@ describe('CommandPalette', () => {
         await openPalette()
 
         expect(groupLabels()).toEqual(['Halaman'])
-        expect(option('Dashboard')).toBeDefined()
+        expect(option('Beranda')).toBeDefined()
         expect(option('Daftar Pengajuan')).toBeDefined()
         expect(option('Semua Pengajuan')).toBeUndefined()
         expect(status()?.textContent).toContain(
@@ -136,7 +136,7 @@ describe('CommandPalette', () => {
         expect(status()).toBe(region)
         expect(region?.textContent).toContain('Pencarian gagal. Coba lagi.')
         expect(groupLabels()).toEqual(['Halaman'])
-        expect(option('Dashboard')).toBeDefined()
+        expect(option('Beranda')).toBeDefined()
     })
 
     it('memilih hit server dengan klik membuka url-nya lalu menutup palette', async () => {
@@ -206,7 +206,7 @@ describe('CommandPalette', () => {
     it('item halaman membuka route-nya', async () => {
         await openPalette()
 
-        option('Dashboard')?.click()
+        option('Beranda')?.click()
         await flushPromises()
 
         expect(visit).toHaveBeenCalledWith('/dashboard')

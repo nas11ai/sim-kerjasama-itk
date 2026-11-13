@@ -21,7 +21,7 @@ use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * BR-REV-19 — Operator menerapkan versi terbaru Form Evaluasi ke satu angkatan × langkah. Jawaban
+ * BR-REV-19 — Operator menerapkan versi terbaru Formulir Evaluasi ke satu angkatan × langkah. Jawaban
  * yang ada (draf maupun terkirim) menjadi riwayat, reviewer-nya mengisi ulang versi baru dan diberi
  * tahu. Ditolak bila sudah ada pengajuan langkah itu yang diputuskan; tidak ada transisi status.
  *

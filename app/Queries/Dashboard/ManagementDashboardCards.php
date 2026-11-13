@@ -52,7 +52,7 @@ class ManagementDashboardCards implements ChangesNoState
 
         return [
             new KpiCardData('active', 'Total Submission Aktif', strval($this->visibleToOperator()->active()->count()), 'Semua skema', route('admin.submissions.index')),
-            new KpiCardData('awaitingReviewer', 'Perlu Penugasan Reviewer', strval($awaitingReviewer), 'Status Disubmit', route('admin.submissions.index', ['status' => Submitted::$name])),
+            new KpiCardData('awaitingReviewer', 'Perlu Penugasan Penilai', strval($awaitingReviewer), 'Status Disubmit', route('admin.submissions.index', ['status' => Submitted::$name])),
             // BR-REV-05 — padanan penyaring "Menunggu keputusan" di daftar (W42).
             new KpiCardData('awaitingDecision', 'Menunggu Keputusan', strval(DecisionReadiness::whereReady($this->visibleToOperator())->count()), 'Siap disetujui atau ditolak', route('admin.submissions.index', ['decision' => 'awaiting'])),
         ];

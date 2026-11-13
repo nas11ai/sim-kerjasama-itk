@@ -13,7 +13,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
- * BR-REV-19 — Operator menerapkan versi baru Form Evaluasi ke angkatan reviewer ini; penilaiannya
+ * BR-REV-19 — Operator menerapkan versi baru Formulir Evaluasi ke angkatan reviewer ini; penilaiannya
  * dibuka ulang dan harus diisi lagi.
  */
 class EvaluationVersionAppliedNotification extends Notification implements ShouldQueue

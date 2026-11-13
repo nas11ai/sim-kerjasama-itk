@@ -18,7 +18,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * OPERATOR-07-03 — Audit Log terfilter (W155) dalam cakupan `AuditScope` (BR-RPT-05). Tidak
+ * OPERATOR-07-03 — Log Audit terfilter (W155) dalam cakupan `AuditScope` (BR-RPT-05). Tidak
  * ada aksi tulis: append-only (BR-RPT-04).
  *
  * @phpstan-type Option array{value: string, label: string}

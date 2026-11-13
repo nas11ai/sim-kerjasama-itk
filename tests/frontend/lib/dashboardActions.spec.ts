@@ -27,8 +27,8 @@ describe('quickActions (W45, §4.4)', () => {
         expect(result).toEqual([
             'Buat Pengajuan Baru',
             'Lihat Daftar Pengajuan',
-            'Lihat Penugasan Review',
-            'Riwayat Review',
+            'Lihat Penugasan Penilaian',
+            'Riwayat Penilaian',
             'Notifikasi',
         ])
         expect(new Set(result).size).toBe(result.length)

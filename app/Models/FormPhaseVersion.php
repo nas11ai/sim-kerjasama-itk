@@ -10,7 +10,7 @@ use LogicException;
 
 /**
  * BR-FE-32 — versi struktur tahap yang terbit: langkah, urutan, Form + aturan akses, jenis/siklus
- * tenggat, `needs_review`, dan Form Evaluasi terpasang. Tidak pernah berubah; hapus hanya lewat
+ * tenggat, `needs_review`, dan Formulir Evaluasi terpasang. Tidak pernah berubah; hapus hanya lewat
  * cascade saat tahapnya dihapus (BR-FE-20 menghitung pengajuan di semua versi).
  *
  * @property int $id

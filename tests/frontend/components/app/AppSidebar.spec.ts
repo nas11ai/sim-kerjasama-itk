@@ -77,7 +77,7 @@ describe('AppSidebar', () => {
     it('menampilkan menu sesuai permission peneliti', () => {
         wrapper = mountSidebar()
 
-        expect(wrapper.text()).toContain('Dashboard')
+        expect(wrapper.text()).toContain('Beranda')
         expect(wrapper.text()).toContain('Daftar Pengajuan')
         expect(wrapper.text()).not.toContain('Semua Pengajuan')
     })
@@ -87,7 +87,7 @@ describe('AppSidebar', () => {
         wrapper = mountSidebar()
 
         expect(menuButton('Daftar Pengajuan')?.getAttribute('data-active')).toBe('true')
-        expect(menuButton('Dashboard')?.getAttribute('data-active')).not.toBe('true')
+        expect(menuButton('Beranda')?.getAttribute('data-active')).not.toBe('true')
     })
 
     it('menampilkan nama dan email pengguna di footer', () => {

@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * BR-REV-18, BR-REV-19 — layar Versi Form Evaluasi satu periode (OPERATOR-09-01): tiap Form
+ * BR-REV-18, BR-REV-19 — layar Versi Formulir Evaluasi satu periode (OPERATOR-09-01): tiap Form
  * Evaluasi aktif di langkah direview milik fase tertaut, dengan versi pakuan angkatannya, versi
  * terbaru, dan apakah versi terbaru boleh diterapkan.
  *
@@ -97,7 +97,7 @@ class CohortEvaluationVersions implements ChangesNoState
             formTitle: $step->reviewEvaluationForm->title,
             pinId: $pin?->id,
             pinnedLabel: $pin?->reviewEvaluationFormVersion->label(),
-            // G2-W3 — hanya Form Evaluasi yang sudah terbit bisa dipasang, jadi versi terbarunya ada.
+            // G2-W3 — hanya Formulir Evaluasi yang sudah terbit bisa dipasang, jadi versi terbarunya ada.
             latestLabel: $latest?->label() ?? '',
             responseCount: $this->responses["{$detail->id}:{$step->review_evaluation_form_id}"] ?? 0,
             decidedCount: $decided,

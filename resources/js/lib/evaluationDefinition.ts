@@ -4,7 +4,7 @@ import type {
     FieldTypeOption,
 } from '@/types/form-engine'
 
-// Field draf Form Evaluasi di editor pustaka (BR-FE-31). `key` stabil untuk seret; tanpa id —
+// Field draf Formulir Evaluasi di editor pustaka (BR-FE-31). `key` stabil untuk seret; tanpa id —
 // Terbitkan menyalin baris baru (BR-REV-18). Opsi membawa `id: null` agar cocok dengan
 // FormFieldOptions bersama, yang membuang baris baru yang kosong.
 export type EditableEvaluationOption = { id: number | null; label: string; value: string | null }

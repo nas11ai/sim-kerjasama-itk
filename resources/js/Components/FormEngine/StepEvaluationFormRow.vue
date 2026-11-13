@@ -6,7 +6,7 @@ import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import type { StepEvaluationFormData } from '@/types/form-engine'
 
-// BR-FE-30 — satu pemasangan Form Evaluasi di langkah draf: wajib/aktif milik pemasangan, isinya
+// BR-FE-30 — satu pemasangan Formulir Evaluasi di langkah draf: wajib/aktif milik pemasangan, isinya
 // disunting di pustaka. Lepas hanya berlaku sejak versi berikutnya; penugasan lama tetap di versinya.
 const props = defineProps<{ step: StepEvaluationFormData }>()
 const emit = defineEmits<{ update: [step: StepEvaluationFormData]; remove: [] }>()

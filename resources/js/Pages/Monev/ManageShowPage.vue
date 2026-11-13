@@ -18,10 +18,10 @@ const nodes = computed(() => phaseNodes(props.cycles.map((managed) => managed.cy
 </script>
 
 <template>
-    <Head title="Aktivasi Siklus & Penugasan Reviewer" />
+    <Head title="Aktivasi Siklus & Penugasan Penilai" />
     <AppLayout>
         <PageHeader
-            title="Aktivasi Siklus & Penugasan Reviewer"
+            title="Aktivasi Siklus & Penugasan Penilai"
             :subtitle="`${submission.title} · ${submission.leader}`"
             :back-href="route('monev.manage.index')"
             back-label="Manajemen Siklus Monev"

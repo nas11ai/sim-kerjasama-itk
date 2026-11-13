@@ -28,7 +28,7 @@ class SearchSubmissions implements ChangesNoState
         $viewAll = $viewer->can('submissions.view-all');
         $viewOwn = $viewer->can('submissions.view-own');
 
-        // W172 — reviewer memakai Penugasan Review, bukan grup ini.
+        // W172 — reviewer memakai Penugasan Penilaian, bukan grup ini.
         if (!$viewAll && !$viewOwn) {
             return [];
         }

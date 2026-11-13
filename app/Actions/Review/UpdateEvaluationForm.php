@@ -10,7 +10,7 @@ use App\Support\Audit\AuditTrail;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * Nama pustaka Form Evaluasi — judul dan deskripsi — disunting langsung: keduanya tidak berversi
+ * Nama pustaka Formulir Evaluasi — judul dan deskripsi — disunting langsung: keduanya tidak berversi
  * dan tidak lewat draf (BR-FE-31).
  *
  * @method static void run(ReviewEvaluationForm $form, EvaluationFormDetailsInput $input, User $actor)

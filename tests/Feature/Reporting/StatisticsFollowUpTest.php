@@ -36,7 +36,7 @@ it('daftar tindak lanjut terurut terlama dan dibatasi lima', function () {
     $waiting = $lists['awaitingReviewer'];
 
     expect(array_keys($lists))->toBe(['awaitingReviewer', 'awaitingRevision', 'approvedWithoutOutput'])
-        ->and($waiting->title)->toBe('Menunggu Penugasan Reviewer')
+        ->and($waiting->title)->toBe('Menunggu Penugasan Penilai')
         ->and($waiting->hint)->toBe('Tugaskan reviewer dari detail pengajuan.')
         ->and($waiting->count)->toBe(7)
         ->and($waiting->items)->toHaveCount(5)

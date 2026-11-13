@@ -37,7 +37,7 @@ const subtitle = computed(() =>
 const tabs = computed(() => [
     { value: 'profile', label: 'Profil' },
     { value: 'submissions', label: `Riwayat Submission (${props.submissions.length})` },
-    { value: 'reviews', label: `Riwayat Reviewer (${props.reviews.length})` },
+    { value: 'reviews', label: `Riwayat Penilai (${props.reviews.length})` },
 ])
 
 const summaryItems = computed(() => [

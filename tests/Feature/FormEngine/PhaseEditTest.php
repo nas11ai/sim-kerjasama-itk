@@ -69,7 +69,7 @@ function phaseGeneralPayload(): array
     return ['title' => 'Tahap Disunting', 'description' => null, 'is_active' => true];
 }
 
-/** Form Evaluasi terpasang `$detail`, dalam bentuk kiriman draf. */
+/** Formulir Evaluasi terpasang `$detail`, dalam bentuk kiriman draf. */
 function phaseEditAttachments(FormPhaseDetail $detail): array
 {
     return $detail->stepEvaluationForms()->get()->map(fn (StepEvaluationForm $step): array => [

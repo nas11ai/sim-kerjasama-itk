@@ -7,7 +7,7 @@ use App\Data\Request\ReviewFormFieldInput;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Simpan draf Form Evaluasi (BR-FE-31): field urut seperti di layar. `id` field dan opsi tidak
+ * Simpan draf Formulir Evaluasi (BR-FE-31): field urut seperti di layar. `id` field dan opsi tidak
  * dibaca — Terbitkan menyalin baris baru (BR-REV-18), jadi kiriman tak bisa menyentuh baris lain.
  * Draf boleh kosong; minimal satu field baru ditagih saat Terbitkan.
  */

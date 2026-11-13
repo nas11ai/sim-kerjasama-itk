@@ -112,9 +112,9 @@ const previewSteps = computed(() =>
 <template>
     <form v-if="creating" class="max-w-3xl space-y-6" @submit.prevent="create">
         <AppBanner v-if="!firstRule" tone="warning">
-            Belum ada Form aktif yang punya aturan akses. Buat aturan akses di Form Builder lebih
-            dulu.
-            <Link class="underline" :href="route('admin.forms.index')">Buka Form Builder</Link>
+            Belum ada Form aktif yang punya aturan akses. Buat aturan akses di Pembuat Formulir
+            lebih dulu.
+            <Link class="underline" :href="route('admin.forms.index')">Buka Pembuat Formulir</Link>
         </AppBanner>
         <PhaseGeneralCard v-model="general" :errors="errors" />
         <AppBanner v-if="otherErrors.length > 0" tone="denial">

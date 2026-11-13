@@ -95,7 +95,7 @@ describe('FormEngine/FormIndexPage', () => {
     it('menggambar judul, subjudul, kolom, dan catatan kaki', () => {
         const text = mountPage([formRow()]).text()
 
-        expect(text).toContain('Form Builder')
+        expect(text).toContain('Pembuat Formulir')
         expect(text).toContain(
             'Kelola form pengajuan & monev, susunan field dapat diubah sewaktu-waktu.'
         )

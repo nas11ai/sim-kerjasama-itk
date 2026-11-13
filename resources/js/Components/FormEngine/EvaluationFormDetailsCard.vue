@@ -8,7 +8,7 @@ import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
 import { Textarea } from '@/Components/ui/textarea'
 
-// Nama pustaka Form Evaluasi: judul dan deskripsi tak berversi, disimpan langsung (BR-FE-31).
+// Nama pustaka Formulir Evaluasi: judul dan deskripsi tak berversi, disimpan langsung (BR-FE-31).
 // `form` null = mode buat; sesudah simpan pertama layar pindah ke editor.
 const props = defineProps<{
     form: { id: number; title: string; description: string | null } | null
@@ -35,7 +35,7 @@ function save() {
 <template>
     <form @submit.prevent="save">
         <SectionCard
-            title="Nama Form Evaluasi"
+            title="Nama Formulir Evaluasi"
             description="Judul dan deskripsi tidak berversi; perubahannya langsung terlihat di semua tahap."
         >
             <FormField id="evaluation-title" label="Judul" required :error="details.errors.title">

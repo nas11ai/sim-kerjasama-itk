@@ -6,7 +6,7 @@ use Spatie\LaravelData\Data;
 
 /**
  * W154 — filter ekspor tabular, disimpan di `export_jobs.filters` dengan kunci snake_case.
- * Tahun = tahun submit pertama (jenis berbasis pengajuan) atau waktu entri (Audit Log).
+ * Tahun = tahun submit pertama (jenis berbasis pengajuan) atau waktu entri (Log Audit).
  */
 final class ExportFilters extends Data
 {

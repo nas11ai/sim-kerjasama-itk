@@ -30,8 +30,8 @@ const step = (overrides: Partial<PreviewStep> = {}): PreviewStep => ({
 })
 
 describe('FormEngine/PhaseStepPreview', () => {
-    // G3-W8 — alur langkah baca-saja: urutan, Form, nama tenggat, review, Form Evaluasi aktif.
-    it('merender langkah berurutan beserta tenggat dan Form Evaluasi aktifnya', () => {
+    // G3-W8 — alur langkah baca-saja: urutan, Form, nama tenggat, review, Formulir Evaluasi aktif.
+    it('merender langkah berurutan beserta tenggat dan Formulir Evaluasi aktifnya', () => {
         const wrapper = mount(PhaseStepPreview, {
             props: {
                 steps: [

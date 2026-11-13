@@ -12,14 +12,14 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * W154 — Audit Log (DDD: siapa, aksi apa, kapan, dari IP mana) dalam cakupan `AuditScope`
+ * W154 — Log Audit (DDD: siapa, aksi apa, kapan, dari IP mana) dalam cakupan `AuditScope`
  * peminta (BR-RPT-05, BR-RPT-10). Rentang tahun = tahun entri dicatat.
  */
 final class AuditLogExport implements ExportDefinition
 {
     public function label(): string
     {
-        return 'Audit Log';
+        return 'Log Audit';
     }
 
     public function filterKeys(): array
@@ -44,7 +44,7 @@ final class AuditLogExport implements ExportDefinition
             'causer.roles',
             'subject' => AuditSubjectLabel::eager(...),
         ])->latest('id')->get();
-        // W155 — label dan aturan kolom IP sama dengan layar Audit Log (UX pattern 07).
+        // W155 — label dan aturan kolom IP sama dengan layar Log Audit (UX pattern 07).
         $seesEverything = $user->can(AuditScope::READ_ALL_PERMISSION);
 
         return array_values($entries->map(fn (AuditEntry $entry): array => [

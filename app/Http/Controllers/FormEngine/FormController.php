@@ -22,7 +22,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Form Builder (ADMIN-08). Route dijaga `can:schemes.manage` (W88).
+ * Pembuat Formulir (ADMIN-08). Route dijaga `can:schemes.manage` (W88).
  */
 class FormController extends Controller
 {

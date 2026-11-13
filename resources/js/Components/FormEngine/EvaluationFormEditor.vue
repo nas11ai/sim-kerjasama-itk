@@ -23,7 +23,7 @@ import { toPreviewForm } from '@/lib/evaluationPreview'
 import { errorsUnder } from '@/lib/formErrors'
 import type { EvaluationFormEditPageData, FieldTypeOption } from '@/types/form-engine'
 
-// BR-FE-31 — isi Form Evaluasi disunting sebagai draf; Terbitkan menerbitkan draf tersimpan menjadi
+// BR-FE-31 — isi Formulir Evaluasi disunting sebagai draf; Terbitkan menerbitkan draf tersimpan menjadi
 // versi berikutnya. Trap S2b — halaman memberi :key per draf/versi, jadi state ini lahir ulang
 // sesudah Buang draf atau Terbitkan.
 const props = defineProps<{

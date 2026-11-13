@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use LogicException;
 
 /**
- * Pemasangan Form Evaluasi pustaka di satu langkah `needs_review` (G2-W2): wajib, aktif, dan
+ * Pemasangan Formulir Evaluasi pustaka di satu langkah `needs_review` (G2-W2): wajib, aktif, dan
  * urutannya milik pemasangan, bukan milik formnya. BR-FE-32 — bagian versi struktur yang beku.
  *
  * @property int $id

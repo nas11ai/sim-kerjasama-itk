@@ -30,7 +30,7 @@ class ExportFailedNotification extends Notification
         return (new MailMessage)
             ->subject('Ekspor gagal')
             ->line(ExportType::label($this->job->type).' yang Anda minta gagal diproses.')
-            ->line('Sistem tidak akan mengulangnya sendiri, jalankan ekspor ulang dari layar Export Data.');
+            ->line('Sistem tidak akan mengulangnya sendiri, jalankan ekspor ulang dari layar Ekspor Data.');
     }
 
     /** @return array<string, int|string|null> */

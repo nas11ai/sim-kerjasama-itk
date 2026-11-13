@@ -117,7 +117,7 @@ class FormPhaseController extends Controller
             'phase' => PhaseEdit::run($phase),
             'accessOptions' => PhaseAccessOptions::run($phase, $filter),
             'phaseTypeOptions' => PhaseTypeOptions::run(),
-            // BR-FE-30 — isi Form Evaluasi disusun di pustakanya; di sini hanya dipasang, lewat draf.
+            // BR-FE-30 — isi Formulir Evaluasi disusun di pustakanya; di sini hanya dipasang, lewat draf.
             'evaluationOptions' => PublishedEvaluationFormOptions::run(),
         ]);
     }

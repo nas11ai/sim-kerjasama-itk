@@ -3,7 +3,7 @@ import { Badge } from '@/Components/ui/badge'
 import type { PreviewStep } from '@/lib/phaseDefinition'
 
 // G3-W8 — Pratinjau tahap: alur langkah apa adanya, baca-saja — urutan, Form, nama tenggat, review,
-// dan Form Evaluasi terpasang beserta versinya. Isinya isi editor saat ini, belum tentu tersimpan.
+// dan Formulir Evaluasi terpasang beserta versinya. Isinya isi editor saat ini, belum tentu tersimpan.
 defineProps<{ steps: PreviewStep[] }>()
 </script>
 

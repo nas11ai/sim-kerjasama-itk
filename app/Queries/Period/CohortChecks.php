@@ -20,7 +20,7 @@ final class CohortChecks implements ChangesNoState
 {
     /**
      * @param  list<FormPhaseDetail>  $steps  langkah versi struktur angkatan, terurut
-     * @param  array<int, true>  $withRequiredForm  id langkah yang punya Form Evaluasi wajib aktif
+     * @param  array<int, true>  $withRequiredForm  id langkah yang punya Formulir Evaluasi wajib aktif
      */
     public function __construct(
         private readonly SubmissionPeriod $period,
@@ -152,7 +152,7 @@ final class CohortChecks implements ChangesNoState
             if ($step->needs_review && !isset($this->withRequiredForm[$step->id])) {
                 $stepLabel = $step->deadline_type->stepLabel($step->deadline_cycle);
                 $issues[] = new ReadinessIssueData(
-                    "Langkah {$step->order} ({$stepLabel}) direview, tapi belum punya Form Evaluasi wajib yang aktif.",
+                    "Langkah {$step->order} ({$stepLabel}) direview, tapi belum punya Formulir Evaluasi wajib yang aktif.",
                     $step->opensSubmission(),
                 );
             }

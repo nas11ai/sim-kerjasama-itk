@@ -8,7 +8,7 @@ use App\Models\ReviewEvaluationForm;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * Pustaka Form Evaluasi: semua form urut judul lalu id, beserta versi terbit terakhir, ada-tidaknya
+ * Pustaka Formulir Evaluasi: semua form urut judul lalu id, beserta versi terbit terakhir, ada-tidaknya
  * draf (BR-FE-31), jumlah langkah pemasangnya, dan jumlah penugasannya — tanpa kueri per kartu.
  *
  * @method static list<EvaluationFormCardData> run()

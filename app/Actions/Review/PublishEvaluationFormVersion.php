@@ -13,7 +13,7 @@ use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * BR-REV-18 (K1) — menerbitkan isi Form Evaluasi sebagai versi berikutnya: field dan opsinya disalin
+ * BR-REV-18 (K1) — menerbitkan isi Formulir Evaluasi sebagai versi berikutnya: field dan opsinya disalin
  * sebagai baris baru (id masukan diabaikan), jadi versi lama dan jawaban yang menunjuknya utuh.
  *
  * @method static ReviewEvaluationFormVersion run(ReviewEvaluationForm $form, list<ReviewFormFieldInput> $fields, User $actor)

@@ -58,7 +58,7 @@ beforeEach(function () {
 });
 
 /**
- * @param  list<array{0: int, 1: int|null, 2?: bool, 3?: list<StepEvaluationFormInput>}>  $steps  [aturan akses, siklus, needs_review, Form Evaluasi]
+ * @param  list<array{0: int, 1: int|null, 2?: bool, 3?: list<StepEvaluationFormInput>}>  $steps  [aturan akses, siklus, needs_review, Formulir Evaluasi]
  */
 function structureOf(array $steps, PhaseType $type): PhaseStructureInput
 {

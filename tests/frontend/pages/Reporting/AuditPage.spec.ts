@@ -79,7 +79,7 @@ describe('AuditPage', () => {
     it('judul, subjudul, dan toolbar frame', () => {
         wrapper = mountPage()
 
-        expect(wrapper.text()).toContain('Audit Log')
+        expect(wrapper.text()).toContain('Log Audit')
         expect(wrapper.text()).toContain(
             'Catatan seluruh aktivitas sistem, bersifat permanen dan tidak dapat dihapus.'
         )
@@ -92,9 +92,9 @@ describe('AuditPage', () => {
         expect(wrapper.find('[aria-label="Pelaku"]').exists()).toBe(true)
     })
 
-    it('Export Audit Log menaut ke ekspor jenis audit-log', () => {
+    it('Export Log Audit menaut ke ekspor jenis audit-log', () => {
         wrapper = mountPage()
-        const link = wrapper.findAll('a').find((a) => a.text().includes('Export Audit Log'))
+        const link = wrapper.findAll('a').find((a) => a.text().includes('Export Log Audit'))
 
         expect(link?.attributes('href')).toBe('/reporting.exports.index?type=audit-log')
     })
@@ -102,7 +102,7 @@ describe('AuditPage', () => {
     it('[BR-RPT-05] peneliti melihat banner cakupan dan judul yang sama', () => {
         wrapper = mountPage({ seesEverything: false }, [auditEntry({ ipAddress: null })])
 
-        expect(wrapper.text()).toContain('Audit Log')
+        expect(wrapper.text()).toContain('Log Audit')
         expect(wrapper.text()).toContain(
             'Daftar ini hanya memuat aktivitas pada pengajuan Anda dan akun Anda sendiri.'
         )

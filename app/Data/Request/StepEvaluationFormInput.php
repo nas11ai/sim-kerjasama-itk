@@ -2,7 +2,7 @@
 
 namespace App\Data\Request;
 
-/** BR-FE-30 — satu pemasangan Form Evaluasi di langkah; urutannya = indeks di daftar langkah itu. */
+/** BR-FE-30 — satu pemasangan Formulir Evaluasi di langkah; urutannya = indeks di daftar langkah itu. */
 final class StepEvaluationFormInput
 {
     public function __construct(

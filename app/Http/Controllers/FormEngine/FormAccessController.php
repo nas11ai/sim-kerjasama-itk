@@ -19,7 +19,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Tab Access Control Form Builder (ADMIN-08-07). Route dijaga `can:schemes.manage` (W88).
+ * Tab Access Control Pembuat Formulir (ADMIN-08-07). Route dijaga `can:schemes.manage` (W88).
  */
 class FormAccessController extends Controller
 {
