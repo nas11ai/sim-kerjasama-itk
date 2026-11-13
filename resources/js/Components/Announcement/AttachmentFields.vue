@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
+import FileInput from '@/Components/app/FileInput.vue'
 import { Button } from '@/Components/ui/button'
-import { Input } from '@/Components/ui/input'
 import { Label } from '@/Components/ui/label'
 import type { AnnouncementFile } from '@/types/announcement'
 
@@ -60,9 +60,8 @@ function pick(event: Event) {
                 </Button>
             </li>
         </ul>
-        <Input
+        <FileInput
             id="announcement-files"
-            type="file"
             accept=".jpg,.png,.pdf"
             multiple
             :aria-invalid="fileError !== undefined"

@@ -4,6 +4,7 @@ import {
     formatDate,
     formatDateTime,
     formatFileSize,
+    formatPeriodName,
     formatRelative,
     formatRupiah,
 } from '@/lib/format'
@@ -55,5 +56,16 @@ describe('formatFileSize', () => {
         expect(formatFileSize(245760)).toBe('240 KB')
         expect(formatFileSize(1153434)).toBe('1,1 MB')
         expect(formatFileSize(512)).toBe('512 B')
+    })
+})
+
+describe('formatPeriodName', () => {
+    it('memberi awalan Periode pada nama tanpa awalan', () => {
+        expect(formatPeriodName('2026 Gelombang 2')).toBe('Periode 2026 Gelombang 2')
+    })
+
+    it('tidak menggandakan awalan yang sudah ditulis operator', () => {
+        expect(formatPeriodName('Periode 2026')).toBe('Periode 2026')
+        expect(formatPeriodName('periode ganjil')).toBe('periode ganjil')
     })
 })

@@ -28,6 +28,6 @@ class Approved extends SubmissionStatus
 
     public function variant(): string
     {
-        return 'default';
+        return 'success';
     }
 }

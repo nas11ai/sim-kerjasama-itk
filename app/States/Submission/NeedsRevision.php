@@ -28,6 +28,6 @@ class NeedsRevision extends SubmissionStatus
 
     public function variant(): string
     {
-        return 'outline';
+        return 'warning';
     }
 }

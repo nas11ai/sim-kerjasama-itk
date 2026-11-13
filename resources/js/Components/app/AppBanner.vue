@@ -17,15 +17,19 @@ const icons = {
     success: CircleCheck,
     lock: Lock,
 }
+const variants = {
+    info: 'info',
+    warning: 'warning',
+    denial: 'destructive',
+    success: 'success',
+    lock: 'lock',
+} as const
 const icon = computed(() => icons[props.tone])
 </script>
 
 <template>
-    <Alert
-        :variant="tone === 'denial' ? 'destructive' : 'default'"
-        :role="tone === 'denial' ? 'alert' : 'status'"
-    >
-        <component :is="icon" class="size-4" />
+    <Alert :variant="variants[tone]" :role="tone === 'denial' ? 'alert' : 'status'">
+        <component :is="icon" class="size-4" aria-hidden="true" />
         <AlertTitle v-if="title">{{ title }}</AlertTitle>
         <AlertDescription><slot /></AlertDescription>
     </Alert>

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { Plus } from 'lucide-vue-next'
 
 import {
     isNavItemActive,
@@ -51,12 +52,13 @@ const labels = (groups: VisibleNavGroup[]) => groups.flatMap((g) => g.items.map(
 const groupLabels = (groups: VisibleNavGroup[]) => groups.map((g) => g.label)
 
 describe('visibleNavGroups', () => {
-    it('peneliti hanya melihat Dashboard, Pengumuman, Notifikasi, dan Daftar Pengajuan', () => {
+    it('peneliti melihat Beranda, Pengumuman, Notifikasi, dan dua pintu Pengajuan', () => {
         expect(labels(visibleNavGroups(navGroups, RESEARCHER, NO_FLAGS))).toEqual([
             'Beranda',
             'Pengumuman',
             'Notifikasi',
             'Daftar Pengajuan',
+            'Buat Pengajuan Baru',
         ])
     })
 
@@ -76,6 +78,7 @@ describe('visibleNavGroups', () => {
             'Pengumuman',
             'Notifikasi',
             'Daftar Pengajuan',
+            'Buat Pengajuan Baru',
             'Penugasan Penilaian',
             'Riwayat Penilaian',
         ])
@@ -138,18 +141,36 @@ describe('visibleNavGroups', () => {
     })
 
     it('item ber-routeName null tidak pernah tampil, termasuk untuk katalog penuh', () => {
-        const hidden = navGroups.flatMap((g) => g.items).filter((i) => i.routeName === null)
-        const shown = labels(
-            visibleNavGroups(navGroups, FULL_CATALOG, {
-                ...NO_FLAGS,
-                hasOutputSubmission: true,
-            })
-        )
+        const groups = [
+            {
+                label: null,
+                items: [
+                    { label: 'Belum Ada', icon: Plus, routeName: null, anyPermission: [] },
+                    { label: 'Ada', icon: Plus, routeName: 'dashboard', anyPermission: [] },
+                ],
+            },
+        ]
 
-        expect(hidden.length).toBeGreaterThan(0)
-        for (const item of hidden) {
-            expect(shown).not.toContain(item.label)
-        }
+        expect(labels(visibleNavGroups(groups, FULL_CATALOG, NO_FLAGS))).toEqual(['Ada'])
+    })
+
+    it('[Paket 2 P1] Buat Pengajuan Baru tampil di sidebar dan hanya ia yang aktif di wizard', () => {
+        const items = visibleNavGroups(
+            navGroups,
+            ['submissions.create', 'submissions.view-own'],
+            NO_FLAGS
+        ).flatMap((g) => g.items)
+        const create = items.find((i) => i.label === 'Buat Pengajuan Baru')
+        const list = items.find((i) => i.label === 'Daftar Pengajuan')
+        const onCreate = (pattern: string) =>
+            pattern === 'user.submissions.create' || pattern === 'user.submissions.*'
+        const onShow = (pattern: string) =>
+            pattern === 'user.submissions.show' || pattern === 'user.submissions.*'
+
+        expect(create?.routeName).toBe('user.submissions.create')
+        expect(create && isNavItemActive(create, onCreate)).toBe(true)
+        expect(list && isNavItemActive(list, onCreate)).toBe(false)
+        expect(list && isNavItemActive(list, onShow)).toBe(true)
     })
 
     it('item requiresOutputSubmission butuh flag hasOutputSubmission', () => {

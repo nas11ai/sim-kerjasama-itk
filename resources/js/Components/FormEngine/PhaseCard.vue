@@ -6,6 +6,7 @@ import { Link2, Pencil, Power, Trash2 } from 'lucide-vue-next'
 import AppBanner from '@/Components/app/AppBanner.vue'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
+import { formatPeriodName } from '@/lib/format'
 import { phaseDraftBannerText } from '@/lib/phaseDefinition'
 import type { PhaseCardData } from '@/types/form-engine'
 
@@ -53,8 +54,8 @@ const summary = computed(() => {
             </AppBanner>
             <!-- BR-FE-26 / ADR 0019 — celah jadwal: tanggal yang belum ada di kalender periode -->
             <AppBanner v-for="gap in phase.deadlineGaps" :key="gap.period" tone="warning">
-                Periode {{ gap.period }} belum punya {{ gap.count }} tanggal yang dibutuhkan tahap
-                ini.
+                {{ formatPeriodName(gap.period) }} belum punya {{ gap.count }} tanggal yang
+                dibutuhkan tahap ini.
             </AppBanner>
         </div>
         <div class="flex flex-wrap justify-end gap-2">

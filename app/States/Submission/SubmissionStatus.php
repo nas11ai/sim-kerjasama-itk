@@ -19,6 +19,11 @@ abstract class SubmissionStatus extends State
 
     abstract public function icon(): string;
 
+    /**
+     * Paket 2 P1 — nada badge mengikuti siapa yang memegang bola: info = menunggu/dinilai penilai,
+     * warning = peneliti perlu bertindak, success/destructive = keputusan akhir, netral = belum
+     * dikirim atau sudah ditarik. Nilainya wajib ada di types/BadgeVariant.ts.
+     */
     abstract public function variant(): string;
 
     public static function config(): StateConfig

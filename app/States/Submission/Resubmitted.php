@@ -28,6 +28,6 @@ class Resubmitted extends SubmissionStatus
 
     public function variant(): string
     {
-        return 'outline';
+        return 'info';
     }
 }

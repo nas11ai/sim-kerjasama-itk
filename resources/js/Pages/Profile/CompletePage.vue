@@ -4,6 +4,7 @@ import { Head, Link, useForm } from '@inertiajs/vue3'
 import { Check } from 'lucide-vue-next'
 import { computed } from 'vue'
 
+import FileInput from '@/Components/app/FileInput.vue'
 import AppBanner from '@/Components/app/AppBanner.vue'
 import FormField from '@/Components/app/FormField.vue'
 import InfoGrid from '@/Components/app/InfoGrid.vue'
@@ -50,6 +51,16 @@ const save = () =>
             subtitle="Lengkapi profil Anda terlebih dahulu untuk dapat membuat pengajuan."
         />
         <div class="flex max-w-2xl flex-col gap-6">
+            <!-- Paket 2 P1 — pengalihan dari Buat Pengajuan Baru menjelaskan dirinya (BR-IAM-03) -->
+            <AppBanner
+                v-if="next === 'submission'"
+                tone="lock"
+                title="Pengajuan baru menunggu profil lengkap"
+            >
+                Anda diarahkan ke sini dari Buat Pengajuan Baru. Pengajuan baru bisa dibuat setelah
+                nomor telepon, bidang keahlian, dan foto profil terisi. Setelah profil disimpan,
+                Anda langsung dibawa kembali ke langkah pertama pengajuan.
+            </AppBanner>
             <AppBanner tone="info">
                 Data dasar berasal dari registrasi dan tidak dapat diubah di halaman ini.
             </AppBanner>
@@ -80,11 +91,9 @@ const save = () =>
                         :error="form.errors.photo"
                     >
                         <template #default="{ describedBy }">
-                            <input
+                            <FileInput
                                 id="profile-photo"
-                                type="file"
                                 accept="image/jpeg,image/png"
-                                class="block w-full text-sm file:mr-3 file:rounded-md file:border file:border-input file:bg-background file:px-3 file:py-1.5 file:text-sm"
                                 :aria-describedby="describedBy"
                                 @change="pickPhoto"
                             />

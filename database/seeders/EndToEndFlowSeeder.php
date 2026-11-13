@@ -118,7 +118,7 @@ class EndToEndFlowSeeder extends Seeder
     private function scheme(): Scheme
     {
         $schemeType = SchemeType::firstOrCreate(['name' => 'Penelitian Dasar']);
-        $submissionType = SubmissionType::firstOrCreate(['name' => 'Research']);
+        $submissionType = SubmissionType::firstOrCreate(['name' => 'Penelitian']);
 
         return Scheme::firstOrCreate(
             ['code' => 'DIPA-2026'],

@@ -28,6 +28,6 @@ class UnderReview extends SubmissionStatus
 
     public function variant(): string
     {
-        return 'secondary';
+        return 'info';
     }
 }

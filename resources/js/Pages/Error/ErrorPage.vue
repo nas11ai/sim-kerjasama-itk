@@ -52,7 +52,7 @@ const description = computed(() => props.message ?? content.value.description)
                 class="p-0 md:p-0"
             />
             <Button v-if="signedIn" as-child>
-                <Link :href="route('dashboard')">Kembali ke Dasbor</Link>
+                <Link :href="route('dashboard')">Kembali ke Beranda</Link>
             </Button>
             <Button v-else as-child variant="outline" class="w-full">
                 <Link :href="route('login')">Masuk</Link>

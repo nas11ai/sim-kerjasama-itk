@@ -2,6 +2,7 @@
 import { useForm } from '@inertiajs/vue3'
 import { computed } from 'vue'
 
+import FileInput from '@/Components/app/FileInput.vue'
 import FormField from '@/Components/app/FormField.vue'
 import SectionCard from '@/Components/app/SectionCard.vue'
 import type { OwnProfile } from '@/types/profile'
@@ -66,11 +67,9 @@ const upload = (event: Event) => {
             :error="form.errors.photo"
         >
             <template #default="{ describedBy }">
-                <input
+                <FileInput
                     id="profile-photo"
-                    type="file"
                     accept="image/jpeg,image/png"
-                    class="block w-full text-sm file:mr-3 file:rounded-md file:border file:border-input file:bg-background file:px-3 file:py-1.5 file:text-sm"
                     :disabled="form.processing"
                     :aria-describedby="describedBy"
                     @change="upload"

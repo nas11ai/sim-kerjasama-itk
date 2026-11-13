@@ -59,7 +59,7 @@ const selects = computed(
             search-label="Cari judul pengajuan"
             @select="(key, value) => (filters[key] = value)"
         />
-        <SubmissionTable :rows="submissions.data" :filtered="filtered" />
+        <SubmissionTable :rows="submissions.data" :filtered="filtered" :can-create="canCreate" />
         <PaginationBar :page="submissions" />
     </AppLayout>
 </template>

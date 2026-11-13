@@ -3,6 +3,7 @@ import type { Editor } from '@tiptap/vue-3'
 import { ImagePlus } from 'lucide-vue-next'
 import { ref } from 'vue'
 
+import FileInput from '@/Components/app/FileInput.vue'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
 import { Label } from '@/Components/ui/label'
@@ -56,9 +57,8 @@ async function insert() {
         <PopoverContent class="w-80">
             <form class="space-y-2" @submit.prevent="insert">
                 <Label for="rich-text-image">Berkas gambar</Label>
-                <Input
+                <FileInput
                     id="rich-text-image"
-                    type="file"
                     accept="image/jpeg,image/png"
                     :aria-invalid="error !== undefined"
                     @change="pick"

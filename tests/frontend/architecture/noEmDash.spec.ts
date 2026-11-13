@@ -7,7 +7,9 @@ import { describe, expect, it } from 'vitest'
 // K9 (pemilik 2026-11-13) — teks yang dilihat user tidak memuat "—". Komentar kode bukan teks UI,
 // jadi yang diperiksa hanya isi <template> (tanpa komentar HTML) dan string literal di skrip.
 const ROOT = join(__dirname, '../../../resources/js')
-const DASH = '—'
+const DASH = /—/
+// Paket 2 P1 — istilah yang bocor dari bahasa Inggris atau terjemahan lama (glosarium UI).
+const FORBIDDEN_TERMS = /\b(Dasbor|Baca-saja|Laravel)\b/
 const STRING_TOKENS = new Set([
     ts.SyntaxKind.StringLiteral,
     ts.SyntaxKind.NoSubstitutionTemplateLiteral,
@@ -29,7 +31,7 @@ function lineOf(source: string, index: number): number {
     return source.slice(0, index).split('\n').length
 }
 
-function scriptOffenders(code: string, offset: number, source: string): number[] {
+function scriptOffenders(code: string, offset: number, source: string, needle: RegExp): number[] {
     const scanner = ts.createScanner(
         ts.ScriptTarget.Latest,
         false,
@@ -47,7 +49,7 @@ function scriptOffenders(code: string, offset: number, source: string): number[]
         if (kind === ts.SyntaxKind.TemplateHead || kind === ts.SyntaxKind.TemplateMiddle) {
             braces.push('template')
         }
-        if (STRING_TOKENS.has(kind) && scanner.getTokenText().includes(DASH)) {
+        if (STRING_TOKENS.has(kind) && needle.test(scanner.getTokenText())) {
             lines.push(lineOf(source, offset + scanner.getTokenStart()))
         }
     }
@@ -55,17 +57,22 @@ function scriptOffenders(code: string, offset: number, source: string): number[]
     return lines
 }
 
-function offenders(path: string): string[] {
+function offenders(path: string, needle: RegExp): string[] {
     const source = readFileSync(path, 'utf8')
     const lines: number[] = []
 
     if (path.endsWith('.ts')) {
-        lines.push(...scriptOffenders(source, 0, source))
+        lines.push(...scriptOffenders(source, 0, source, needle))
     } else {
         for (const match of source.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)) {
             const code = match[1] ?? ''
             lines.push(
-                ...scriptOffenders(code, (match.index ?? 0) + match[0].indexOf(code), source)
+                ...scriptOffenders(
+                    code,
+                    (match.index ?? 0) + match[0].indexOf(code),
+                    source,
+                    needle
+                )
             )
         }
         const template = /<template>([\s\S]*)<\/template>/.exec(source)
@@ -75,7 +82,7 @@ function offenders(path: string): string[] {
                 c.replace(/[^\n]/g, ' ')
             )
             body.split('\n').forEach((line, i) => {
-                if (line.includes(DASH)) lines.push(lineOf(source, start) + i)
+                if (needle.test(line)) lines.push(lineOf(source, start) + i)
             })
         }
     }
@@ -85,6 +92,10 @@ function offenders(path: string): string[] {
 
 describe('K9 tanpa em-dash di UI', () => {
     it('teks template dan string skrip di resources/js tidak memuat "—"', () => {
-        expect(files(ROOT).flatMap(offenders)).toEqual([])
+        expect(files(ROOT).flatMap((path) => offenders(path, DASH))).toEqual([])
+    })
+
+    it('teks template dan string skrip tidak memuat istilah terlarang', () => {
+        expect(files(ROOT).flatMap((path) => offenders(path, FORBIDDEN_TERMS))).toEqual([])
     })
 })

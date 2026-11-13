@@ -53,12 +53,12 @@ const mountPage = (props: ErrorPageProps) =>
 beforeEach(() => vi.stubGlobal('route', route))
 
 describe('Error/ErrorPage', () => {
-    it('user masuk: shell aplikasi dan tombol kembali ke dasbor', () => {
+    it('user masuk: shell aplikasi dan tombol kembali ke Beranda', () => {
         const wrapper = mountPage({ status: 404, message: null, auth: signedIn })
 
         expect(wrapper.find('[data-layout="app"]').exists()).toBe(true)
         expect(wrapper.get('a').attributes('href')).toBe('/dashboard')
-        expect(wrapper.get('a').text()).toBe('Kembali ke Dasbor')
+        expect(wrapper.get('a').text()).toBe('Kembali ke Beranda')
     })
 
     it('tamu: layout auth dan tombol masuk', () => {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
+import FileInput from '@/Components/app/FileInput.vue'
 import FormField from '@/Components/app/FormField.vue'
 import OptionSelect from '@/Components/app/OptionSelect.vue'
 import { Checkbox } from '@/Components/ui/checkbox'
@@ -98,13 +99,7 @@ const pickFile = (event: Event) => {
                 @update:model-value="check"
             />
             <div v-else class="flex flex-col gap-1">
-                <input
-                    :id="id"
-                    type="file"
-                    class="text-sm file:mr-3 file:rounded-md file:border file:bg-transparent file:px-3 file:py-1"
-                    :aria-describedby="describedBy"
-                    @change="pickFile"
-                />
+                <FileInput :id="id" :aria-describedby="describedBy" @change="pickFile" />
                 <a
                     v-if="field.fileName && field.downloadUrl"
                     :href="field.downloadUrl"

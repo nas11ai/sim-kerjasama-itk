@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3'
-import { ArrowRight, FileText } from 'lucide-vue-next'
+import { ArrowRight, FileText, Plus } from 'lucide-vue-next'
 
 import DataTable from '@/Components/app/DataTable.vue'
 import EmptyState from '@/Components/app/EmptyState.vue'
@@ -10,7 +10,9 @@ import { Button } from '@/Components/ui/button'
 import { formatDate } from '@/lib/format'
 import type { SubmissionRow } from '@/types/submission-page'
 
-defineProps<{ rows: SubmissionRow[]; filtered: boolean }>()
+withDefaults(defineProps<{ rows: SubmissionRow[]; filtered: boolean; canCreate?: boolean }>(), {
+    canCreate: false,
+})
 
 const columns = [
     { key: 'title', label: 'Judul' },
@@ -76,7 +78,15 @@ const columns = [
                         ? undefined
                         : 'Pengajuan yang Anda ketuai atau ikuti sebagai anggota tim tampil di sini.'
                 "
-            />
+            >
+                <template v-if="canCreate && !filtered" #action>
+                    <Button as-child>
+                        <Link :href="route('user.submissions.create')">
+                            <Plus class="size-4" /> Buat Pengajuan Baru
+                        </Link>
+                    </Button>
+                </template>
+            </EmptyState>
         </template>
     </DataTable>
 </template>

@@ -15,14 +15,12 @@ import { quickActions } from '@/lib/dashboardActions'
 import type { PageProps } from '@/types'
 import type { DashboardIndexPageProps } from '@/types/dashboard'
 
-const props = defineProps<DashboardIndexPageProps>()
+defineProps<DashboardIndexPageProps>()
 
 const page = usePage<PageProps>()
 
 // §4.4 — section dari backend, aksi cepat dari permissions; nama peran tak dibaca.
-const actions = computed(() =>
-    quickActions(page.props.auth.user?.permissions ?? [], props.profileCompletion !== null)
-)
+const actions = computed(() => quickActions(page.props.auth.user?.permissions ?? []))
 </script>
 
 <template>
@@ -36,7 +34,10 @@ const actions = computed(() =>
                 <template v-if="profileCompletion.missing.length < 3">
                     {{ profileCompletion.missing.length }} dari 3 data tambahan belum terisi.
                 </template>
-                <Link :href="route('profile.complete')" class="font-medium underline">
+                <Link
+                    :href="route('profile.complete', { next: 'submission' })"
+                    class="font-medium underline"
+                >
                     Lengkapi Profil
                 </Link>
             </AppBanner>

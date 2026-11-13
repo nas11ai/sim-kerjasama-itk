@@ -30,6 +30,8 @@ export interface NavItem {
     /** null = halamannya belum ada, item tersembunyi sampai irisan terkait mengisinya */
     routeName: string | null
     activePattern?: string
+    /** route yang tercakup activePattern tapi punya item sidebar sendiri */
+    exceptPattern?: string
     /** kosong = semua pengguna; selain itu cukup memegang salah satu */
     anyPermission: string[]
     /** W142 — Luaran Penelitian: pengajuan APPROVED, atau ditarik dengan luaran */
@@ -80,12 +82,15 @@ export const navGroups: NavGroup[] = [
                 icon: FileText,
                 routeName: 'user.submissions.index',
                 activePattern: 'user.submissions.*',
+                exceptPattern: 'user.submissions.create',
                 anyPermission: ['submissions.view-own'],
             },
+            // Paket 2 P1 — pintu pengajuan pertama juga ada di sidebar. Profil belum lengkap
+            // diarahkan backend ke Lengkapi Profil yang menjelaskan alasannya (BR-IAM-03).
             {
                 label: 'Buat Pengajuan Baru',
                 icon: SquarePlus,
-                routeName: null,
+                routeName: 'user.submissions.create',
                 anyPermission: ['submissions.create'],
             },
         ],
@@ -296,9 +301,10 @@ export function isNavItemActive(
     current: (pattern: string) => boolean
 ): boolean {
     // Pola tambahan tidak menggantikan halaman item itu sendiri (Daftar Monev + laporannya).
-    return (
-        current(item.routeName) || (item.activePattern !== undefined && current(item.activePattern))
-    )
+    if (current(item.routeName)) return true
+    if (item.exceptPattern !== undefined && current(item.exceptPattern)) return false
+
+    return item.activePattern !== undefined && current(item.activePattern)
 }
 
 /** Jumlah untuk badge item, atau null bila item tak berhitungan atau hitungannya nol. */

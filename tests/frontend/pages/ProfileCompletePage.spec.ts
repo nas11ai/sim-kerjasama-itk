@@ -92,6 +92,14 @@ describe('Profile/CompletePage', () => {
         )
     })
 
+    it('[Paket 2 P1] datang dari Buat Pengajuan Baru: banner menjelaskan pengalihan', () => {
+        const text = mountPage({ next: 'submission' }).text()
+
+        expect(text).toContain('Pengajuan baru menunggu profil lengkap')
+        expect(text).toContain('Anda diarahkan ke sini dari Buat Pengajuan Baru.')
+        expect(mountPage().text()).not.toContain('Anda diarahkan ke sini')
+    })
+
     it('banner sebagian tidak tampil bila ketiganya kosong', () => {
         expect(mountPage().text()).not.toContain('dari 3 data tambahan belum terisi')
     })

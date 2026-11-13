@@ -89,7 +89,7 @@ describe('Dashboard/IndexPage', () => {
         expect(text).toContain('3 pengajuan butuh penilai · 2 pengguna menunggu verifikasi NIDN')
     })
 
-    it('[IAM-VERIFY-04] profil belum lengkap: banner dan Buat Pengajuan Baru nonaktif', () => {
+    it('[IAM-VERIFY-04] profil belum lengkap: banner menaut gerbang, aksi tetap menaut', () => {
         share(['submissions.create', 'submissions.view-own'])
         const wrapper = mountPage({
             profileCompletion: { missing: ['Bidang Keahlian', 'Foto Profil'] },
@@ -98,12 +98,12 @@ describe('Dashboard/IndexPage', () => {
         expect(wrapper.text()).toContain('Lengkapi profil Anda sebelum membuat pengajuan.')
         expect(wrapper.text()).toContain('2 dari 3 data tambahan belum terisi.')
         expect(wrapper.find('a[href="/profile.complete"]').exists()).toBe(true)
-        expect(wrapper.find('a[href="/user.submissions.create"]').exists()).toBe(false)
-
-        const create = wrapper
-            .findAll('button')
-            .find((b) => b.text().includes('Buat Pengajuan Baru'))
-        expect(create?.attributes('disabled')).toBeDefined()
+        // Paket 2 P1 — tidak ada tombol nonaktif beralasan tersembunyi: backend mengarahkan ke
+        // Lengkapi Profil, yang menjelaskan kenapa user dialihkan.
+        expect(wrapper.find('a[href="/user.submissions.create"]').text()).toContain(
+            'Buat Pengajuan Baru'
+        )
+        expect(wrapper.findAll('button[disabled]')).toHaveLength(0)
     })
 
     it('tanpa profileCompletion tidak ada banner profil', () => {

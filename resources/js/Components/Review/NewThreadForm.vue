@@ -3,6 +3,7 @@ import { useForm } from '@inertiajs/vue3'
 import { Plus } from 'lucide-vue-next'
 import { computed } from 'vue'
 
+import FileInput from '@/Components/app/FileInput.vue'
 import AppBanner from '@/Components/app/AppBanner.vue'
 import FormField from '@/Components/app/FormField.vue'
 import SectionCard from '@/Components/app/SectionCard.vue'
@@ -65,13 +66,7 @@ const open = () =>
                 </template>
             </FormField>
             <FormField id="summary-attachments" label="Lampiran" hint="Maks. 5 berkas, 10 MB">
-                <input
-                    id="summary-attachments"
-                    type="file"
-                    multiple
-                    class="text-sm file:mr-3 file:rounded-md file:border file:px-3 file:py-1"
-                    @change="pickFiles"
-                />
+                <FileInput id="summary-attachments" multiple @change="pickFiles" />
             </FormField>
             <AppBanner v-for="message in otherErrors" :key="message" tone="denial">
                 {{ message }}

@@ -8,10 +8,8 @@ import { ZiggyVue } from 'ziggy-js'
 
 import { syncAccountChannel } from '@/lib/accountChannel'
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel'
-
 createInertiaApp({
-    title: (title) => `${title} - ${appName}`,
+    title: (title) => (title ? `${title} - SIMPAS` : 'SIMPAS'),
     resolve: (name) =>
         resolvePageComponent(
             `./Pages/${name}.vue`,

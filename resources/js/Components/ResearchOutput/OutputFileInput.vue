@@ -2,6 +2,7 @@
 import { X } from 'lucide-vue-next'
 import { computed } from 'vue'
 
+import FileInput from '@/Components/app/FileInput.vue'
 import AppBanner from '@/Components/app/AppBanner.vue'
 import { Button } from '@/Components/ui/button'
 import { Label } from '@/Components/ui/label'
@@ -46,12 +47,10 @@ const remove = (index: number) => (files.value = files.value.filter((_, i) => i 
                 </span>
             </li>
         </ul>
-        <input
+        <FileInput
             id="output-files"
-            type="file"
             multiple
             accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-            class="text-sm file:mr-3 file:rounded-md file:border file:bg-transparent file:px-3 file:py-1"
             aria-describedby="output-files-hint"
             @change="add"
         />

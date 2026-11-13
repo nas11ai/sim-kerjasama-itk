@@ -48,8 +48,8 @@ const stateLabels: Record<ReadinessCheck['state'], string> = {
 }
 
 const icons: Record<ReadinessCheck['state'], { icon: typeof CircleCheck; tone: string }> = {
-    passed: { icon: CircleCheck, tone: 'text-green-600' },
-    warning: { icon: TriangleAlert, tone: 'text-amber-600' },
+    passed: { icon: CircleCheck, tone: 'text-success' },
+    warning: { icon: TriangleAlert, tone: 'text-warning' },
     failed: { icon: CircleAlert, tone: 'text-destructive' },
 }
 </script>

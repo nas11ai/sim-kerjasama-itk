@@ -11,8 +11,16 @@ export const alertVariants = cva(
         variants: {
             variant: {
                 default: 'bg-background text-foreground',
+                // Paket 2 P1 — tiap nada AppBanner terbedakan oleh warna, ikon, dan teks.
                 destructive:
-                    'border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive',
+                    'border-destructive-border bg-destructive-subtle text-destructive [&>svg]:text-destructive',
+                success:
+                    'border-success-border bg-success-subtle text-success [&>svg]:text-success',
+                warning:
+                    'border-warning-border bg-warning-subtle text-warning [&>svg]:text-warning',
+                info: 'border-info-border bg-info-subtle text-info [&>svg]:text-info',
+                // Gembok: aturan yang sengaja menutup tindakan, bukan galat; tetap netral.
+                lock: 'bg-muted text-foreground [&>svg]:text-muted-foreground',
             },
         },
         defaultVariants: {

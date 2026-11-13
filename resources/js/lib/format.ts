@@ -60,3 +60,11 @@ export function formatFileSize(bytes: number): string {
 
     return `${sizeFormat.format(bytes / (1024 * 1024))} MB`
 }
+
+/**
+ * "Periode 2026" untuk nama periode. Operator sering sudah menulis "Periode ..." di namanya, jadi
+ * awalan hanya ditambahkan bila belum ada (Paket 2 P1: "Periode Periode 2026").
+ */
+export function formatPeriodName(name: string): string {
+    return /^periode\b/i.test(name.trim()) ? name.trim() : `Periode ${name.trim()}`
+}

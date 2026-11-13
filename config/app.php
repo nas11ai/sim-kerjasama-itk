@@ -13,7 +13,9 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    // Paket 2 P1 — nama produk yang dilihat user (judul tab, pengirim email), bukan konfigurasi
+    // deployment: APP_NAME bawaan .env ("Laravel") tidak boleh bocor ke UI.
+    'name' => 'SIMPAS',
 
     /*
     |--------------------------------------------------------------------------
@@ -78,7 +80,9 @@ return [
     |
     */
 
-    'locale' => env('APP_LOCALE', 'en'),
+    // Paket 2 P1 — UI hanya berbahasa Indonesia (lang/id); locale tidak diambil dari .env supaya
+    // APP_LOCALE=en bawaan tidak membuat pesan validasi dan <html lang> kembali berbahasa Inggris.
+    'locale' => 'id',
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 

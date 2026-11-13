@@ -11,10 +11,13 @@ export const badgeVariants = cva(
                     'border-transparent bg-primary text-primary-foreground shadow hover:bg-primary/80',
                 secondary:
                     'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
-                destructive:
-                    'border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/80',
+                // Paket 2 P1 — nada status berupa tint (teks nada di atas latar pucat, >=5.6:1),
+                // bukan blok solid: badge tidak bersaing dengan tombol aksi utama.
+                destructive: 'border-destructive-border bg-destructive-subtle text-destructive',
                 outline: 'text-foreground',
-                success: 'border-transparent bg-green-500 text-white shadow hover:bg-green/80',
+                success: 'border-success-border bg-success-subtle text-success',
+                warning: 'border-warning-border bg-warning-subtle text-warning',
+                info: 'border-info-border bg-info-subtle text-info',
             },
         },
         defaultVariants: {

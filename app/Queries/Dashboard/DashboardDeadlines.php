@@ -8,6 +8,7 @@ use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
 use App\Queries\Submission\ResearcherStartOptions;
+use App\Support\Format\PeriodName;
 use App\Support\SubmissionPeriodGate;
 use Illuminate\Support\Carbon;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -51,7 +52,7 @@ class DashboardDeadlines implements ChangesNoState
         foreach (ResearcherStartOptions::run($user) as $option) {
             if ($option->closesAt !== null) {
                 $deadlines[$option->id] = DeadlineData::until(
-                    "Periode {$option->name} ditutup",
+                    PeriodName::format($option->name).' ditutup',
                     Carbon::parse($option->closesAt),
                     route('user.submissions.create'),
                 );
@@ -78,7 +79,7 @@ class DashboardDeadlines implements ChangesNoState
 
             if ($closesAt instanceof SubmissionDate) {
                 $deadlines[$period->id] = DeadlineData::until(
-                    "Tutup periode {$period->name}",
+                    'Tutup '.PeriodName::format($period->name),
                     $closesAt->datetime,
                     route('admin.submission-periods.index'),
                 );

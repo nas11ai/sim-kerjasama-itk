@@ -22,7 +22,7 @@ const summary = computed(() => [
 
 <template>
     <section class="flex min-w-0 flex-col gap-4">
-        <SectionCard title="Pengajuan" description="Baca-saja">
+        <SectionCard title="Pengajuan" description="Hanya baca">
             <template #actions>
                 <!-- BR-SM-07 — penugasan aktif juga membuka detail lengkap (SM-ACCESS-05) -->
                 <Link

@@ -48,7 +48,7 @@ it('periods.manage melihat penutupan periode terbuka, urut naik', function () {
 
     $deadlines = DashboardDeadlines::run(ddManager(), []);
 
-    expect(ddTitles($deadlines))->toBe(['Tutup periode DIPA 2026', 'Tutup periode DIPA 2027'])
+    expect(ddTitles($deadlines))->toBe(['Tutup Periode DIPA 2026', 'Tutup Periode DIPA 2027'])
         ->and($deadlines[0]->daysLeft)->toBe(3)
         ->and($deadlines[0]->urgent)->toBeTrue()
         ->and($deadlines[1]->urgent)->toBeFalse()
@@ -73,17 +73,19 @@ it('maksimal lima, digabung dengan deadline reviewer', function () {
 
     expect($deadlines)->toHaveCount(5)
         ->and($deadlines[0]->title)->toBe('Evaluasi: Biochar')
-        ->and($deadlines[4]->title)->toBe('Tutup periode P4');
+        ->and($deadlines[4]->title)->toBe('Tutup Periode P4');
 });
 
 it('peneliti melihat periode yang bisa ia ajukan', function () {
     $this->freezeTime();
     $fx = wizardFixture();
     SubmissionPeriodPhase::firstOrCreate(['submission_period_id' => $fx['period']->id, 'form_phase_id' => $fx['phase']->id]);
+    // Paket 2 P1 — nama yang sudah berawalan "Periode" tidak diberi awalan kedua.
+    $fx['period']->update(['name' => 'Periode 2026']);
 
     $deadlines = DashboardDeadlines::run($fx['user'], []);
 
-    expect(ddTitles($deadlines))->toBe(["Periode {$fx['period']->name} ditutup"])
+    expect(ddTitles($deadlines))->toBe(['Periode 2026 ditutup'])
         ->and($deadlines[0]->href)->toBe(route('user.submissions.create'));
 });
 
