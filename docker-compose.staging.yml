@@ -9,6 +9,9 @@ x-php: &php
         dockerfile: docker/staging/Dockerfile
     image: simpas-staging-php
     restart: unless-stopped
+    # Semua proses PHP satu pengguna (www-data), supaya log dan berkas ekspor yang ditulis worker
+    # tetap bisa ditulis php-fpm, dan sebaliknya. composer/npm di deploy.sh berjalan sebagai root.
+    user: '33:33'
     volumes:
         - .:/var/www/html
     depends_on:
