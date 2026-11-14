@@ -3,11 +3,10 @@
 #
 # Laravel membaca .env dari checkout yang di-mount; Compose memakai .env yang sama untuk ${...} di bawah.
 
+# Hanya `app` yang membangun image; worker memakai image yang sama tanpa membangun ulang.
 x-php: &php
-    build:
-        context: .
-        dockerfile: docker/staging/Dockerfile
     image: simpas-staging-php
+    pull_policy: never
     restart: unless-stopped
     # Semua proses PHP satu pengguna (www-data), supaya log dan berkas ekspor yang ditulis worker
     # tetap bisa ditulis php-fpm, dan sebaliknya. composer/npm di deploy.sh berjalan sebagai root.
@@ -37,6 +36,9 @@ services:
 
     app:
         <<: *php
+        build:
+            # Dockerfile tidak menyalin apa pun dari checkout, jadi konteksnya cukup folder ini.
+            context: docker/staging
 
     queue:
         <<: *php

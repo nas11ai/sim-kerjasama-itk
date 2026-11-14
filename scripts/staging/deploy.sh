@@ -52,4 +52,9 @@ compose up -d
 artisan queue:restart
 compose restart queue reverb scheduler
 
-echo "Selesai. Buka https://$(grep -E '^SITE_HOST=' .env | cut -d= -f2-)"
+site_host=$(grep -E '^SITE_HOST=' .env | cut -d= -f2-)
+https_port=$(grep -E '^HTTPS_PORT=' .env | cut -d= -f2-)
+if [[ -n "$https_port" && "$https_port" != 443 ]]; then
+    site_host="$site_host:$https_port"
+fi
+echo "Selesai. Buka https://$site_host"

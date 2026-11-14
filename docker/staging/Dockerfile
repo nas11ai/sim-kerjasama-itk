@@ -7,6 +7,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         curl \
         unzip \
         libpng-dev \
+        libjpeg62-turbo-dev \
+        libfreetype6-dev \
+        libzip-dev \
         libonig-dev \
         libxml2-dev \
         libpq-dev \
@@ -14,7 +17,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         npm \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd opcache
+# Sama dengan image CI (simpas-ci:8.4): zip untuk phpspreadsheet (ekspor Excel), GD dengan JPEG untuk
+# InlineImageEncoder (gambar pengumuman).
+RUN docker-php-ext-configure gd --with-jpeg --with-freetype \
+    && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd zip opcache
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
