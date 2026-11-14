@@ -1,0 +1,74 @@
+# Staging QA di satu VM (docs/qa/staging.md). Semua proses satu mesin, jadi disk `local` (unggahan, ekspor),
+# antrean `database`, dan Reverb tetap benar tanpa S3 (B27). Jalankan lewat scripts/staging/deploy.sh.
+#
+# Laravel membaca .env dari checkout yang di-mount; Compose memakai .env yang sama untuk ${...} di bawah.
+
+x-php: &php
+    build:
+        context: .
+        dockerfile: docker/staging/Dockerfile
+    image: simpas-staging-php
+    restart: unless-stopped
+    volumes:
+        - .:/var/www/html
+    depends_on:
+        postgres:
+            condition: service_healthy
+
+services:
+    postgres:
+        image: postgres:18-alpine
+        restart: unless-stopped
+        environment:
+            POSTGRES_DB: ${DB_DATABASE}
+            POSTGRES_USER: ${DB_USERNAME}
+            POSTGRES_PASSWORD: ${DB_PASSWORD}
+        # Tanpa port ke host: hanya container di jaringan ini yang bisa mencapai database.
+        volumes:
+            - postgres_data:/var/lib/postgresql
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}']
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    app:
+        <<: *php
+
+    queue:
+        <<: *php
+        command: ['php', 'artisan', 'queue:work', '--tries=1']
+
+    reverb:
+        <<: *php
+        command: ['php', 'artisan', 'reverb:start', '--host=0.0.0.0', '--port=8080']
+
+    scheduler:
+        <<: *php
+        command: ['php', 'artisan', 'schedule:work']
+
+    caddy:
+        image: caddy:2
+        restart: unless-stopped
+        ports:
+            - '${HTTP_PORT:-80}:80'
+            - '${HTTPS_PORT:-443}:${HTTPS_PORT:-443}'
+        environment:
+            SITE_HOST: ${SITE_HOST}
+            HTTPS_PORT: ${HTTPS_PORT:-443}
+            BASIC_AUTH_USER: ${BASIC_AUTH_USER}
+            BASIC_AUTH_HASH: ${BASIC_AUTH_HASH}
+        volumes:
+            - ./docker/staging/Caddyfile:/etc/caddy/Caddyfile:ro
+            # Caddy menyajikan aset hasil build dan berkas storage:link langsung dari checkout.
+            - .:/var/www/html:ro
+            - caddy_data:/data
+            - caddy_config:/config
+        depends_on:
+            - app
+            - reverb
+
+volumes:
+    postgres_data:
+    caddy_data:
+    caddy_config:

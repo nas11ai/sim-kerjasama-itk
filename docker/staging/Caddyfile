@@ -1,0 +1,23 @@
+# Staging QA (docs/qa/staging.md). SITE_HOST = `<ip-publik>.sslip.io` di VM (sertifikat Let's Encrypt),
+# `localhost` saat diuji di laptop (CA internal Caddy).
+{$SITE_HOST}:{$HTTPS_PORT:443} {
+	# Kata sandi akun uji = alamat emailnya dan tertulis di docs/qa/data-uji.md: tanpa gerbang ini
+	# siapa pun yang menemukan URL bisa masuk sebagai Admin.
+	basic_auth {
+		{$BASIC_AUTH_USER} {$BASIC_AUTH_HASH}
+	}
+
+	header X-Robots-Tag "noindex, nofollow"
+	encode zstd gzip
+
+	# Reverb (protokol Pusher): browser membuka wss://SITE_HOST/app/{key}.
+	handle /app/* {
+		reverse_proxy reverb:8080
+	}
+
+	handle {
+		root * /var/www/html/public
+		php_fastcgi app:9000
+		file_server
+	}
+}
