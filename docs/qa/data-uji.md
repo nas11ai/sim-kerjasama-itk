@@ -2,6 +2,7 @@
 
 Data uji untuk 3–4 penguji yang menguji serentak di database yang sama. Setiap penguji memakai **set**-nya
 sendiri (`qa1` sampai `qa4`), jadi tidak ada yang saling menimpa. Desain: `docs/design/2026-11-13-seeder-data-uji-qa-design.md`.
+Kasus uji yang memakai data ini: [`matriks-uji-qa.xlsx`](matriks-uji-qa.xlsx) (dibangun dari `scripts/qa/kasus_uji.py`).
 
 ## Mengisi atau mengembalikan ke awal
 

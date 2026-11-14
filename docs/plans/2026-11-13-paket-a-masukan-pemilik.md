@@ -266,3 +266,12 @@ antrean, ekspor, serta Reverb nyasar antar laptop). Desain `docs/design/2026-11-
 Basic Auth seluruh situs) + php-fpm + PostgreSQL + antrean + Reverb + scheduler di VM Oracle Always Free (Ampere A1),
 `APP_ENV=staging`; B27 selesai tanpa perubahan kode. Pemilik: membuat akun dan VM, push cabang yang dilacak VM.
 Berikutnya menurut K1: matriks QA Excel.
+
+## Langkah 5: matriks uji QA (2026-11-14)
+
+Desain `docs/design/2026-11-14-matriks-uji-qa-design.md`. Berkas `docs/qa/matriks-uji-qa.xlsx` (bisa dimasukkan ke
+Google Sheets), dibangun ulang dengan `uv run --with openpyxl python scripts/qa/buat_matriks_uji.py`; isi kasus di
+`scripts/qa/kasus_uji.py`. 202 kasus dalam 18 alur, berpola Gherkin (Diketahui / Ketika / Maka) dengan lokasi halaman
+(menu + alamat), dibagi per alur ke empat penguji (usulan tiga penguji ikut tercantum), memakai set data `qa1`–`qa4`.
+Lembar Cakupan BDD: 259 dari 538 skenario dicakup kasus manual. Temuan yang tidak diperbaiki: B28 (nama tipe luaran
+PKS memakai tanda pisah panjang).
