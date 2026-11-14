@@ -52,6 +52,10 @@ Dua lapis, keduanya wajib:
 Port 80 dibutuhkan Caddy untuk mendapatkan sertifikat HTTPS dari Let's Encrypt; kalau tertutup, situs tidak
 pernah bisa dibuka lewat HTTPS.
 
+Jalankan `netfilter-persistent save` di langkah ini, **sebelum** Docker dipasang. Docker menambah aturan
+iptables-nya sendiri; menjalankan `netfilter-persistent save` atau `reload` sesudahnya ikut menyimpan atau
+menghapus aturan Docker, dan situs mati sampai `sudo systemctl restart docker`.
+
 ## 4. Memasang Docker
 
 ```bash
@@ -75,10 +79,13 @@ Tempel kunci itu di GitHub: repo → *Settings → Deploy keys → Add deploy ke
 access*. Lalu:
 
 ```bash
-printf 'Host github.com\n  IdentityFile ~/.ssh/simpas_deploy\n' >> ~/.ssh/config
-git clone -b feat/init-be-development git@github.com:nas11ai/sim-kerjasama-itk.git simpas
+git clone -c core.sshCommand='ssh -i ~/.ssh/simpas_deploy -o IdentitiesOnly=yes' \
+    -b feat/init-be-development git@github.com:nas11ai/sim-kerjasama-itk.git simpas
 cd simpas
 ```
+
+Ketik `yes` saat SSH menanyakan sidik jari github.com. Kunci deploy tersimpan di `.git/config` checkout ini,
+jadi `git pull` di `deploy.sh` memakainya tanpa pengaturan lain.
 
 Cabang yang di-clone harus sudah di-push ke GitHub. Ganti `feat/init-be-development` bila staging melacak cabang
 lain.
@@ -99,8 +106,10 @@ Isi yang bertanda **WAJIB** di berkas itu:
 | `REVERB_APP_ID`, `REVERB_APP_KEY`, `REVERB_APP_SECRET` | masing-masing `openssl rand -hex 16` |
 
 ```bash
-docker run --rm caddy:2 caddy hash-password --plaintext 'kata-sandi-gerbang'
+docker run --rm -it caddy:2 caddy hash-password
 ```
+
+Perintah ini meminta kata sandi gerbang dua kali (tidak tersimpan di riwayat shell) lalu mencetak hash.
 
 `BASIC_AUTH_USER` (bawaan `qa`) dan kata sandi gerbang itulah yang dibagikan ke penguji. Gerbang ini wajib:
 kata sandi akun uji sama dengan alamat emailnya dan tertulis di `data-uji.md`.
@@ -129,21 +138,35 @@ Browser meminta Basic Auth satu kali per sesi; sesudah itu halaman masuk SIMPAS 
 | --- | --- |
 | Memperbarui ke commit terbaru yang sudah di-push | `scripts/staging/deploy.sh` |
 | Mengembalikan data uji ke awal | `scripts/staging/reset-data.sh` |
-| Melihat log aplikasi (termasuk isi email, karena `MAIL_MAILER=log`) | `tail -f storage/logs/laravel.log` |
-| Melihat log proses | `docker compose -f docker-compose.staging.yml logs -f app queue reverb caddy` |
-| Mematikan sementara | `docker compose -f docker-compose.staging.yml stop` |
+| Melihat log aplikasi (termasuk isi email: tautan verifikasi dan reset kata sandi) | `tail -f storage/logs/laravel-$(date +%F).log` |
+| Melihat log proses | `docker compose logs -f app queue reverb caddy` |
+| Melihat status service | `docker compose ps` |
+| Mematikan sementara | `docker compose stop` |
+
+`.env` mengatur `COMPOSE_FILE`, jadi `docker compose` di folder ini selalu memakai berkas staging. Jangan
+menghapus baris itu: tanpa dia, `docker compose up` memakai `docker-compose.yml` lokal dan merusak staging.
+
+`reset-data.sh` memasang mode pemeliharaan selama berjalan; penguji yang sedang membuka situs melihat halaman
+pemeliharaan sampai selesai.
 
 Tidak ada email sungguhan dan tidak ada cadangan data: data uji selalu bisa dibuat ulang dengan `reset-data.sh`.
 
 ## Masalah umum
 
-- **VM hilang atau berhenti sendiri.** Oracle dapat mereklamasi VM Always Free yang menganggur selama 7 hari
-  (CPU, jaringan, dan memori di bawah 20%). Saat staging tidak dipakai lama, harapkan VM perlu dibuat ulang;
-  data uji dibuat lagi dengan langkah 5–7. Akun yang di-upgrade ke *Pay As You Go* tidak terkena aturan ini
-  (periksa halaman *Always Free Resources* Oracle), dengan risiko tertagih bila melewati kuota.
+- **VM hilang atau berhenti sendiri.** Oracle mereklamasi VM Always Free yang menganggur selama 7 hari (CPU,
+  jaringan, dan memori di bawah 20%). Tumpukan ini memakai sekitar 1–2 GB dari 12 GB, jadi **minggu tanpa
+  pengujian hampir pasti berujung VM direklamasi**. Membuat ulang = langkah 2 sampai 7 (sekitar satu jam),
+  data uji ikut dibuat ulang. Akun yang di-upgrade ke *Pay As You Go* tidak terkena aturan ini (periksa halaman
+  *Always Free Resources* Oracle), dengan risiko tertagih bila melewati kuota.
 - **Browser menolak sertifikat / situs tidak terbuka.** Port 80 atau 443 masih tertutup di salah satu lapis
   langkah 3. Lihat `docker compose -f docker-compose.staging.yml logs caddy`: galat ACME menyebut penyebabnya.
 - **Notifikasi langsung atau "Akhiri Semua Sesi" tidak terasa seketika.** Pastikan service `reverb` dan `queue`
   hidup (`docker compose -f docker-compose.staging.yml ps`).
 - **Perubahan kode belum terlihat sesudah push.** `deploy.sh` belum dijalankan ulang di VM; aset dan cache
   konfigurasi dibangun saat deploy.
+- **`git pull` di `deploy.sh` gagal "Permission denied" di `storage/` atau `bootstrap/cache/`.** Folder itu
+  milik pengguna container (`www-data`). Jalankan `sudo chown -R ubuntu storage bootstrap/cache`, lalu
+  `deploy.sh` lagi (deploy mengembalikan kepemilikannya).
+- **`deploy.sh` berhenti dengan "Isi dulu di .env: ...".** Kunci yang disebut masih kosong; isi lalu ulangi.
+- **`deploy.sh` berhenti dengan "Service tidak berjalan: ...".** Lihat log service yang disebut
+  (`docker compose logs <nama>`); untuk `caddy` biasanya hash Basic Auth tidak di antara petik tunggal.

@@ -1,21 +1,31 @@
 # Staging QA (docs/qa/staging.md). SITE_HOST = `<ip-publik>.sslip.io` di VM (sertifikat Let's Encrypt),
 # `localhost` saat diuji di laptop (CA internal Caddy).
-{$SITE_HOST}:{$HTTPS_PORT:443} {
-	# Kata sandi akun uji = alamat emailnya dan tertulis di docs/qa/data-uji.md: tanpa gerbang ini
-	# siapa pun yang menemukan URL bisa masuk sebagai Admin.
-	basic_auth {
-		{$BASIC_AUTH_USER} {$BASIC_AUTH_HASH}
+{
+	servers {
+		# UDP 443 tidak dibuka, jadi HTTP/3 tidak diiklankan.
+		protocols h1 h2
 	}
+}
 
+{$SITE_HOST}:{$HTTPS_PORT:443} {
 	header X-Robots-Tag "noindex, nofollow"
 	encode zstd gzip
 
-	# Reverb (protokol Pusher): browser membuka wss://SITE_HOST/app/{key}.
+	# Reverb (protokol Pusher): browser membuka wss://SITE_HOST/app/{key}. Sengaja di luar Basic Auth:
+	# Safari/iOS tidak selalu mengirim kredensial Basic pada handshake WebSocket. Tidak ada yang terbuka
+	# karenanya: semua kanal privat (routes/channels.php), dan berlangganan butuh /broadcasting/auth
+	# yang tetap di balik Basic Auth dan sesi Laravel.
 	handle /app/* {
 		reverse_proxy reverb:8080
 	}
 
 	handle {
+		# Kata sandi akun uji = alamat emailnya dan tertulis di docs/qa/data-uji.md: tanpa gerbang ini
+		# siapa pun yang menemukan URL bisa masuk sebagai Admin.
+		basic_auth {
+			{$BASIC_AUTH_USER} {$BASIC_AUTH_HASH}
+		}
+
 		root * /var/www/html/public
 		php_fastcgi app:9000
 		file_server

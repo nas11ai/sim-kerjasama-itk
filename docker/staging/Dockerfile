@@ -33,4 +33,14 @@ RUN { \
         echo 'opcache.validate_timestamps=1'; \
     } > /usr/local/etc/php/conf.d/staging.ini
 
+# Bawaan image 5 worker; 3–4 penguji dengan polling, unggahan besar, dan PDF butuh lebih (VM 12 GB).
+RUN { \
+        echo '[www]'; \
+        echo 'pm = dynamic'; \
+        echo 'pm.max_children = 16'; \
+        echo 'pm.start_servers = 4'; \
+        echo 'pm.min_spare_servers = 2'; \
+        echo 'pm.max_spare_servers = 6'; \
+    } > /usr/local/etc/php-fpm.d/zz-staging.conf
+
 WORKDIR /var/www/html
