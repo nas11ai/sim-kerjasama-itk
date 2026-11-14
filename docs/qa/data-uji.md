@@ -16,7 +16,8 @@ php artisan db:seed --class=QaDataSeeder
 - Berkas (foto profil, proposal, laporan monev) **tidak** mengikuti `FILESYSTEM_DISK`: unggahan pengguna selalu
   disimpan di disk privat `local` (`storage/app/private`) milik mesin yang menjalankan seeder. Jalankan seeder di
   mesin yang sama dengan aplikasi yang dipakai QA; bila seeder dijalankan dari laptop lain ke database bersama,
-  tautan berkasnya akan 404 di mesin QA (lihat B27 di catatan bug).
+  tautan berkasnya akan 404 di mesin QA. Staging bersama ([`staging.md`](staging.md)) sudah memenuhi ini:
+  `scripts/staging/reset-data.sh` menjalankan kedua perintah di VM yang sama.
 - Lama proses sekitar satu menit di database lokal dengan `BCRYPT_ROUNDS=4` (ukuran test). Dengan cost bcrypt
   bawaan dan database jarak jauh seperti Neon, perkirakan beberapa kali lebih lama.
 - Tahun mengikuti tanggal saat seeder dijalankan: "tahun ini" dan "tahun lalu".

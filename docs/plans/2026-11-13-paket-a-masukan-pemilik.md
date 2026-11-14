@@ -257,3 +257,12 @@ empat set penguji (`qa1`–`qa4`, masing-masing 19 akun dan 16 pengajuan di seti
 lalu) plus volume institusi (30 peneliti latar, 60 pengajuan); seluruh perubahan status lewat Action asli. Temuan
 yang tidak diperbaiki: B25 (TKT tanpa seeder, simpan TKT di Konfigurasi gagal), B26 (`DummyUserSeeder` peran lama,
 fixture E2E menulis status), B27 (unggahan selalu ke disk privat `local`, menentukan rancangan staging). Berikutnya menurut K1: staging (Neon + storage S3-kompatibel, `APP_ENV=staging`), mulai dari B27.
+
+## Langkah 4: staging QA (2026-11-14)
+
+Pemilik memilih satu host bersama di VM gratis, bukan tiap laptop + Neon + R2 (adapter S3 belum terpasang, dan
+antrean, ekspor, serta Reverb nyasar antar laptop). Desain `docs/design/2026-11-14-staging-vm-design.md`, rencana
+`docs/plans/2026-11-14-staging-vm.md`, panduan pemilik `docs/qa/staging.md`. Tumpukan: Caddy (HTTPS otomatis,
+Basic Auth seluruh situs) + php-fpm + PostgreSQL + antrean + Reverb + scheduler di VM Oracle Always Free (Ampere A1),
+`APP_ENV=staging`; B27 selesai tanpa perubahan kode. Pemilik: membuat akun dan VM, push cabang yang dilacak VM.
+Berikutnya menurut K1: matriks QA Excel.
