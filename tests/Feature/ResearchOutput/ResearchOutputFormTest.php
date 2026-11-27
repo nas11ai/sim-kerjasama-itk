@@ -82,7 +82,7 @@ it('[RO-OUTPUT-03] tipe PKS hanya ditawarkan untuk Pengabdian', function () {
 
     expect($codes($fx['submission']))->not->toContain('pks');
 
-    $type = SubmissionType::firstOrCreate(['name' => 'CommunityService']);
+    $type = SubmissionType::firstOrCreate(['name' => 'Pengabdian kepada Masyarakat']);
     $fx['submission']->update(['scheme_id' => Scheme::factory()->create(['submission_type_id' => $type->id])->id]);
 
     expect($codes($fx['submission']->fresh()))->toContain('pks');

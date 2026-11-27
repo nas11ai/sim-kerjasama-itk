@@ -79,7 +79,7 @@ class OutputTypeDefinitionSeeder extends Seeder
                 self::field('description', 'Deskripsi', 'textarea'),
             ]],
             // BR-RO-02 — perjanjian kerja sama adalah luaran pengabdian.
-            'pks' => ['name' => 'PKS — Perjanjian Kerja Sama', 'submission_type' => 'CommunityService', 'fields' => [
+            'pks' => ['name' => 'PKS — Perjanjian Kerja Sama', 'submission_type' => 'Pengabdian kepada Masyarakat', 'fields' => [
                 self::field('title', 'Judul Kerja Sama', required: true),
                 self::field('involved_parties', 'Pihak Terlibat', required: true),
                 self::field('start_date', 'Tanggal Mulai', 'date', true),

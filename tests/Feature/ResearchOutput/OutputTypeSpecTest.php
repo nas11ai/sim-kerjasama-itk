@@ -34,7 +34,7 @@ it('seeder menandai tipe berlampiran dan tipe pengabdian', function () {
 
     expect(OutputTypeDefinition::query()->where('requires_files', true)->orderBy('code')->pluck('code')->all())
         ->toBe(['ip', 'prototype'])
-        ->and(OutputTypeDefinition::query()->where('code', 'pks')->value('submission_type'))->toBe('CommunityService');
+        ->and(OutputTypeDefinition::query()->where('code', 'pks')->value('submission_type'))->toBe('Pengabdian kepada Masyarakat');
 });
 
 it('spesifikasi melewati entri tanpa kunci dan memakai kunci bila label kosong', function () {

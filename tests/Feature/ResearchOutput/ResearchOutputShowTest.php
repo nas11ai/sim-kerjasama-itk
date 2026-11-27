@@ -99,7 +99,7 @@ it('orang asing 403', function () {
 
 it('[RO-OUTPUT-05] PKS berjalan tampil "Masih berjalan"', function () {
     $fx = outputUploadFixture();
-    $type = SubmissionType::firstOrCreate(['name' => 'CommunityService']);
+    $type = SubmissionType::firstOrCreate(['name' => 'Pengabdian kepada Masyarakat']);
     $fx['submission']->update(['scheme_id' => Scheme::factory()->create(['submission_type_id' => $type->id])->id]);
     $output = SaveResearchOutput::run($fx['submission']->fresh(), $fx['user'], outputInput('pks', [
         'title' => 'Kerja sama pendampingan UMKM',
