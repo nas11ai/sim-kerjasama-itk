@@ -133,11 +133,15 @@ it('[RPT-PRINT-05] jalur HTTP juga menolak dengan 403', function () {
 it('[RPT-PRINT-06] Laporan Monev bisa dicetak begitu evaluasinya masuk', function () {
     Storage::fake(ExportWriter::DISK);
     $fx = monevFixture();
+    $eval = monevReportWithEvaluation($fx, 'submitted');
+    $eval['laporan']->update(['is_submitted' => true]);
 
     $job = PrintDocument::run($fx['owner'], PrintableDocument::MONEV_REPORT, $fx['parent']);
 
     expect($job->status)->toBe(ExportJob::STATUS_COMPLETED)
         ->and($job->file_path)->toEndWith('.pdf');
+
+    Storage::disk(ExportWriter::DISK)->assertExists((string) $job->file_path);
 });
 
 it('menolak dokumen yang tidak dikenal dengan 404', function () {
