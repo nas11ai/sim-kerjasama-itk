@@ -5,6 +5,7 @@ namespace App\Queries\Review;
 use App\Actions\Concerns\ChangesNoState;
 use App\Models\FormSubmission;
 use App\Models\User;
+use App\States\Submission\Withdrawn;
 use App\Support\ScoreVisibility;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -42,6 +43,10 @@ class VisibleReviewerScores implements ChangesNoState
         }
 
         if ($submission->submitted_by === $user->id) {
+            if ($submission->status instanceof Withdrawn) {
+                return 'Pengajuan telah ditarik kembali dan hasil penilaian diarsipkan.';
+            }
+
             // BR-REV-12 — bukan "review selesai", melainkan keputusan final.
             return 'Hasil penilaian terbuka setelah keputusan akhir atas pengajuan ini diambil.';
         }

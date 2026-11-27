@@ -7,6 +7,7 @@ use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\States\Submission\Approved;
 use App\States\Submission\Rejected;
+use App\States\Submission\Withdrawn;
 
 /**
  * BR-REV-11 dan BR-REV-12 — siapa boleh melihat skor evaluasi, dan kapan. Dua
@@ -60,7 +61,11 @@ final class ScoreVisibility
         $status = $submission->status;
 
         // Keputusan final saja yang membuka — bukan sekadar "review selesai".
-        return $status instanceof Approved || $status instanceof Rejected;
+        // WITHDRAWN hanya bisa dicapai dari APPROVED (SubmissionStatus::config), jadi
+        // skor yang dibuka di sini selalu skor yang sudah pernah final.
+        return $status instanceof Approved
+            || $status instanceof Rejected
+            || $status instanceof Withdrawn;
     }
 
     /**

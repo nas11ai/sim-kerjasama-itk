@@ -24,6 +24,7 @@ use App\States\Submission\Draft;
 use App\States\Submission\NeedsRevision;
 use App\States\Submission\Rejected;
 use App\States\Submission\UnderReview;
+use App\States\Submission\Withdrawn;
 use App\Support\Audit\AuditTrail;
 
 function detailOf(User $viewer, FormSubmission $submission): array
@@ -127,6 +128,19 @@ it('decision null selama pengajuan belum diputuskan', function () {
     $submission = FormSubmission::factory()->create(['status' => UnderReview::class]);
 
     expect(detailOf($submission->submittedBy, $submission)['decision'])->toBeNull();
+});
+
+it('[SM-WITHDRAW-04] pengajuan WITHDRAWN tetap menampilkan riwayat keputusan approved', function () {
+    $operator = User::factory()->create(['name' => 'Siti Aminah']);
+    $submission = FormSubmission::factory()->create(['status' => Approved::class, 'is_submitted' => true]);
+    $submission->status->transitionTo(Withdrawn::class);
+    AuditTrail::record(ApproveSubmission::AUDIT_DESCRIPTION, $submission, $operator);
+
+    $decision = detailOf($submission->submittedBy, $submission)['decision'];
+
+    expect($decision->outcome)->toBe('approved')
+        ->and($decision->reason)->toBeNull()
+        ->and($decision->decidedBy)->toBe('Siti Aminah');
 });
 
 it('[BUD-LOCK-01] anggaran terkunci pada status terminal', function () {
