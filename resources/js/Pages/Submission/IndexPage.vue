@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // Frame: RESEARCHER-02-01
 import { Head, Link } from '@inertiajs/vue3'
-import { Plus } from 'lucide-vue-next'
+import { Download, Plus } from 'lucide-vue-next'
 import { computed } from 'vue'
 
 import FilterToolbar from '@/Components/app/FilterToolbar.vue'
@@ -43,12 +43,19 @@ const selects = computed(
             title="Daftar Pengajuan"
             subtitle="Semua pengajuan di mana Anda menjadi ketua atau anggota tim."
         >
-            <template v-if="canCreate" #actions>
-                <Button as-child>
-                    <Link :href="route('user.submissions.create')">
-                        <Plus class="size-4" /> Buat Pengajuan Baru
-                    </Link>
-                </Button>
+            <template #actions>
+                <div class="flex items-center gap-2">
+                    <Button as-child variant="outline">
+                        <Link :href="route('reporting.exports.index', { type: 'submissions' })">
+                            <Download class="size-4" /> Ekspor
+                        </Link>
+                    </Button>
+                    <Button v-if="canCreate" as-child>
+                        <Link :href="route('user.submissions.create')">
+                            <Plus class="size-4" /> Buat Pengajuan Baru
+                        </Link>
+                    </Button>
+                </div>
             </template>
         </PageHeader>
         <FilterToolbar
