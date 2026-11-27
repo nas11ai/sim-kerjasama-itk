@@ -85,16 +85,16 @@ it('[RO-OUTPUT-02] submission APPROVED bisa menerima luaran', function () {
 });
 
 it('[RO-OUTPUT-03] tipe pks ditolak di luar CommunityService', function () {
-    ['submission' => $s, 'owner' => $owner] = outputFixture(submissionTypeName: 'Research');
-    outputType('pks', ['submission_type' => 'CommunityService']);
+    ['submission' => $s, 'owner' => $owner] = outputFixture(submissionTypeName: 'Penelitian');
+    outputType('pks', ['submission_type' => 'Pengabdian kepada Masyarakat']);
 
     expect(fn () => SaveResearchOutput::run($s, $owner, outputInput('pks')))
         ->toThrow(ValidationException::class);
 });
 
 it('[RO-OUTPUT-04] tipe pks diterima pada CommunityService', function () {
-    ['submission' => $s, 'owner' => $owner] = outputFixture(submissionTypeName: 'CommunityService');
-    outputType('pks', ['submission_type' => 'CommunityService']);
+    ['submission' => $s, 'owner' => $owner] = outputFixture(submissionTypeName: 'Pengabdian kepada Masyarakat');
+    outputType('pks', ['submission_type' => 'Pengabdian kepada Masyarakat']);
 
     $output = SaveResearchOutput::run($s, $owner, outputInput('pks'));
 
@@ -108,7 +108,7 @@ function runningPks(): array
 }
 
 it('[RO-OUTPUT-05] PKS yang masih berjalan boleh tanpa end_date', function () {
-    ['submission' => $s, 'owner' => $owner] = outputFixture(submissionTypeName: 'CommunityService');
+    ['submission' => $s, 'owner' => $owner] = outputFixture(submissionTypeName: 'Pengabdian kepada Masyarakat');
     $this->seed(OutputTypeDefinitionSeeder::class);
 
     // end_date tidak wajib: kerja sama yang masih berjalan memang belum punya tanggal
@@ -197,7 +197,7 @@ it('[RO-OUTPUT-21] metadata wajib yang kosong ditolak', function () {
 });
 
 it('[RO-OUTPUT-22] metadata yang tidak wajib boleh kosong', function () {
-    ['submission' => $s, 'owner' => $owner] = outputFixture(submissionTypeName: 'CommunityService');
+    ['submission' => $s, 'owner' => $owner] = outputFixture(submissionTypeName: 'Pengabdian kepada Masyarakat');
     $this->seed(OutputTypeDefinitionSeeder::class);
 
     $output = SaveResearchOutput::run($s, $owner, outputInput('pks', [...runningPks(), 'end_date' => '']));

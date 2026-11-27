@@ -226,13 +226,13 @@ it('menyimpan dan mengganti daftar TRL yang diizinkan', function () {
 
 it('skema yang dibuat lewat layar memenuhi BR-RO-02 untuk luaran PKS', function () {
     $admin = schemeAdmin();
-    $communityService = SubmissionType::firstOrCreate(['name' => 'CommunityService']);
+    $communityService = SubmissionType::firstOrCreate(['name' => 'Pengabdian kepada Masyarakat']);
 
     OutputTypeDefinition::updateOrCreate(['code' => 'pks'], [
         'name' => 'PKS',
         'is_active' => true,
         'requires_files' => false,
-        'submission_type' => 'CommunityService',
+        'submission_type' => 'Pengabdian kepada Masyarakat',
         'fields' => [],
     ]);
 
