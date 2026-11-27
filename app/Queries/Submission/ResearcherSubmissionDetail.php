@@ -24,6 +24,7 @@ use App\Queries\Review\VisibleReviewerScores;
 use App\States\Submission\Approved;
 use App\States\Submission\NeedsRevision;
 use App\States\Submission\Rejected;
+use App\States\Submission\Withdrawn;
 use App\Support\PhaseAccessGate;
 use Illuminate\Database\Eloquent\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -170,6 +171,8 @@ class ResearcherSubmissionDetail implements ChangesNoState
         [$outcome, $audit, $reason] = match (true) {
             $submission->status instanceof Rejected => ['rejected', RejectSubmission::AUDIT_DESCRIPTION, $submission->rejection_reason],
             $submission->status instanceof Approved => ['approved', ApproveSubmission::AUDIT_DESCRIPTION, null],
+            // BR-SM-11 — penarikan hanya dari APPROVED; riwayat keputusannya tetap arsip.
+            $submission->status instanceof Withdrawn => ['approved', ApproveSubmission::AUDIT_DESCRIPTION, null],
             default => [null, '', null],
         };
 

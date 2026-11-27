@@ -20,6 +20,7 @@ use App\Models\User;
 use App\States\Submission\Approved;
 use App\States\Submission\Rejected;
 use App\States\Submission\UnderReview;
+use App\States\Submission\Withdrawn;
 use App\Support\ScoreVisibility;
 
 /** @return array{0: User, 1: FormSubmission} */
@@ -105,6 +106,14 @@ it('[REV-VIS-06] researcher melihat skor setelah REJECTED', function () {
 
     // Ditolak pun berhak tahu alasannya — justru di situ skornya paling
     // dibutuhkan untuk perbaikan.
+    expect(ScoreVisibility::visibleToResearcher($owner, $submission))->toBeTrue();
+});
+
+it('[SM-WITHDRAW-04] researcher tetap melihat skor setelah WITHDRAWN', function () {
+    [$owner, $submission] = visibilityFixture(Approved::class);
+    $submission->status->transitionTo(Withdrawn::class);
+
+    // SM-WITHDRAW-04 — data historis tetap utuh setelah penarikan.
     expect(ScoreVisibility::visibleToResearcher($owner, $submission))->toBeTrue();
 });
 

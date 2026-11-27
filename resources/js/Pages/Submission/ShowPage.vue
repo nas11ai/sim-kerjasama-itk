@@ -31,6 +31,13 @@ const activeOverride = computed(() =>
     props.phaseAccess.override?.status === 'active' ? props.phaseAccess.override : null
 )
 
+// BR-SM-11 — penarikan membekukan, bukan menghapus. Skor dan keputusan tetap
+// ditampilkan, dan spanduknya menyebut keadaan yang sebenarnya.
+const withdrawn = computed(() => props.submission.status.key === 'withdrawn')
+const scoreNote = computed(() =>
+    withdrawn.value ? 'Hasil penilaian diarsipkan setelah pengajuan ditarik kembali.' : undefined
+)
+
 const tabs = [
     { value: 'info', label: 'Informasi' },
     { value: 'members', label: 'Anggota' },
@@ -57,6 +64,11 @@ const tabs = [
         <AppBanner v-if="activeOverride" tone="info" class="mb-4">
             Akses tahap ini diperpanjang Operator sampai
             {{ formatDate(activeOverride.expires_at) }}.
+        </AppBanner>
+
+        <AppBanner v-if="withdrawn" tone="lock" class="mb-4">
+            Pengajuan ini telah ditarik kembali. Isian, nilai, laporan Monev, dan luaran tetap
+            tersimpan sebagai arsip baca-saja.
         </AppBanner>
 
         <DecisionSection v-if="decision" :decision="decision" class="mb-6" />
@@ -103,7 +115,7 @@ const tabs = [
                         :printable-documents="printableDocuments"
                     />
                 </SectionCard>
-                <ScoreSection :scores="scores" />
+                <ScoreSection :scores="scores" :note="scoreNote" />
                 <SectionCard title="Timeline Status">
                     <HistoryTimeline :entries="history.slice(0, 3)" />
                 </SectionCard>
